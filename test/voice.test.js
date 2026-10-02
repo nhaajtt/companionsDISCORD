@@ -9,7 +9,7 @@ import { createScoreStore } from "../src/scores.js";
 import { createSettingsStore } from "../src/settings.js";
 import { PomodoroSessions } from "../src/pomodoro.js";
 import { VoiceKeeper } from "../src/voice.js";
-import { VoiceTools } from "../src/voicetools.js";
+import { VoiceTools, presenceText } from "../src/voicetools.js";
 
 const MIN = 60_000;
 const tmp = () => mkdtempSync(path.join(tmpdir(), "voice-"));
@@ -361,4 +361,16 @@ test("the voice, welcome and reminder lines exist in both languages", () => {
   }
   for (const line of [...tools.en.greet, ...tools.vi.greet, ...tools.en.welcome, ...tools.vi.welcome]) assert.match(line, /\{user\}/);
   for (const line of [...tools.en.remind, ...tools.vi.remind]) assert.match(line, /\{user\}.*\{text\}|\{text\}.*\{user\}/);
+});
+
+test("the status line shows a focus session first, then the voice room, then an idle line that rotates", () => {
+  const lines = getTools("en");
+  const now = Date.parse("2026-10-02T20:00:00Z");
+  assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 }, focusMinutesLeft: 12 }), /12 min/);
+  assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 } }), /with 3/);
+  assert.equal(presenceText(lines, { slot: 0, now, voice: { humans: 0 } }), lines.presenceVoiceAlone);
+  const idle = presenceText(lines, { slot: 0, now });
+  assert.ok(lines.presenceIdle.includes(idle));
+  assert.notEqual(presenceText(lines, { slot: 1, now }), idle, "different bots show different lines");
+  assert.notEqual(presenceText(lines, { slot: 0, now: now + 21 * 60_000 }), idle, "and the line changes over time");
 });

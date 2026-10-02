@@ -2,6 +2,7 @@
 // trivia buttons, and the /companions (managers) and /trivia (everyone) commands, registered on the first bot only.
 import {
   ActionRowBuilder,
+  ActivityType,
   ButtonBuilder,
   ButtonStyle,
   ChannelType,
@@ -21,7 +22,7 @@ import { POMODORO_LIMITS, fill } from "./pomodoro.js";
 import { ReminderError, parseDuration } from "./reminders.js";
 import { LANGUAGES, PRESETS, createSettingsStore, validTimeZone } from "./settings.js";
 import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
-import { VoiceTools } from "./voicetools.js";
+import { VoiceTools, presenceText } from "./voicetools.js";
 import { getContent } from "./content/index.js";
 import { getTools } from "./content/tools.js";
 
@@ -400,6 +401,33 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     }
   };
 
+  /** What each companion shows under its name: the voice room it sits in, a focus session, or an idle line. */
+  const lastPresence = new Map();
+  const updatePresence = () => {
+    const now = Date.now();
+    for (const { slot, client } of slots) {
+      if (!client.isReady()) continue;
+      let voice = null;
+      let focus = null;
+      let language = "en";
+      for (const guildId of client.guilds.cache.keys()) {
+        const settings = store.get(guildId);
+        if (settings.channelId && language === "en") language = settings.language;
+        if (!keeper.assigned(guildId).includes(slot)) continue;
+        language = settings.language;
+        const channelId = voicePort.where(slot, guildId);
+        const channel = channelId ? client.guilds.cache.get(guildId)?.channels.cache.get(channelId) : null;
+        voice = { humans: channel?.members ? channel.members.filter((m) => !m.user.bot).size : 0 };
+        focus = voiceTools.pomodoro.status(guildId)?.minutesLeft ?? null;
+        break;
+      }
+      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus });
+      if (lastPresence.get(slot) === text) continue;
+      lastPresence.set(slot, text);
+      client.user.setPresence({ status: "online", activities: [{ name: "custom", type: ActivityType.Custom, state: text }] });
+    }
+  };
+
   /** Delivers the reminders and event heads-ups that are due. One that cannot be sent (no bot can write there) is retried. */
   const deliverReminders = async () => {
     for (const { item, stage } of reminders.due(Date.now())) {
@@ -500,6 +528,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       for (const [guildId] of store.all()) if (!seeded.has(guildId)) (seeded.add(guildId), seedVoiceGuild(guildId));
       await voiceTools.tick();
       await deliverReminders();
+      updatePresence();
     } catch (error) {
       console.error("Companion tools tick failed:", error);
     }

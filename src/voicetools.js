@@ -90,3 +90,16 @@ export class VoiceTools {
     return fill(this.#lines(guildId).pomodoroStart, { work: session.work, brk: session.brk, round: 1, rounds: session.rounds });
   }
 }
+
+const IDLE_ROTATE_MS = 20 * MIN; // an idle bot changes its status line about every 20 minutes
+
+/**
+ * The short status text a companion shows in the member list ("Sitting in voice with 3", "Focus session: 12 min left").
+ * @param {object} lines  the `tools` bank of a language
+ * @param {{slot: number, now: number, voice?: {humans: number}|null, focusMinutesLeft?: number|null}} state
+ */
+export function presenceText(lines, { slot, now, voice = null, focusMinutesLeft = null }) {
+  if (focusMinutesLeft !== null && focusMinutesLeft !== undefined) return fill(lines.presenceFocus, { min: focusMinutesLeft });
+  if (voice) return voice.humans > 0 ? fill(lines.presenceVoice, { n: voice.humans }) : lines.presenceVoiceAlone;
+  return lines.presenceIdle[(slot + Math.floor(now / IDLE_ROTATE_MS)) % lines.presenceIdle.length];
+}
