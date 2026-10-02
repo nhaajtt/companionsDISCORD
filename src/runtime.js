@@ -491,8 +491,36 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   toolsTimer.unref?.();
   log(`Companions running with ${slots.length} bots. Time zone: ${timezone}.`);
 
+  const startedAt = Date.now();
+  /** Totals only: nothing here names a server, a person or a message. */
+  const snapshot = () => {
+    const guildIds = [...hostClient.guilds.cache.keys()];
+    let conversations = 0;
+    let joined = 0;
+    let triviaAnswers = 0;
+    let rooms = 0;
+    let sitting = 0;
+    for (const guildId of guildIds) {
+      const sum = usage.summary(guildId, engine.today(), 7);
+      conversations += sum.total;
+      joined += sum.totalJoined;
+      triviaAnswers += sum.triviaAnswers;
+      const voice = keeper.status(guildId);
+      if (voice.present > 0) rooms++;
+      sitting += voice.present ?? 0;
+    }
+    return {
+      uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
+      bots: { online: slots.filter(({ client }) => client.isReady()).length, total: slots.length },
+      servers: guildIds.length,
+      voice: { rooms, companionsSitting: sitting },
+      last7Days: { conversations, withPeople: joined, triviaAnswers },
+    };
+  };
+
   return {
     engine,
+    snapshot,
     stop: async () => {
       clearInterval(timer);
       clearInterval(toolsTimer);

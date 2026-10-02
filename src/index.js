@@ -6,6 +6,7 @@ import { startCompanions } from "./runtime.js";
 import { createReminderStore } from "./reminders.js";
 import { createScoreStore } from "./scores.js";
 import { createSettingsStore, validTimeZone } from "./settings.js";
+import { createStatusServer } from "./status.js";
 import { createUsageStore } from "./usage.js";
 
 const tokens = (process.env.COMPANION_TOKENS ?? "")
@@ -33,11 +34,18 @@ const custom = createCustomStore(path.join(dataDir, "custom.json"));
 const hours = createScoreStore(path.join(dataDir, "voice.json"));
 const reminders = createReminderStore(path.join(dataDir, "reminders.json"));
 let stop;
+let snapshot;
 try {
-  ({ stop } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, hours, reminders, timezone }));
+  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, hours, reminders, timezone }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);
+}
+
+const statusPort = Number(process.env.STATUS_PORT);
+if (statusPort > 0) {
+  createStatusServer({ snapshot, port: statusPort, host: process.env.STATUS_HOST || "127.0.0.1" });
+  console.log(`Status endpoint on port ${statusPort}: /status.json`);
 }
 
 for (const signal of ["SIGTERM", "SIGINT"]) {

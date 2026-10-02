@@ -87,6 +87,10 @@ Everyone (not only managers) can use:
 | `/remind add in text` | A companion reminds you in this channel (`in` is like `10m`, `2h`, `1d12h`); `list` and `cancel` too, up to 20 waiting |
 | `/event add in name` (managers) | An event countdown announced a day before, an hour before and when it starts; `list` and `cancel` too |
 
+## How it is built
+
+The behaviour lives in plain modules that never touch Discord (injected ports, fake clock in tests); one file adapts them to Discord. See [docs/architecture.md](docs/architecture.md) for the diagram and the design decisions.
+
 ## Settings (`.env`)
 
 | Variable | Meaning |
@@ -94,6 +98,7 @@ Everyone (not only managers) can use:
 | `COMPANION_TOKENS` | 2 to 10 bot tokens, comma-separated (required) |
 | `COMPANION_TIMEZONE` | Time zone for quiet hours and the daily limit (default `Asia/Ho_Chi_Minh`) |
 | `COMPANION_DATA_DIR` | Where the data files are stored (default `data`; the compose file sets it) |
+| `STATUS_PORT` | Optional. Serve a read-only `/status.json` (totals only: uptime, bots online, servers, voice rooms, conversations of the last 7 days) on this port. `STATUS_HOST` defaults to `127.0.0.1`; put a tunnel in front of it to show it on a website |
 
 ## What is stored
 
