@@ -32,6 +32,7 @@
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/pages.css">
 <link rel="stylesheet" href="assets/companions.css">
+<link rel="stylesheet" href="assets/cinema.css">
 </head>
 <body>
 <a class="skip" href="#content">Bỏ qua, tới nội dung</a>
@@ -53,7 +54,7 @@
     <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
     companionsDISCORD
   </a>
-  <nav class="nav" aria-label="Các trang"><a href="index.html" aria-current="page">Trang chủ</a><a href="cai-dat.html">Cài đặt</a><a href="invite.html">Mời bot</a><a href="privacy.html">Quyền riêng tư</a></nav>
+  <nav class="nav" aria-label="Các trang"><a href="index.html" aria-current="page">Trang chủ</a><a href="cai-dat.html">Cài đặt</a><a href="invite.html">Mời bot</a><a href="status.html">Trạng thái</a><a href="privacy.html">Quyền riêng tư</a></nav>
   <div class="lang" role="group" aria-label="Ngôn ngữ"><a href="index.html" hreflang="vi" lang="vi" title="Tiếng Việt" aria-current="true">VI</a><a href="en/index.html" hreflang="en" lang="en" title="English">EN</a></div>
   <button class="icon-btn" id="theme" type="button" aria-label="Chuyển sang giao diện sáng" aria-pressed="false">
     <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
@@ -67,10 +68,10 @@
   <div class="fold fold--1"></div><div class="fold fold--2"></div>
   <div class="wrap hero__grid">
     <div>
-      <h1 id="h-hero">Chín tính cách. <em>Không kênh nào chết.</em></h1>
+      <h1 id="h-hero" data-split="hero">Chín tính cách. <em>Không kênh nào chết.</em></h1>
       <p class="lead" style="margin-top:22px">Những bot nhỏ với chín tính cách khác nhau giữ cho một kênh Discord vắng vẻ luôn có tiếng người (à, tiếng bot): hỏi câu vui, kể chuyện cười, chia sẻ fun fact, làm poll, tổ chức đố vui có bảng xếp hạng, và thỉnh thoảng cãi nhau về dứa trên pizza.</p>
       <p class="lead">Không ai trả lời thì bot khác nhảy vào. Có người nhắn thì các bot lùi lại và còn nói cảm ơn.</p>
-      <ul class="hero__tags"><li>2 đến 10 bot</li><li>đố vui, poll, câu hỏi trong ngày</li><li>luôn giữ nhãn BOT</li><li>không đọc nội dung tin nhắn</li><li>không gọi dịch vụ ngoài</li></ul>
+      <ul class="hero__tags"><li>2 đến 10 bot</li><li>đố vui, poll, câu hỏi trong ngày</li><li>ngồi voice 24/7</li><li>luôn giữ nhãn BOT</li><li>không đọc nội dung tin nhắn</li><li>không gọi dịch vụ ngoài</li></ul>
       <div class="hero__cta">
         <a class="btn btn--solid" href="cai-dat.html">Cài đặt</a>
         <a class="btn" href="invite.html">Trợ lý mời bot</a>
@@ -94,6 +95,55 @@
         <div class="chat__input">Kênh này chỉ để xem. Bot tự nói chuyện với nhau.</div>
       </div>
       <p class="sub" style="margin-top:14px;font-size:12px;color:var(--ink-dim);text-align:center">Bản diễn thử chạy ngay trong trình duyệt của bạn. Không có mạng, không có bot thật, chỉ có JavaScript đang đóng kịch.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="stats" aria-label="Con số thật của dự án">
+    <div><b data-count="9">9</b><span>tính cách khác nhau</span></div>
+    <div><b data-count="1250" data-prefix="~">~1.250</b><span>fun fact mỗi ngôn ngữ</span></div>
+    <div><b data-count="300" data-prefix="~">~300</b><span>câu đố vui mỗi ngôn ngữ</span></div>
+    <div><b data-count="55">55</b><span>bài kiểm thử tự động</span></div>
+    <div><b data-count="24">24</b><span>giờ mỗi ngày ngồi trong voice</span></div>
+  </div>
+</div>
+
+<section class="story" data-story aria-labelledby="h-story">
+  <div class="story__pin">
+    <div class="story__steps">
+      <h2 id="h-story" class="sr-only">Một ngày của một server có bot</h2>
+      <div class="story__step is-on" data-step><h3>03:12 sáng.<br>Server vắng.</h3><p>Không ai online, kênh chat im như tờ. Đây là lúc đám bot bắt đầu làm việc.</p></div>
+      <div class="story__step" data-step><h3>Đám bot đến.</h3><p>Pip hỏi một câu. Không ai trả lời thì vài phút sau Grumble nhảy vào. Có người nhắn thì cả đám lùi lại và nói cảm ơn.</p></div>
+      <div class="story__step" data-step><h3>Rồi chơi cùng nhau.</h3><p>Đố vui có nút bấm, poll, câu hỏi trong ngày và bảng xếp hạng theo tuần. Có chuyện để cãi nhau rồi đấy.</p></div>
+      <div class="story__step" data-step><h3>Và không bao giờ đi ngủ.</h3><p>Bot ngồi lại phòng voice 24/7, kể cả khi mọi người đã ra hết. Rớt mạng hay khởi động lại thì tự vào lại chỗ cũ.</p></div>
+    </div>
+    <div class="story__stage" aria-hidden="true">
+      <div class="scene is-on" data-scene>
+        <div class="scene__clock">03:12</div>
+        <p class="scene__line"># chat-chung &middot; 0 người online &middot; 0 tin nhắn hôm nay</p>
+        <p class="scene__line">(tiếng dế kêu)</p>
+      </div>
+      <div class="scene" data-scene>
+        <p class="bubble" style="--n:0;--bot-hue:335"><b>Pip</b>Hỏi nhanh cả kênh: dứa trên pizza, được hay không?</p>
+        <p class="bubble" style="--n:1;--bot-hue:25"><b>Grumble</b>Không ai trả lời hả? Thôi để tôi. Dứa là tội ác.</p>
+        <p class="bubble" style="--n:2;--bot-hue:50"><b>Bean</b>ý kiến gây bão: vỏ bánh mới là pizza</p>
+        <p class="bubble bubble--human" style="--n:3"><b>mika</b>dứa chứ còn gì nữa</p>
+        <p class="bubble" style="--n:4;--bot-hue:335"><b>Pip</b>Mika!! Cảm ơn vì đã tồn tại.</p>
+      </div>
+      <div class="scene" data-scene>
+        <p class="bubble" style="--n:0;--bot-hue:195"><b>Nova</b>Đố vui: bạch tuộc có mấy trái tim?</p>
+        <div class="opts"><span class="opt"><b>A</b>1</span><span class="opt is-right"><b>B</b>3</span><span class="opt"><b>C</b>5</span><span class="opt"><b>D</b>8</span></div>
+        <p class="scene__line">3 người trả lời đúng. Bảng xếp hạng tuần này đã cập nhật.</p>
+      </div>
+      <div class="scene" data-scene>
+        <div class="counter"><b data-count="24" data-prefix="">0</b>/7<small>0 người trong phòng, 3 bot đang ngồi</small></div>
+        <div class="room">
+          <div class="seat" style="--n:0;--bot-hue:335"><i></i>Pip</div>
+          <div class="seat" style="--n:1;--bot-hue:195"><i></i>Nova</div>
+          <div class="seat" style="--n:2;--bot-hue:170"><i></i>Cow</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -133,10 +183,51 @@
   </div>
 </section>
 
-<section class="sheet" id="manners" aria-labelledby="h-man">
+<section class="sheet" id="try" aria-labelledby="h-try">
   <div class="wrap">
     <header class="sheet__head">
       <span class="sheet__no">S-04</span>
+      <h2 id="h-try">Chơi thử ngay</h2>
+      <p class="sheet__scale">Năm câu đố vui thật<br>không cần cài gì cả</p>
+    </header>
+    <div class="story__stage" style="aspect-ratio:auto;max-height:none;padding:clamp(14px,3vw,28px);display:grid;gap:10px" data-trivia="trivia-data" aria-live="polite"></div>
+    <script type="application/json" id="trivia-data">[
+      {"q":"Bạch tuộc có mấy trái tim?","o":["1","3","5","8"],"a":1,"why":"Hai tim bơm máu qua mang, một tim cho phần còn lại của cơ thể."},
+      {"q":"Loại thực phẩm nào gần như không bao giờ hỏng?","o":["Mật ong","Sữa tươi","Bánh mì","Dâu tây"],"a":0,"why":"Mật ong rất ít nước và có tính axit nên vi khuẩn khó sống."},
+      {"q":"Hành tinh nào nóng nhất Hệ Mặt Trời?","o":["Sao Thủy","Sao Kim","Sao Hỏa","Sao Mộc"],"a":1,"why":"Bầu khí quyển dày của Sao Kim giữ nhiệt, nóng hơn cả Sao Thủy ở gần Mặt Trời hơn."},
+      {"q":"Quả nào sau đây về mặt thực vật học là quả mọng (berry)?","o":["Dâu tây","Mâm xôi","Chuối","Anh đào"],"a":2,"why":"Chuối là quả mọng, còn dâu tây và mâm xôi thì không."},
+      {"q":"Thủ đô của Úc là thành phố nào?","o":["Sydney","Melbourne","Perth","Canberra"],"a":3,"why":"Nhiều người đoán Sydney, nhưng thủ đô là Canberra."}
+    ]</script>
+    <p class="sub">Trong server thật, các bot đố như vậy với nút A, B, C, D, mỗi người chọn một lần, và công bố đáp án sau vài phút.</p>
+  </div>
+</section>
+
+<section class="sheet" id="voice" aria-labelledby="h-voice">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-05</span>
+      <h2 id="h-voice">Ngồi voice 24/7</h2>
+      <p class="sheet__scale">Phòng voice trông có người<br>kể cả lúc mọi người đi ngủ</p>
+    </header>
+    <div class="cards"><div class="card reveal"><h3>Ở lại, không đi đâu cả</h3><p>Gõ <code>/companions voice join channel:#phong-voice bots:2</code>. Bot vào phòng, tắt mic, và ở lại kể cả khi mọi người đã ra hết. Khởi động lại hay rớt kết nối thì tự vào lại, chờ lâu dần nếu Discord đang trục trặc.</p></div><div class="card reveal"><h3>Không nói, không nghe</h3><p>Bot chỉ ngồi đó. Không phát âm thanh, không ghi âm, không nhận âm thanh. Chỉ cần quyền View Channel và Connect.</p></div><div class="card reveal"><h3>Lời chào khi bạn vào</h3><p>Bật <code>/companions voice greet</code>, ai vào phòng thì một bot chào trong kênh chat (mỗi người cách nhau ít nhất 30 phút, không chào trong giờ im lặng).</p></div><div class="card reveal"><h3>Phiên tập trung Pomodoro</h3><p><code>/pomodoro start</code> khi bạn đang ngồi trong phòng: bot báo bắt đầu, báo nghỉ, báo xong. Phòng trống 5 phút thì tự dừng.</p></div><div class="card reveal"><h3>Bảng giờ ngồi voice</h3><p><code>/voice top</code> xếp hạng ai ngồi phòng lâu nhất tuần này hoặc mọi thời đại. <code>/voice forget</code> xóa giờ của bạn.</p></div></div>
+  </div>
+</section>
+
+<section class="sheet" id="tools" aria-labelledby="h-tools">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-06</span>
+      <h2 id="h-tools">Có ích cho cộng đồng</h2>
+      <p class="sheet__scale">Chào người mới, nhắc việc<br>đếm ngược sự kiện</p>
+    </header>
+    <div class="cards"><div class="card reveal"><h3>Chào thành viên mới</h3><p><code>/companions welcome</code>: khi có người vào server, một bot chào bằng giọng hài hước kèm một câu phá băng để bắt chuyện. Dùng tin nhắn hệ thống của Discord, không cần quyền đặc biệt.</p></div><div class="card reveal"><h3>Nhắc việc</h3><p><code>/remind add in:2h text:...</code> rồi một bot nhắc đúng giờ trong kênh và gọi tên bạn. Tối đa 20 lời nhắc, xóa ngay khi nhắc xong.</p></div><div class="card reveal"><h3>Đếm ngược sự kiện</h3><p><code>/event add in:3d name:...</code> (cho người quản lý): bot báo trước một ngày, trước một giờ, và khi sự kiện bắt đầu.</p></div><a class="card reveal" href="status.html"><h3>Xem bot có khỏe không</h3><p>Trang trạng thái: bao nhiêu bot online, bao nhiêu phòng voice có bot ngồi, bao nhiêu cuộc trò chuyện tuần qua. Chỉ có số tổng, không có tên hay tin nhắn.</p></a></div>
+  </div>
+</section>
+
+<section class="sheet" id="manners" aria-labelledby="h-man">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-07</span>
       <h2 id="h-man">Phép lịch sự</h2>
       <p class="sheet__scale">Dễ thương là có giới hạn<br>và các giới hạn này đều chỉnh được</p>
     </header>
@@ -147,7 +238,7 @@
 <section class="sheet" id="honest" aria-labelledby="h-hon">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-05</span>
+      <span class="sheet__no">S-08</span>
       <h2 id="h-hon">Nói thật</h2>
       <p class="sheet__scale">Bản thử nghiệm<br>chưa qua kiểm chứng ngoài đời</p>
     </header>
@@ -158,7 +249,7 @@
 <section class="sheet" id="friends" aria-labelledby="h-fr">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-06</span>
+      <span class="sheet__no">S-09</span>
       <h2 id="h-fr">Hàng xóm</h2>
       <p class="sheet__scale">Mã nguồn mở<br>và một người anh em biết hát</p>
     </header>
@@ -187,5 +278,6 @@
 </footer>
 
 <script src="assets/main.js"></script>
+<script src="assets/cinema.js" defer></script>
 </body>
 </html>

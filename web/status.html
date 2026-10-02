@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>companionsDISCORD trạng thái: bot có khỏe không?</title>
+<meta name="description" content="Trạng thái của companionsDISCORD: số liệu tổng (không có tên server, ID hay tin nhắn) từ một địa chỉ /status.json chỉ đọc, hoặc dữ liệu minh họa nếu chưa cấu hình.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/status.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/status.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/status.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/status.html">
+<meta property="og:title" content="companionsDISCORD trạng thái: bot có khỏe không?">
+<meta property="og:description" content="Trạng thái của companionsDISCORD: số liệu tổng (không có tên server, ID hay tin nhắn) từ một địa chỉ /status.json chỉ đọc, hoặc dữ liệu minh họa nếu chưa cấu hình.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/status.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/companions.css">
+<link rel="stylesheet" href="assets/cinema.css">
+</head>
+<body>
+<a class="skip" href="#content">Bỏ qua, tới nội dung</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Dự án</b>companionsDISCORD</span>
+  <span><b>T-01</b></span>
+  <span class="strip__name">Trạng thái</span>
+  <span class="hide-sm"><b>Tỉ lệ</b>1:5</span>
+  <span class="hide-sm"><b>Vẽ bởi</b>nhaajt</span>
+  <span class="hide-sm"><b>Bản</b>II</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, về trang chủ">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Các trang"><a href="index.html">Trang chủ</a><a href="cai-dat.html">Cài đặt</a><a href="invite.html">Mời bot</a><a href="status.html" aria-current="page">Trạng thái</a><a href="privacy.html">Quyền riêng tư</a></nav>
+  <div class="lang" role="group" aria-label="Ngôn ngữ"><a href="status.html" hreflang="vi" lang="vi" title="Tiếng Việt" aria-current="true">VI</a><a href="en/status.html" hreflang="en" lang="en" title="English">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Chuyển sang giao diện sáng" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Trạng thái</h1>
+  <p class="lead">Bot có khỏe không? Câu hỏi hay, tiếc là bot không tự trả lời được, nên có trang này.</p>
+</div>
+<section class="sheet" id="status" aria-labelledby="h-status">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">T-01</span>
+      <h2 id="h-status">Trạng thái</h2>
+      <p class="sheet__scale">Chỉ có tổng số<br>không có gì riêng tư</p>
+    </header>
+    <p>Mấy con số ở dưới chỉ là tổng: không có tên server, không có ID, không có tin nhắn. Chúng lấy từ một địa chỉ <code>/status.json</code> chỉ đọc mà bot có thể mở (tùy chọn). Khi chưa cấu hình địa chỉ trạng thái, trang này hiện dữ liệu minh họa, và có nhãn ghi rõ như vậy.</p>
+    <p><span class="live-badge" id="live-badge">Dữ liệu minh họa</span></p>
+    <div class="live-grid" id="live" data-url=""></div>
+    <p class="sub" id="live-note"></p>
+  </div>
+</section>
+<section class="sheet" id="setup" aria-labelledby="h-setup">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">T-02</span>
+      <h2 id="h-setup">Muốn có số thật?</h2>
+      <p class="sheet__scale">Ba bước<br>không cần mở cổng nào</p>
+    </header>
+    <ol class="build"><li><h3>Bật cổng trạng thái</h3><p>Thêm dòng này vào <code>.env</code> rồi khởi động lại bot.</p><div class="code"><pre><code>STATUS_PORT=8788</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Giữ nó ở trong nhà</h3><p>Địa chỉ này chỉ lắng nghe trên <code>127.0.0.1</code>, nên bên ngoài không với tới được. Muốn công bố thì đặt một tunnel phía trước.</p></li><li><h3>Báo cho trang web</h3><p>Điền địa chỉ công khai của tunnel vào thuộc tính <code>data-url</code> của khối trạng thái ở trên (hoặc đặt <code>window.STATUS_URL</code>). Điền xong, nhãn sẽ đổi từ dữ liệu minh họa sang số liệu trực tiếp.</p></li></ol>
+    <p class="cmd-note">Trang này không khẳng định con số nào là thật. Mọi thứ hiện ra đều do địa chỉ bạn cấu hình trả về.</p>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Dự án</small><strong>companionsDISCORD</strong><span>Vài bot nhỏ giữ cho kênh chat đỡ buồn</span></div>
+      <div class="w2"><small>Số tờ</small><strong>T-01</strong></div>
+      <div class="w2"><small>Vẽ bởi</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Ngày</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Bản</small><strong>II</strong></div>
+      <div class="w6"><small>Tài liệu</small><span><a href="cai-dat.html">Cài đặt</a> &nbsp;&nbsp; <a href="invite.html">Mời bot</a> &nbsp;&nbsp; <a href="status.html">Trạng thái</a> &nbsp;&nbsp; <a href="privacy.html">Quyền riêng tư</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">đã được Bean duyệt (Bean duyệt mọi thứ)</span>
+      <span>Làm bởi <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">mã nguồn</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/main.js"></script>
+<script src="assets/cinema.js" defer></script>
+</body>
+</html>

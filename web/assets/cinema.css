@@ -1,0 +1,483 @@
+/* companionsDISCORD site: the cinematic layer (orb field, kinetic type, pinned story, trivia demo, cursor).
+   Everything here is progressive: without JavaScript or with reduced motion the page is the plain sheet layout. */
+
+@property --bot-hue {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 280;
+}
+
+.progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 60;
+  background: linear-gradient(90deg, var(--redline), #ff8fb1, #5cd6ff);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--scroll, 0));
+  pointer-events: none;
+}
+
+/* ---------- hero: nine orbs that drift, follow the pointer and talk ---------- */
+.orbfield {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero .wrap {
+  position: relative;
+  z-index: 1;
+}
+.orb {
+  --size: 64px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, hsl(var(--bot-hue) 95% 82%), hsl(var(--bot-hue) 70% 52%) 58%, hsl(var(--bot-hue) 60% 28%));
+  box-shadow: 0 0 calc(var(--size) * 0.7) hsl(var(--bot-hue) 90% 60% / 0.38), inset 0 -6px 14px rgb(0 0 0 / 0.25);
+  opacity: 0.8;
+  will-change: transform;
+  transition: scale 0.45s ease, filter 0.45s ease;
+}
+.orb.is-talking {
+  scale: 1.22;
+  filter: brightness(1.25);
+}
+.orb::before,
+.orb::after {
+  content: "";
+  position: absolute;
+  top: 40%;
+  width: 11%;
+  height: 16%;
+  border-radius: 50%;
+  background: #1c1033;
+}
+.orb::before {
+  left: 30%;
+}
+.orb::after {
+  right: 30%;
+}
+.orb__say {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: 180px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-dim);
+  background: var(--paper-2);
+  color: var(--ink);
+  font: 500 12px/1.35 var(--mono);
+  border-radius: 12px 12px 12px 3px;
+  transform: translate(-30%, 6px) scale(0.92);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.orb.is-talking .orb__say {
+  opacity: 1;
+  transform: translate(-30%, 0) scale(1);
+}
+.orbfield .orb:nth-child(n + 6) {
+  --size: 44px;
+}
+
+/* ---------- kinetic type ---------- */
+[data-split] .kc {
+  display: inline-block;
+  translate: 0 0.6em;
+  opacity: 0;
+  rotate: var(--r, 4deg);
+  transition: translate 0.7s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.5s ease, rotate 0.7s cubic-bezier(0.2, 0.9, 0.2, 1);
+  transition-delay: calc(var(--i, 0) * 28ms);
+  will-change: translate, opacity;
+}
+[data-split].is-in .kc {
+  translate: 0 0;
+  opacity: 1;
+  rotate: 0deg;
+}
+[data-split] .kc.kc--lean {
+  transition-delay: 0s;
+}
+[data-split] .kw {
+  display: inline-block;
+  white-space: nowrap;
+}
+.js [data-split]:not(.is-in) {
+  visibility: hidden;
+}
+
+/* section titles start as outlines and fill as they scroll into view */
+.js .sheet h2.fill-title {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--line);
+  background: linear-gradient(90deg, var(--ink) calc(var(--fill-p, 0) * 100%), transparent calc(var(--fill-p, 0) * 100% + 0.1%)) text;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* ---------- pinned story ---------- */
+.story {
+  position: relative;
+  height: 420vh;
+}
+.story__pin {
+  position: sticky;
+  top: var(--header-h);
+  min-height: calc(100vh - var(--header-h) - var(--strip-h));
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(20px, 4vw, 64px);
+  align-items: center;
+  padding: 24px var(--gutter);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.story__steps {
+  display: grid;
+  gap: 18px;
+}
+.story__step {
+  opacity: 0.32;
+  translate: 0 0;
+  transition: opacity 0.5s ease, translate 0.5s ease;
+  padding-left: 22px;
+  border-left: 2px solid var(--line-dim);
+}
+.story__step h3 {
+  font-size: clamp(30px, 4.4vw, 58px);
+  margin-bottom: 6px;
+}
+.story__step p {
+  color: var(--ink-dim);
+  max-width: 46ch;
+}
+.story__step.is-on {
+  opacity: 1;
+  translate: 10px 0;
+  border-left-color: var(--redline);
+}
+.story__step:not(.is-on) p {
+  display: none;
+}
+.story__stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  max-height: 68vh;
+  width: 100%;
+  justify-self: center;
+  border: 1px solid var(--line-dim);
+  background: var(--paper-2);
+  overflow: hidden;
+}
+.story__stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at calc(30% + var(--p, 0) * 40%) 30%, rgb(255 189 74 / 0.16), transparent 55%);
+}
+.scene {
+  position: absolute;
+  inset: 0;
+  padding: clamp(14px, 3vw, 28px);
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  opacity: 0;
+  scale: 0.97;
+  transition: opacity 0.55s ease, scale 0.55s ease;
+  pointer-events: none;
+}
+.scene.is-on {
+  opacity: 1;
+  scale: 1;
+  pointer-events: auto;
+}
+.scene__clock {
+  font: 600 clamp(44px, 9vw, 96px) / 1 var(--display);
+  color: var(--redline);
+}
+.scene__line {
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.bubble {
+  max-width: 82%;
+  padding: 9px 12px;
+  border: 1px solid var(--line-dim);
+  background: var(--fill);
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: 14px 14px 14px 3px;
+  translate: -14px 0;
+  opacity: 0;
+  transition: translate 0.5s ease, opacity 0.5s ease;
+}
+.bubble b {
+  font-family: var(--display);
+  letter-spacing: 0.04em;
+  margin-right: 6px;
+  color: hsl(var(--bot-hue) 90% 74%);
+}
+.scene.is-on .bubble {
+  translate: 0 0;
+  opacity: 1;
+  transition-delay: calc(var(--n, 0) * 0.55s);
+}
+.scene .bubble--human {
+  margin-left: auto;
+  border-radius: 14px 14px 3px 14px;
+}
+
+.opts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.opt {
+  appearance: none;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--fill);
+  border: 1px solid var(--line-dim);
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: translate 0.2s ease, background 0.25s ease, border-color 0.25s ease;
+}
+.opt:hover:not(:disabled) {
+  translate: 0 -2px;
+  border-color: var(--redline);
+}
+.opt:focus-visible {
+  outline: 2px solid var(--redline);
+  outline-offset: 2px;
+}
+.opt b {
+  font-family: var(--display);
+  margin-right: 6px;
+  color: var(--redline);
+}
+.opt.is-right {
+  background: rgb(74 222 128 / 0.22);
+  border-color: #4ade80;
+}
+.opt.is-wrong {
+  background: rgb(248 113 113 / 0.2);
+  border-color: #f87171;
+}
+.opt:disabled {
+  cursor: default;
+}
+.trivia-note {
+  min-height: 1.6em;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+
+.room {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+.seat {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.seat i {
+  --size: 54px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, hsl(var(--bot-hue) 95% 82%), hsl(var(--bot-hue) 70% 52%));
+  box-shadow: 0 0 0 3px var(--paper-2), 0 0 0 5px hsl(var(--bot-hue) 90% 60% / 0.55);
+  animation: seat 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--n, 0) * -0.8s);
+}
+@keyframes seat {
+  50% {
+    box-shadow: 0 0 0 3px var(--paper-2), 0 0 0 9px hsl(var(--bot-hue) 90% 60% / 0.2);
+  }
+}
+.counter {
+  text-align: center;
+  font: 600 clamp(40px, 8vw, 84px) / 1 var(--display);
+  color: var(--redline);
+}
+.counter small {
+  display: block;
+  font: 400 12px/1.4 var(--mono);
+  color: var(--ink-dim);
+}
+
+/* ---------- stats and tool cards ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  border: 1px solid var(--line-dim);
+  background: var(--line-dim);
+  margin-bottom: 28px;
+}
+.stats div {
+  background: var(--paper);
+  padding: 18px 16px;
+}
+.stats b {
+  display: block;
+  font: 700 clamp(36px, 5vw, 58px) / 1 var(--display);
+  color: var(--redline);
+}
+.stats span {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.25s ease;
+  will-change: transform;
+}
+
+/* ---------- cursor ---------- */
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1.5px solid var(--redline);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 80;
+  opacity: 0;
+  transition: opacity 0.25s ease, width 0.25s ease, height 0.25s ease, margin 0.25s ease, background 0.25s ease;
+  mix-blend-mode: normal;
+}
+.cursor.is-on {
+  opacity: 0.85;
+}
+.cursor.is-link {
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  background: rgb(255 189 74 / 0.14);
+}
+
+/* ---------- status page ---------- */
+.live-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+.live-card {
+  border: 1px solid var(--line-dim);
+  padding: 16px;
+  background: var(--fill);
+}
+.live-card b {
+  display: block;
+  font: 700 clamp(34px, 5vw, 52px) / 1 var(--display);
+  color: var(--redline);
+}
+.live-card span {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.live-badge {
+  display: inline-block;
+  border: 1px solid var(--redline);
+  color: var(--redline);
+  padding: 2px 10px;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+.live-badge.is-live {
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+@media (max-width: 860px) {
+  .story {
+    height: 480vh;
+  }
+  .story__pin {
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 14px;
+  }
+  .story__stage {
+    aspect-ratio: 4 / 3.2;
+    max-height: 46vh;
+  }
+  .story__step:not(.is-on) {
+    display: none;
+  }
+}
+
+/* No motion: the story becomes four stacked panels, the orbs and the cursor are not shown */
+@media (prefers-reduced-motion: reduce) {
+  .orbfield,
+  .cursor,
+  .progress {
+    display: none;
+  }
+  [data-split] .kc {
+    translate: 0 0;
+    opacity: 1;
+    rotate: 0deg;
+    transition: none;
+  }
+  .js [data-split]:not(.is-in) {
+    visibility: visible;
+  }
+  .js .sheet h2.fill-title {
+    color: inherit;
+    -webkit-text-stroke: 0;
+    background: none;
+  }
+  .story {
+    height: auto;
+  }
+  .story__pin {
+    position: static;
+    grid-template-columns: 1fr;
+  }
+  .story__step,
+  .story__step:not(.is-on) {
+    opacity: 1;
+    translate: 0 0;
+    display: block;
+  }
+  .story__step:not(.is-on) p {
+    display: block;
+  }
+  .story__stage {
+    display: none;
+  }
+  .seat i {
+    animation: none;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -17,6 +17,12 @@ The companion bots started life inside the music bot's repo, because that was wh
 - **Test processes that never exit.** A timer left running by the code under test kept the test run alive until it was cancelled by hand.
 - **Bots stay bots.** The personalities never claim to eat, sleep or travel, and the project keeps the BOT tag visible. Building something that makes a server feel alive is fine; pretending to be people is not.
 
+## Voice presence and tools
+
+- **Sitting in voice is a reconcile loop, not an event handler.** Reacting to every disconnect event gets messy (Discord moves bots between voice servers, kicks, restarts). Instead a tick compares what should be true (saved room, number of bots) with what is true and repairs it, with a growing wait after failed joins. A restart restores the room from the settings, which I checked on the Pi by restarting the container.
+- **Greeting new members without a privileged intent.** Discord posts a system message when someone joins; the bots read that message type instead of asking for the members intent.
+- **More user ids, so more erase commands.** Voice minutes and reminders carry user ids, so each got a way to erase them and a line in the "What is stored" table.
+
 ## Still open
 
 - It has not run against a live Discord server yet. Timing and content will need tuning after a few days of watching.

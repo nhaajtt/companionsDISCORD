@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>companionsDISCORD status: are the bots okay?</title>
+<meta name="description" content="Totals only: how many companion bots are online, how many voice rooms they sit in and how many conversations happened. No server names, ids or messages.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/en/status.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/status.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/status.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/status.html">
+<meta property="og:title" content="companionsDISCORD status: are the bots okay?">
+<meta property="og:description" content="Totals only: how many companion bots are online, how many voice rooms they sit in and how many conversations happened. No server names, ids or messages.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/en/status.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/pages.css">
+<link rel="stylesheet" href="../assets/companions.css">
+<link rel="stylesheet" href="../assets/cinema.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Project</b>companionsDISCORD</span>
+  <span><b>C-03</b></span>
+  <span class="strip__name">Status</span>
+  <span class="hide-sm"><b>Scale</b>1:5</span>
+  <span class="hide-sm"><b>Drawn</b>nhaajt</span>
+  <span class="hide-sm"><b>Rev</b>II</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, back to home">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="setup.html">Setup</a><a href="invite.html">Invite</a><a href="status.html" aria-current="page">Status</a><a href="privacy.html">Privacy</a></nav>
+  <div class="lang" role="group" aria-label="Language"><a href="../status.html" hreflang="vi" lang="vi" title="Tiếng Việt">VI</a><a href="status.html" hreflang="en" lang="en" title="English" aria-current="true">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Switch to light theme" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Are the bots okay?</h1>
+  <p class="lead">A tiny health check, with no names attached.</p>
+</div>
+<section class="sheet" id="status" aria-labelledby="h-status">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-01</span>
+      <h2 id="h-status">Status</h2>
+      <p class="sheet__scale">Totals only<br>no names, no ids, no messages</p>
+    </header>
+    <p>These numbers are totals only: no server names, no ids and no messages. They come from an optional read-only <code>/status.json</code> that the bot can serve. Until a status address is configured, this page shows clearly labelled sample data.</p>
+    <p><span class="live-badge" id="live-badge">Sample data</span></p>
+    <div class="live-grid" id="live" data-url=""></div>
+    <p class="sub" id="live-note"></p>
+  </div>
+</section>
+
+<section class="sheet" id="status-setup" aria-labelledby="h-status-setup">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-02</span>
+      <h2 id="h-status-setup">Turning it on</h2>
+      <p class="sheet__scale">Optional<br>off unless you ask for it</p>
+    </header>
+    <ol class="build"><li><h3>Set a port</h3><p>Add this line to <code>.env</code> and restart the bots:</p><div class="code"><pre><code>STATUS_PORT=8788</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Keep it local</h3><p>The endpoint listens on <code>127.0.0.1</code> only, so nothing is exposed to the internet by default.</p></li><li><h3>Publish it with a tunnel</h3><p>To show it on a website, put a tunnel in front of that port. The tunnel is what makes it public, and it is your call.</p></li><li><h3>Point the page at it</h3><p>Set the address in the <code>data-url</code> attribute of the <code>#live</code> element on this page (or define <code>window.STATUS_URL</code>). Until then, the sample data stays on screen.</p></li></ol>
+    <p class="cmd-note">Nothing in <code>/status.json</code> identifies a person, a server or a message. More on the <a href="privacy.html">privacy page</a>.</p>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Project</small><strong>companionsDISCORD</strong><span>A few small bots that keep a channel from going quiet</span></div>
+      <div class="w2"><small>Sheet no.</small><strong>C-03</strong></div>
+      <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Rev</small><strong>II</strong></div>
+      <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="invite.html">Invite</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">approved by Bean (Bean approves everything)</span>
+      <span>Made by <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">source code</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/main.js"></script>
+<script src="../assets/cinema.js" defer></script>
+</body>
+</html>
