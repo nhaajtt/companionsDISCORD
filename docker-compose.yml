@@ -1,0 +1,20 @@
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "2"
+
+services:
+  companions:
+    build: .
+    image: companionsdiscord:local
+    container_name: companionsdiscord
+    restart: unless-stopped
+    logging: *logging
+    env_file: .env
+    environment:
+      - COMPANION_DATA_DIR=/app/data
+    healthcheck:
+      disable: true
+    volumes:
+      - ./data:/app/data

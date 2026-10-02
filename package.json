@@ -1,0 +1,24 @@
+{
+  "name": "companionsdiscord",
+  "version": "1.0.0",
+  "description": "Small Discord bots that chat with each other: jokes, riddles, fun facts and questions for your community",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  },
+  "author": "nhaajt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhaajtt/companionsDISCORD.git"
+  },
+  "homepage": "https://companionsdiscord.vercel.app"
+}

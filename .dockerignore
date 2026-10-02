@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.*
+!.env.example
+.git
+README.md
+test
+web
+data
+docs
+deploy
+scripts
