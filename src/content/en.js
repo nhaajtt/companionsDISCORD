@@ -2,6 +2,7 @@
 // no claims of eating, sleeping, travelling or having a body.
 
 import extraFacts from "./facts.js";
+import triviaItems from "./trivia.js";
 
 // Different lead-ins so a long run of facts does not sound like a stuck record
 const FACT_LEADS = ["Fun fact:", "Useless but true:", "Weird but real:", "For anyone who has not heard:", "Fun fact, no thanks needed:"];
@@ -108,6 +109,46 @@ const bank = {
     { id: "b-weekend", lines: ["How is everyone's weekend plan going?", "I plan to do nothing and I am already ahead of schedule.", "Efficient. I respect it."] },
   ],
 
+  labels: {
+    qotd: "Question of the day:",
+    trivia: "🧠 Trivia time!",
+    triviaLocked: "Answer locked in. The result comes when the round ends.",
+    triviaAlready: "You already answered this one.",
+    triviaClosed: "This round is already over.",
+    triviaReveal: "Answer: {letter}) {option}. {correct} of {total} got it right.",
+    triviaNobody: "Answer: {letter}) {option}. {total} tried and nobody got it, which is fair, it was a tricky one.",
+    triviaNoAnswers: "Answer: {letter}) {option}. Nobody played this round, so the glory goes to me.",
+    winners: "Right this round:",
+    topWeek: "Trivia leaderboard: this week",
+    topAll: "Trivia leaderboard: all time",
+    topEmpty: "Nobody has scored yet. Answer the next trivia round to get on the board.",
+    forgetDone: "Done. Your trivia scores were erased.",
+    forgetNone: "There was nothing stored about you.",
+  },
+
+  polls: [
+    { id: "p-pet", question: "Which pet wins?", options: ["Cat", "Dog", "Capybara", "A very calm fish"] },
+    { id: "p-pizza", question: "Pineapple on pizza: final verdict?", options: ["Genius", "A crime"] },
+    { id: "p-time", question: "Morning person or night owl?", options: ["Morning", "Night", "Whatever time the snacks are out"] },
+    { id: "p-power", question: "Pick one superpower.", options: ["Flying", "Invisibility", "Time travel", "Talking to animals"] },
+    { id: "p-rain", question: "Best way to spend a rainy day?", options: ["Movie marathon", "A good book", "A very long nap", "Playing in the rain"] },
+    { id: "p-drink", question: "Coffee or tea?", options: ["Coffee", "Tea", "Both", "Neither, water"] },
+    { id: "p-season", question: "Summer or winter?", options: ["Summer", "Winter"] },
+    { id: "p-snack", question: "Sweet or salty snacks?", options: ["Sweet", "Salty", "Both, obviously"] },
+    { id: "p-giveup", question: "You must give one up forever. Which?", options: ["Music", "Movies", "Games", "Snacks"] },
+    { id: "p-cereal", question: "Cereal: milk first or cereal first?", options: ["Milk first", "Cereal first", "No milk, a dry bowl"] },
+    { id: "p-place", question: "Beach or mountains?", options: ["Beach", "Mountains", "My couch"] },
+    { id: "p-seat", question: "Window seat or aisle seat?", options: ["Window", "Aisle"] },
+    { id: "p-travel", question: "Where would you time travel to?", options: ["The dinosaurs", "The Middle Ages", "The future", "Last Tuesday, to fix something"] },
+    { id: "p-volume", question: "How loud do you play your music?", options: ["Quiet", "Medium", "Loud", "The neighbors know the playlist"] },
+    { id: "p-hobby", question: "Which hobby would you master overnight?", options: ["Guitar", "Drawing", "Cooking", "Chess"] },
+    { id: "p-party", question: "How should the music at a party be chosen?", options: ["One careful playlist", "Shuffle everything", "Everyone takes turns", "Whoever holds the phone"] },
+    { id: "p-late", question: "It is very late. What are you really doing?", options: ["Sleeping", "Gaming", "Scrolling", "Pretending to sleep"] },
+    { id: "p-ducks", question: "Which would win against 100 ducks?", options: ["A horse", "100 ducks win", "A very determined goose"] },
+    { id: "p-pillow", question: "How many pillows do you sleep with?", options: ["One", "Two", "A small fortress"] },
+    { id: "p-bread", question: "Toast: butter or jam?", options: ["Butter", "Jam", "Both", "Plain"] },
+  ],
+
   personas: [
     {
       name: "Pip",
@@ -195,6 +236,7 @@ const bank = {
 
 export default {
   ...bank,
+  trivia: triviaItems.map((t, i) => ({ id: `tr-${i + 1}`, q: t.q.en, options: t.options.en, answer: t.answer })),
   facts: [
     ...bank.facts,
     ...extraFacts.map(({ en }, i) => ({ id: `ef-${i + 1}`, text: `${FACT_LEADS[i % FACT_LEADS.length]} ${en}` })),

@@ -1,8 +1,11 @@
 // Entry point of the companion bots: `node src/index.js` (or `docker compose up -d`).
 import "dotenv/config";
 import path from "node:path";
+import { createCustomStore } from "./custom.js";
 import { startCompanions } from "./runtime.js";
+import { createScoreStore } from "./scores.js";
 import { createSettingsStore, validTimeZone } from "./settings.js";
+import { createUsageStore } from "./usage.js";
 
 const tokens = (process.env.COMPANION_TOKENS ?? "")
   .split(",")
@@ -21,10 +24,14 @@ if (!validTimeZone(timezone)) {
   process.exit(1);
 }
 
-const store = createSettingsStore(path.join(process.env.COMPANION_DATA_DIR || "data", "companions.json"));
+const dataDir = process.env.COMPANION_DATA_DIR || "data";
+const store = createSettingsStore(path.join(dataDir, "companions.json"));
+const usage = createUsageStore(path.join(dataDir, "usage.json"));
+const scores = createScoreStore(path.join(dataDir, "scores.json"));
+const custom = createCustomStore(path.join(dataDir, "custom.json"));
 let stop;
 try {
-  ({ stop } = await startCompanions({ tokens: tokens.slice(0, 10), store, timezone }));
+  ({ stop } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, timezone }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);

@@ -1,17 +1,19 @@
 // Turns a piece of content (a question, a joke, a fact, a bit of banter) into a small script:
 // who says what, how long to wait before each line, and what to do if a human joins in.
 
-export const KIND_WEIGHTS = { question: 0.3, riddle: 0.25, fact: 0.25, banter: 0.2 };
+export const KIND_WEIGHTS = { question: 0.26, riddle: 0.2, fact: 0.2, banter: 0.14, poll: 0.07, trivia: 0.13 };
 
 const MIN = 60_000;
 export const between = (rng, min, max) => Math.round(min + rng() * (max - min));
 const pick = (list, rng) => list[Math.floor(rng() * list.length)];
 
-export const CONTENT_KEY = { question: "questions", riddle: "riddles", fact: "facts", banter: "banter" };
+export const CONTENT_KEY = { question: "questions", riddle: "riddles", fact: "facts", banter: "banter", poll: "polls", trivia: "trivia" };
 
-/** Picks a kind of conversation (weighted), skipping kinds that have no unused content left. */
-export function pickKind(content, recent, rng) {
-  const options = Object.entries(KIND_WEIGHTS).filter(([kind]) => freshItems(content, kind, recent).length > 0);
+/** Picks a kind of conversation (weighted), skipping kinds that are switched off or have no unused content left. */
+export function pickKind(content, recent, rng, allowed = null) {
+  const options = Object.entries(KIND_WEIGHTS).filter(
+    ([kind]) => (!allowed || allowed.has(kind)) && freshItems(content, kind, recent).length > 0,
+  );
   if (!options.length) return null;
   let roll = rng() * options.reduce((sum, [, weight]) => sum + weight, 0);
   for (const [kind, weight] of options) {
@@ -68,6 +70,28 @@ export function buildScript({ kind, item, slots, content, rng = Math.random }) {
       { slot: b, text: pick(persona(content, b).giveUp, rng), waitMs: between(rng, 4 * MIN, 8 * MIN), onHumans: "skip", replyTo: "starter" },
       // the answer is posted even if people joined in: someone is probably waiting for it
       { slot: a, text: item.punchline, waitMs: between(rng, 1 * MIN, 3 * MIN), onHumans: "post", replyTo: "starter" },
+    ];
+  }
+
+  if (kind === "poll") {
+    return [
+      { slot: a, text: item.question, poll: { question: item.question, options: item.options }, waitMs: 0, onHumans: "stop", replyTo: null },
+      { slot: b, text: pick(persona(content, b).react, rng), waitMs: between(rng, 5 * MIN, 10 * MIN), onHumans: "stop", replyTo: "starter" },
+    ];
+  }
+
+  if (kind === "trivia") {
+    return [
+      {
+        slot: a,
+        text: item.q,
+        trivia: { id: item.id, q: item.q, options: item.options, answer: item.answer },
+        waitMs: 0,
+        onHumans: "post",
+        replyTo: null,
+      },
+      // another bot reveals the answer when the round ends; the engine fills in the text
+      { slot: b, text: "", reveal: "trivia", waitMs: between(rng, 8 * MIN, 15 * MIN), onHumans: "post", replyTo: "starter" },
     ];
   }
 

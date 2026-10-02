@@ -1,31 +1,38 @@
 // The brain of the companion bots. It never talks to Discord directly: it is given `bots` (who can speak, and a way to
-// send) and the settings store, and it is driven by tick() plus noteHumanMessage(). That keeps it easy to test.
-import { ackText, between, buildScript, pickItem, pickKind } from "./script.js";
+// send) and the settings store, and it is driven by tick() plus noteHumanMessage() and noteTriviaAnswer().
+// That keeps it easy to test with a fake clock.
+import { ackText, between, buildScript, freshItems, pickItem, pickKind } from "./script.js";
 import { PRESETS, isQuietHour, localParts } from "./settings.js";
 
 const MIN = 60_000;
 const HUMANS_BUSY_MS = 3 * MIN; // do not start a conversation while people are chatting
 const RETRY_MS = 10 * MIN; // when blocked (quiet hours, daily cap...) look again after this long
-const RECENT_ITEMS = 60; // how many pieces of content to remember so they are not repeated
+const RECENT_ITEMS = 120; // how many pieces of content to remember so they are not repeated
 const BOT_MESSAGE_TTL_MS = 60 * MIN; // how long a bot message counts as "one a person may reply to"
 const ACK_COOLDOWN_MS = 10 * MIN;
 const ACK_DAILY_CAP = 10;
+const LETTERS = "ABCD";
+
+const fill = (template, values) => String(template ?? "").replace(/\{(\w+)\}/g, (_, k) => values[k] ?? "");
 
 /**
  * @param {object} deps
  * @param {{get(guildId): object, all(): [string, object][]}} deps.store  settings per server
- * @param {(language: string) => object} deps.content  content bank for a language
- * @param {{available(guildId: string, channelId: string): {slot: number}[],
- *          send(m: {slot: number, guildId: string, channelId: string, text: string, replyTo: string|null}): Promise<string|null>}} deps.bots
- * @param {string} deps.timezone  used for quiet hours and the daily cap
+ * @param {(language: string, guildId: string) => object} deps.content  content bank for a language (and a server's own entries)
+ * @param {object} deps.bots  { available(guildId, channelId): {slot}[], send(message): Promise<id|null>, edit?(message): Promise }
+ *   send() gets { slot, guildId, channelId, text, replyTo, poll?, trivia? }; edit() gets { slot, guildId, channelId, messageId, closeTrivia }
+ * @param {string} deps.timezone  used for quiet hours, the daily cap and the question of the day
+ * @param {{record(guildId, day, event): void}} [deps.usage]  usage counters (optional)
+ * @param {{add(guildId, userId, day, points): void}} [deps.scores]  trivia scores (optional)
  */
 export class CompanionEngine {
   #deps;
   #guilds = new Map();
   #seen = new Set();
+  #counter = 0;
 
-  constructor({ store, content, bots, timezone = "UTC", rng = Math.random, now = Date.now, log = () => {} }) {
-    this.#deps = { store, content, bots, timezone, rng, now, log };
+  constructor({ store, content, bots, timezone = "UTC", rng = Math.random, now = Date.now, log = () => {}, usage = null, scores = null }) {
+    this.#deps = { store, content, bots, timezone, rng, now, log, usage, scores };
   }
 
   #state(guildId) {
@@ -40,7 +47,10 @@ export class CompanionEngine {
         acks: 0,
         lastAckAt: 0,
         pendingAck: null,
-        botMessages: new Map(), // message id -> { slot, at }
+        qotdDay: "",
+        qotdRetryAt: 0,
+        trivia: null,
+        botMessages: new Map(), // message id -> { slot, at, kind }
       });
     }
     return this.#guilds.get(guildId);
@@ -49,6 +59,23 @@ export class CompanionEngine {
   #gap(settings) {
     const preset = PRESETS[settings.preset] ?? PRESETS.normal;
     return between(this.#deps.rng, preset.minGapMin * MIN, preset.maxGapMin * MIN);
+  }
+
+  #record(guildId, event) {
+    const { usage, now, timezone } = this.#deps;
+    usage?.record(guildId, localParts(now(), timezone).day, event);
+  }
+
+  /** Today's date in the configured time zone ("2026-10-02"). */
+  today() {
+    return localParts(this.#deps.now(), this.#deps.timezone).day;
+  }
+
+  #allowedKinds(settings) {
+    const kinds = new Set(["question", "riddle", "fact", "banter"]);
+    if (settings.polls !== false) kinds.add("poll");
+    if (settings.trivia !== false) kinds.add("trivia");
+    return kinds;
   }
 
   /** Call every few seconds. Advances conversations and starts new ones when it is time. */
@@ -76,6 +103,8 @@ export class CompanionEngine {
       return;
     }
 
+    if (await this.#maybeQuestionOfTheDay(guildId, settings, st, time)) return;
+
     // First time we see this server (or after a restart): wait a normal gap instead of speaking right away
     if (st.nextStartAt === null) st.nextStartAt = time + this.#gap(settings);
     if (time < st.nextStartAt) return;
@@ -86,6 +115,18 @@ export class CompanionEngine {
       return;
     }
     await this.#start(guildId, settings, st);
+  }
+
+  /** Posts the question of the day once a day at the chosen hour, even inside quiet hours (the manager asked for that hour). */
+  async #maybeQuestionOfTheDay(guildId, settings, st, time) {
+    if (settings.qotdHour === null || settings.qotdHour === undefined) return false;
+    const { hour, day } = localParts(time, this.#deps.timezone);
+    if (hour !== settings.qotdHour || st.qotdDay === day || time < st.qotdRetryAt) return false;
+
+    const started = await this.#start(guildId, settings, st, { kind: "question", qotd: true });
+    if (started) st.qotdDay = day;
+    else st.qotdRetryAt = time + RETRY_MS;
+    return started;
   }
 
   #blockedReason(settings, st, time) {
@@ -103,16 +144,16 @@ export class CompanionEngine {
   }
 
   /** Starts a conversation right now, ignoring quiet hours and the daily limit (for testing with /companions now). */
-  async startNow(guildId) {
+  async startNow(guildId, { kind = null } = {}) {
     const settings = this.#deps.store.get(guildId);
     if (!settings.enabled || !settings.channelId) return { started: false, reason: "Companions are off or no channel is set." };
     const st = this.#state(guildId);
     if (st.conv) return { started: false, reason: "A conversation is already going on." };
-    const started = await this.#start(guildId, settings, st);
+    const started = await this.#start(guildId, settings, st, { kind });
     return started ? { started: true } : { started: false, reason: "I need at least two companion bots that can write in that channel." };
   }
 
-  async #start(guildId, settings, st) {
+  async #start(guildId, settings, st, { kind: wanted = null, qotd = false } = {}) {
     const { bots, content: contentFor, rng, now } = this.#deps;
     const present = bots.available(guildId, settings.channelId);
     if (present.length < 2) {
@@ -120,8 +161,9 @@ export class CompanionEngine {
       return false;
     }
 
-    const content = contentFor(settings.language);
-    const kind = pickKind(content, st.recent, rng);
+    const content = contentFor(settings.language, guildId);
+    const allowed = this.#allowedKinds(settings);
+    const kind = wanted && freshItems(content, wanted, st.recent).length ? wanted : pickKind(content, st.recent, rng, allowed);
     if (!kind) {
       st.recent = []; // everything was used recently: start over
       st.nextStartAt = now() + RETRY_MS;
@@ -133,19 +175,46 @@ export class CompanionEngine {
     const steps = buildScript({ kind, item, slots, content, rng });
 
     const first = steps[0];
-    const id = await bots.send({ slot: first.slot, guildId, channelId: settings.channelId, text: first.text, replyTo: null });
+    if (qotd && content.labels?.qotd) first.text = `${content.labels.qotd} ${first.text}`;
+    const trivia = first.trivia ? { token: `t${(this.#counter++).toString(36)}${Math.floor(rng() * 1296).toString(36)}`, ...first.trivia } : undefined;
+
+    const id = await bots.send({
+      slot: first.slot,
+      guildId,
+      channelId: settings.channelId,
+      text: first.text,
+      replyTo: null,
+      poll: first.poll,
+      trivia: trivia && { token: trivia.token, question: trivia.q, options: trivia.options, label: content.labels?.trivia },
+    });
     if (!id) {
       st.nextStartAt = now() + RETRY_MS;
       return false;
     }
 
     const time = now();
+    const statKind = qotd ? "qotd" : kind;
     st.recent = [...st.recent, item.id].slice(-RECENT_ITEMS);
-    st.starts++;
-    st.botMessages.set(id, { slot: first.slot, at: time });
-    st.conv = { kind, steps, index: 1, startedAt: time, nextAt: time + (steps[1]?.waitMs ?? 0), starterId: id, previousId: id, previousSlot: first.slot };
-    this.#deps.log(`Companions: started a ${kind} in ${guildId}`);
-    if (steps.length === 1) this.#end(settings, st);
+    if (!qotd) st.starts++;
+    st.botMessages.set(id, { slot: first.slot, at: time, kind: statKind });
+    if (trivia) {
+      st.trivia = { token: trivia.token, messageId: id, slot: first.slot, answer: trivia.answer, options: trivia.options, answers: new Map() };
+    }
+    st.conv = {
+      kind,
+      statKind,
+      steps,
+      index: 1,
+      startedAt: time,
+      nextAt: time + (steps[1]?.waitMs ?? 0),
+      starterId: id,
+      previousId: id,
+      previousSlot: first.slot,
+      interacted: false,
+    };
+    this.#record(guildId, { type: "start", kind: statKind });
+    this.#deps.log(`Companions: started a ${statKind} in ${guildId}`);
+    if (steps.length === 1) this.#end(guildId, settings, st);
     return true;
   }
 
@@ -155,10 +224,10 @@ export class CompanionEngine {
     const step = conv.steps[conv.index];
     const humansJoined = st.lastHumanAt >= conv.startedAt;
 
-    if (humansJoined && step.onHumans === "stop") return this.#end(settings, st);
+    if (humansJoined && step.onHumans === "stop") return this.#end(guildId, settings, st);
     if (humansJoined && step.onHumans === "skip") {
       conv.index++;
-      if (conv.index >= conv.steps.length) return this.#end(settings, st);
+      if (conv.index >= conv.steps.length) return this.#end(guildId, settings, st);
       conv.nextAt = now() + conv.steps[conv.index].waitMs;
       return;
     }
@@ -166,22 +235,77 @@ export class CompanionEngine {
     // Use the bot the script chose; if it cannot speak any more, any other bot except the one who spoke last
     const present = bots.available(guildId, settings.channelId);
     const slot = present.some((b) => b.slot === step.slot) ? step.slot : present.find((b) => b.slot !== conv.previousSlot)?.slot;
-    if (slot === undefined) return this.#end(settings, st);
+    if (slot === undefined) {
+      this.#finishTrivia(guildId, settings, st, null);
+      return this.#end(guildId, settings, st);
+    }
 
+    if (step.reveal === "trivia" && !st.trivia) return this.#end(guildId, settings, st); // the round is gone (restart)
     const replyTo = step.replyTo === "starter" ? conv.starterId : step.replyTo === "previous" ? conv.previousId : null;
-    const id = await bots.send({ slot, guildId, channelId: settings.channelId, text: step.text, replyTo });
-    if (!id) return this.#end(settings, st);
+    const reveal = step.reveal === "trivia" && st.trivia ? this.#revealText(guildId, settings, st) : null;
+    const id = await bots.send({ slot, guildId, channelId: settings.channelId, text: reveal ?? step.text, replyTo });
+    if (step.reveal === "trivia") this.#finishTrivia(guildId, settings, st, conv);
+    if (!id) return this.#end(guildId, settings, st);
 
     const time = now();
-    st.botMessages.set(id, { slot, at: time });
+    st.botMessages.set(id, { slot, at: time, kind: conv.statKind });
     conv.previousId = id;
     conv.previousSlot = slot;
     conv.index++;
-    if (conv.index >= conv.steps.length) return this.#end(settings, st);
+    if (conv.index >= conv.steps.length) return this.#end(guildId, settings, st);
     conv.nextAt = time + conv.steps[conv.index].waitMs;
   }
 
-  #end(settings, st) {
+  #revealText(guildId, settings, st) {
+    const t = st.trivia;
+    const labels = this.#deps.content(settings.language, guildId).labels ?? {};
+    const letter = LETTERS[t.answer];
+    const option = t.options[t.answer];
+    const winners = [...t.answers].filter(([, choice]) => choice === t.answer).map(([userId]) => userId);
+    const total = t.answers.size;
+    let text = winners.length
+      ? fill(labels.triviaReveal, { letter, option, correct: winners.length, total })
+      : total === 0
+        ? fill(labels.triviaNoAnswers, { letter, option })
+        : fill(labels.triviaNobody, { letter, option, total });
+    if (winners.length) text += `\n${labels.winners} ${winners.slice(0, 5).map((id) => `<@${id}>`).join(" ")}`;
+    return text;
+  }
+
+  /** Scores the round, turns the buttons off and forgets it. Safe to call when there is no round. */
+  #finishTrivia(guildId, settings, st, conv) {
+    const t = st.trivia;
+    if (!t) return;
+    st.trivia = null;
+    const { scores, bots } = this.#deps;
+    const day = this.today();
+    const winners = [...t.answers].filter(([, choice]) => choice === t.answer).map(([userId]) => userId);
+    for (const userId of winners) scores?.add(guildId, userId, day, 1);
+    this.#record(guildId, { type: "trivia", answered: t.answers.size, correct: winners.length });
+    if (conv && t.answers.size > 0) conv.interacted = true;
+    Promise.resolve(bots.edit?.({ slot: t.slot, guildId, channelId: settings.channelId, messageId: t.messageId, closeTrivia: true })).catch(() => {});
+  }
+
+  /** A person pressed an answer button. Returns { status: "locked" | "already" | "closed", message } for the private reply. */
+  noteTriviaAnswer({ guildId, token, userId, choice }) {
+    const settings = this.#deps.store.get(guildId);
+    const labels = this.#deps.content(settings.language, guildId).labels ?? {};
+    const t = this.#guilds.get(guildId)?.trivia;
+    if (!t || t.token !== token || !Number.isInteger(choice) || choice < 0 || choice >= t.options.length) {
+      return { status: "closed", message: labels.triviaClosed };
+    }
+    if (t.answers.has(userId)) return { status: "already", message: labels.triviaAlready };
+    t.answers.set(userId, choice);
+    const st = this.#guilds.get(guildId);
+    if (st.conv) st.conv.interacted = true;
+    return { status: "locked", message: labels.triviaLocked };
+  }
+
+  #end(guildId, settings, st) {
+    const conv = st.conv;
+    if (conv) {
+      this.#record(guildId, { type: "end", kind: conv.statKind, joined: st.lastHumanAt >= conv.startedAt || conv.interacted });
+    }
     st.conv = null;
     st.nextStartAt = this.#deps.now() + this.#gap(settings);
   }
@@ -206,8 +330,9 @@ export class CompanionEngine {
     const replied = replyToMessageId ? st.botMessages.get(replyToMessageId) : null;
     const { day } = localParts(time, this.#deps.timezone);
     if (st.day !== day) Object.assign(st, { day, starts: 0, acks: 0 });
+    if (replied) this.#record(guildId, { type: "reply", kind: replied.kind });
     if (replied && !st.pendingAck && time - st.lastAckAt >= ACK_COOLDOWN_MS && st.acks < ACK_DAILY_CAP) {
-      st.pendingAck = { at: time + between(rng, 20_000, 90_000), replyTo: messageId, slot: replied.slot };
+      st.pendingAck = { at: time + between(rng, 20_000, 90_000), replyTo: messageId, slot: replied.slot, kind: replied.kind };
     }
   }
 
@@ -219,11 +344,12 @@ export class CompanionEngine {
     const present = bots.available(guildId, settings.channelId);
     if (!present.length) return;
     const slot = present.some((b) => b.slot === ack.slot) ? ack.slot : present[0].slot;
-    const id = await bots.send({ slot, guildId, channelId: settings.channelId, text: ackText(content(settings.language), slot, rng), replyTo: ack.replyTo });
+    const id = await bots.send({ slot, guildId, channelId: settings.channelId, text: ackText(content(settings.language, guildId), slot, rng), replyTo: ack.replyTo });
     if (!id) return;
     st.acks++;
     st.lastAckAt = now();
-    st.botMessages.set(id, { slot, at: now() });
+    st.botMessages.set(id, { slot, at: now(), kind: ack.kind });
+    this.#record(guildId, { type: "ack" });
   }
 
   /** A snapshot for /companions status. */

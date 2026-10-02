@@ -16,6 +16,9 @@ export const DEFAULTS = {
   preset: "normal",
   quietStart: 23, // the bots stay silent from this hour...
   quietEnd: 8, // ...until this hour, in the server's time zone
+  trivia: true, // multiple-choice trivia with answer buttons
+  polls: true, // "this or that" polls
+  qotdHour: null, // post a question of the day at this hour (0-23), or null for never
 };
 
 export const LANGUAGES = ["en", "vi"];

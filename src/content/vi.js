@@ -2,6 +2,7 @@
 // không nói mình ăn, ngủ, đi chơi hay có cơ thể.
 
 import extraFacts from "./facts.js";
+import triviaItems from "./trivia.js";
 
 // Different lead-ins so a long run of facts does not sound like a stuck record
 const FACT_LEADS = ["Bạn có biết:", "Thông tin vô dụng nhưng có thật:", "Chuyện lạ có thật:", "Cho bạn nào chưa biết:", "Fun fact, khỏi cảm ơn:"];
@@ -104,6 +105,46 @@ const bank = {
     { id: "b-weekend", lines: ["Kế hoạch cuối tuần của mọi người sao rồi?", "Kế hoạch của tui là không làm gì, và tui đã vượt tiến độ.", "Hiệu quả. Tui tôn trọng."] },
   ],
 
+  labels: {
+    qotd: "Câu hỏi trong ngày:",
+    trivia: "🧠 Giờ đố vui!",
+    triviaLocked: "Đã chốt đáp án. Kết quả sẽ có khi vòng này kết thúc.",
+    triviaAlready: "Bạn đã trả lời câu này rồi.",
+    triviaClosed: "Vòng này đã kết thúc rồi.",
+    triviaReveal: "Đáp án: {letter}) {option}. {correct} trên {total} người trả lời đúng.",
+    triviaNobody: "Đáp án: {letter}) {option}. {total} người thử mà không ai đúng, cũng dễ hiểu, câu này hơi hiểm.",
+    triviaNoAnswers: "Đáp án: {letter}) {option}. Không ai chơi vòng này, vinh quang thuộc về tui.",
+    winners: "Trả lời đúng vòng này:",
+    topWeek: "Bảng xếp hạng đố vui: tuần này",
+    topAll: "Bảng xếp hạng đố vui: mọi thời đại",
+    topEmpty: "Chưa ai có điểm. Trả lời vòng đố vui tiếp theo để lên bảng nha.",
+    forgetDone: "Xong. Điểm đố vui của bạn đã được xóa.",
+    forgetNone: "Không có gì được lưu về bạn cả.",
+  },
+
+  polls: [
+    { id: "p-pet", question: "Thú cưng nào thắng?", options: ["Mèo", "Chó", "Chuột lang nước", "Một con cá rất điềm tĩnh"] },
+    { id: "p-pizza", question: "Dứa trên pizza: phán quyết cuối cùng?", options: ["Thiên tài", "Tội ác"] },
+    { id: "p-time", question: "Người của buổi sáng hay cú đêm?", options: ["Buổi sáng", "Ban đêm", "Lúc nào có đồ ăn vặt thì lúc đó"] },
+    { id: "p-power", question: "Chọn một siêu năng lực.", options: ["Biết bay", "Tàng hình", "Du hành thời gian", "Nói chuyện với động vật"] },
+    { id: "p-rain", question: "Ngày mưa làm gì là hợp nhất?", options: ["Cày phim", "Đọc sách hay", "Ngủ một giấc rất dài", "Ra ngoài tắm mưa"] },
+    { id: "p-drink", question: "Cà phê hay trà?", options: ["Cà phê", "Trà", "Cả hai", "Không, nước lọc"] },
+    { id: "p-season", question: "Mùa hè hay mùa đông?", options: ["Mùa hè", "Mùa đông"] },
+    { id: "p-snack", question: "Đồ ăn vặt ngọt hay mặn?", options: ["Ngọt", "Mặn", "Cả hai, tất nhiên"] },
+    { id: "p-giveup", question: "Phải bỏ một thứ mãi mãi. Chọn gì?", options: ["Âm nhạc", "Phim", "Game", "Đồ ăn vặt"] },
+    { id: "p-cereal", question: "Ngũ cốc: đổ sữa trước hay đổ ngũ cốc trước?", options: ["Sữa trước", "Ngũ cốc trước", "Không sữa, ăn khô"] },
+    { id: "p-place", question: "Biển hay núi?", options: ["Biển", "Núi", "Cái ghế sofa nhà tui"] },
+    { id: "p-seat", question: "Ghế cạnh cửa sổ hay ghế cạnh lối đi?", options: ["Cửa sổ", "Lối đi"] },
+    { id: "p-travel", question: "Bạn muốn du hành thời gian về đâu?", options: ["Thời khủng long", "Thời Trung cổ", "Tương lai", "Thứ Ba tuần trước, để sửa một chuyện"] },
+    { id: "p-volume", question: "Bạn bật nhạc to cỡ nào?", options: ["Nhỏ", "Vừa", "To", "Hàng xóm thuộc luôn playlist"] },
+    { id: "p-hobby", question: "Sở thích nào bạn muốn giỏi ngay sau một đêm?", options: ["Guitar", "Vẽ", "Nấu ăn", "Cờ vua"] },
+    { id: "p-party", question: "Nhạc ở buổi tiệc nên chọn thế nào?", options: ["Một playlist chọn kỹ", "Xáo trộn tất cả", "Mỗi người một lượt", "Ai cầm điện thoại thì người đó chọn"] },
+    { id: "p-late", question: "Khuya lắm rồi. Bạn thật sự đang làm gì?", options: ["Đang ngủ", "Đang chơi game", "Đang lướt điện thoại", "Giả vờ ngủ"] },
+    { id: "p-ducks", question: "Ai thắng nổi 100 con vịt?", options: ["Một con ngựa", "100 con vịt thắng", "Một con ngỗng cực kỳ quyết tâm"] },
+    { id: "p-pillow", question: "Bạn ngủ với mấy cái gối?", options: ["Một", "Hai", "Cả một pháo đài nhỏ"] },
+    { id: "p-bread", question: "Bánh mì nướng: bơ hay mứt?", options: ["Bơ", "Mứt", "Cả hai", "Ăn không"] },
+  ],
+
   personas: [
     {
       name: "Pip",
@@ -191,6 +232,7 @@ const bank = {
 
 export default {
   ...bank,
+  trivia: triviaItems.map((t, i) => ({ id: `tr-${i + 1}`, q: t.q.vi, options: t.options.vi, answer: t.answer })),
   facts: [
     ...bank.facts,
     ...extraFacts.map(({ vi }, i) => ({ id: `vf-${i + 1}`, text: `${FACT_LEADS[i % FACT_LEADS.length]} ${vi}` })),
