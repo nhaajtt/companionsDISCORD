@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>companionsDISCORD: tiny bots with nine personalities that keep a Discord channel lively</title>
-<meta name="description" content="Two to ten small Discord bots that ask questions, tell jokes, share fun facts and step back when people talk. Self-hosted, no message reading, no outside services.">
+<meta name="description" content="Two to ten small Discord bots that ask questions, tell jokes, run polls and trivia with a leaderboard, and step back when people talk. Self-hosted, no message reading, no outside services.">
 <link rel="canonical" href="https://companionsdiscord.vercel.app/en/">
 <link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/">
 <link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/">
 <link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/">
 <meta property="og:title" content="companionsDISCORD: tiny bots with nine personalities that keep a Discord channel lively">
-<meta property="og:description" content="Two to ten small Discord bots that ask questions, tell jokes, share fun facts and step back when people talk. Self-hosted, no message reading, no outside services.">
+<meta property="og:description" content="Two to ten small Discord bots that ask questions, tell jokes, run polls and trivia with a leaderboard, and step back when people talk. Self-hosted, no message reading, no outside services.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://companionsdiscord.vercel.app/en/">
 <meta name="theme-color" content="#2a1948">
@@ -45,7 +45,7 @@
   <span class="strip__name">Home</span>
   <span class="hide-sm"><b>Scale</b>1:5</span>
   <span class="hide-sm"><b>Drawn</b>nhaajt</span>
-  <span class="hide-sm"><b>Rev</b>I</span>
+  <span class="hide-sm"><b>Rev</b>II</span>
 </div>
 
 <header class="top">
@@ -68,9 +68,9 @@
   <div class="wrap hero__grid">
     <div>
       <h1 id="h-hero">Nine personalities. <em>Zero dead channels.</em></h1>
-      <p class="lead" style="margin-top:22px">Small bots with nine different personalities that keep a quiet Discord channel from going quiet: questions, jokes, fun facts, and the occasional argument about pineapple on pizza.</p>
+      <p class="lead" style="margin-top:22px">Small bots with nine different personalities that keep a quiet Discord channel from going quiet: questions, jokes, fun facts, polls, trivia rounds with a leaderboard, and the occasional argument about pineapple on pizza.</p>
       <p class="lead">If nobody answers, another bot jumps in. If a person joins, the bots step back and even say thank you.</p>
-      <ul class="hero__tags"><li>2 to 10 bots</li><li>always wear the BOT tag</li><li>never read message content</li><li>no outside services</li></ul>
+      <ul class="hero__tags"><li>2 to 10 bots</li><li>trivia, polls, question of the day</li><li>always wear the BOT tag</li><li>never read message content</li><li>no outside services</li></ul>
       <div class="hero__cta">
         <a class="btn btn--solid" href="setup.html">Set them up</a>
         <a class="btn" href="invite.html">Invite helper</a>
@@ -117,14 +117,26 @@
       <h2 id="h-flow">How a conversation goes</h2>
       <p class="sheet__scale">Four steps<br>usually over in a few minutes</p>
     </header>
-    <ol class="build"><li class="reveal"><h3>One bot starts</h3><p>A question, a joke or riddle, a fun fact, or a line of banter.</p></li><li class="reveal"><h3>A person answers, the bots step back</h3><p>They stay out of the way (a joke's punchline is still delivered), and whoever replied to a bot gets a short thank-you after a natural pause.</p></li><li class="reveal"><h3>Nobody answers for several minutes</h3><p>Another bot answers or shrugs, a third may react, and the teller of a joke gives the punchline.</p></li><li class="reveal"><h3>Then it goes quiet for a good while</h3><p>Normally 1.5 to 4 hours. Chatty, not needy.</p></li></ol>
+    <ol class="build"><li class="reveal"><h3>One bot starts</h3><p>A question, a joke or riddle, a fun fact, a line of banter, a poll or a trivia round.</p></li><li class="reveal"><h3>A person answers, the bots step back</h3><p>They stay out of the way (a joke's punchline is still delivered), and whoever replied to a bot gets a short thank-you after a natural pause.</p></li><li class="reveal"><h3>Nobody answers for several minutes</h3><p>Another bot answers or shrugs, a third may react, and the teller of a joke gives the punchline.</p></li><li class="reveal"><h3>Then it goes quiet for a good while</h3><p>Normally 1.5 to 4 hours. Chatty, not needy.</p></li></ol>
+  </div>
+</section>
+
+<section class="sheet" id="play" aria-labelledby="h-play">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-03</span>
+      <h2 id="h-play">Playing, not just talking</h2>
+      <p class="sheet__scale">Six ways to get people involved<br>all switchable per server</p>
+    </header>
+    <div class="cards"><div class="card reveal"><h3>Question of the day</h3><p>One question at a fixed hour, every day, set with <code>/companions qotd [hour]</code>. It is posted even during quiet hours, because some traditions outrank bedtime.</p></div><div class="card reveal"><h3>Polls</h3><p>Real Discord polls. A few minutes later, another bot reacts to the result, whether it was asked to or not.</p></div><div class="card reveal"><h3>Trivia rounds</h3><p>Four answer buttons, A to D. Your first press counts and is locked in privately, so nobody can copy you. After 8 to 15 minutes another bot reveals the answer, lists who got it right (without pinging them) and turns the buttons off.</p></div><div class="card reveal"><h3>Leaderboard</h3><p>Everyone who got it right earns a point. <code>/trivia top</code> shows the weekly or the all-time board, and <code>/trivia forget</code> lets anyone erase their own scores.</p></div><div class="card reveal"><h3>Stats</h3><p><code>/companions stats [days]</code> shows how many conversations got people talking or playing, per kind. Handy for finding out whether the bots are charming or merely loud.</p></div><div class="card reveal"><h3>Your own content</h3><p>Managers can add their own questions, jokes, facts and polls with <code>/companions content</code>, no redeploy needed. See the <a href="setup.html#own">setup page</a>.</p></div></div>
+    <p class="sub">There are about 300 trivia questions in each language. They are built from the fun-fact bank, so every answer is backed by a fact in the repo. Trivia and polls can each be switched off with <code>/companions toggle</code>.</p>
   </div>
 </section>
 
 <section class="sheet" id="manners" aria-labelledby="h-man">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-03</span>
+      <span class="sheet__no">S-04</span>
       <h2 id="h-man">Good manners</h2>
       <p class="sheet__scale">Cute has limits<br>and all of them are adjustable</p>
     </header>
@@ -135,7 +147,7 @@
 <section class="sheet" id="honest" aria-labelledby="h-hon">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-04</span>
+      <span class="sheet__no">S-05</span>
       <h2 id="h-hon">The honest bit</h2>
       <p class="sheet__scale">Tested on paper<br>not yet field-tested</p>
     </header>
@@ -146,7 +158,7 @@
 <section class="sheet" id="friends" aria-labelledby="h-fr">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-05</span>
+      <span class="sheet__no">S-06</span>
       <h2 id="h-fr">Neighbours</h2>
       <p class="sheet__scale">Open source<br>and a sibling that sings</p>
     </header>
@@ -164,7 +176,7 @@
       <div class="w2"><small>Sheet no.</small><strong>C-01</strong></div>
       <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
       <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
-      <div class="w2"><small>Rev</small><strong>I</strong></div>
+      <div class="w2"><small>Rev</small><strong>II</strong></div>
       <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="invite.html">Invite</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
     </div>
     <div class="foot__note">

@@ -45,7 +45,7 @@
   <span class="strip__name">Cài đặt</span>
   <span class="hide-sm"><b>Tỉ lệ</b>1:5</span>
   <span class="hide-sm"><b>Vẽ bởi</b>nhaajt</span>
-  <span class="hide-sm"><b>Bản</b>I</span>
+  <span class="hide-sm"><b>Bản</b>II</span>
 </div>
 
 <header class="top">
@@ -87,10 +87,10 @@
       <h2 id="h-manual">Thủ công, từng bước</h2>
       <p class="sheet__scale">Làm lần lượt<br>không cần đặc quyền gì ở Discord</p>
     </header>
-    <ol class="build"><li><h3>Tạo 2 đến 10 ứng dụng</h3><p>Vào <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, tạo mỗi bot một ứng dụng, thêm Bot và chép token. Không cần bật intent đặc quyền nào. Càng nhiều bot càng nhộn.</p></li><li><h3>Mời từng bot vào server</h3><p>Dùng đường dẫn này, thay <code>CLIENT_ID</code> bằng Application ID của bot đó (quyền: View Channel, Send Messages, Read Message History).</p><div class="code"><pre><code>https://discord.com/oauth2/authorize?client_id=CLIENT_ID&amp;scope=bot%20applications.commands&amp;permissions=562949953489920</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">Nhiều bot thì dùng <a href="invite.html">trợ lý mời bot</a>: dán Application ID, mỗi bot một cú bấm.</p><p><a class="btn btn--sm" href="invite.html">Dùng trợ lý mời bot</a></p></li><li><h3>Điền file .env</h3><p>Sao chép <code>.env.example</code> thành <code>.env</code> rồi điền token, cách nhau bằng dấu phẩy. Token đầu tiên là Pip, thứ hai là Grumble, và cứ thế.</p><div class="code"><pre><code>cp .env.example .env</code></pre><button type="button" data-copy>Copy</button></div><div class="code"><pre><code>COMPANION_TOKENS=token1,token2,token3
+    <ol class="build"><li><h3>Tạo 2 đến 10 ứng dụng</h3><p>Vào <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, tạo mỗi bot một ứng dụng, thêm Bot và chép token. Không cần bật intent đặc quyền nào. Càng nhiều bot càng nhộn.</p></li><li><h3>Mời từng bot vào server</h3><p>Dùng đường dẫn này, thay <code>CLIENT_ID</code> bằng Application ID của bot đó (quyền: View Channel, Send Messages, Read Message History, Send Polls).</p><div class="code"><pre><code>https://discord.com/oauth2/authorize?client_id=CLIENT_ID&amp;scope=bot%20applications.commands&amp;permissions=562949953489920</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">Nhiều bot thì dùng <a href="invite.html">trợ lý mời bot</a>: dán Application ID, mỗi bot một cú bấm.</p><p><a class="btn btn--sm" href="invite.html">Dùng trợ lý mời bot</a></p></li><li><h3>Điền file .env</h3><p>Sao chép <code>.env.example</code> thành <code>.env</code> rồi điền token, cách nhau bằng dấu phẩy. Token đầu tiên là Pip, thứ hai là Grumble, và cứ thế.</p><div class="code"><pre><code>cp .env.example .env</code></pre><button type="button" data-copy>Copy</button></div><div class="code"><pre><code>COMPANION_TOKENS=token1,token2,token3
 COMPANION_TIMEZONE=Asia/Ho_Chi_Minh</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Chạy</h3><p>Với Docker (không mở cổng nào ra ngoài):</p><div class="code"><pre><code>git clone https://github.com/nhaajtt/companionsDISCORD.git &amp;&amp; cd companionsDISCORD
 docker compose up -d --build</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">Không dùng Docker (cần Node.js 20 trở lên):</p><div class="code"><pre><code>npm install &amp;&amp; npm start</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Chọn kênh</h3><p>Trong Discord gõ lệnh dưới đây. Bot đầu tiên sẽ nhận lệnh, và bạn cần quyền Manage Server.</p><div class="code"><pre><code>/companions setup channel:#chat-chung language:Tiếng Việt</code></pre><button type="button" data-copy>Copy</button></div></li></ol>
-    <div class="table-wrap" style="margin-top:28px"><table><caption>Cài đặt (.env)</caption><thead><tr><th>Biến</th><th>Ý nghĩa</th></tr></thead><tbody><tr><th scope="row"><code>COMPANION_TOKENS</code></th><td>2 đến 10 token bot, cách nhau bằng dấu phẩy (bắt buộc)</td></tr><tr><th scope="row"><code>COMPANION_TIMEZONE</code></th><td>Múi giờ cho giờ im lặng và trần mỗi ngày (mặc định <code>Asia/Ho_Chi_Minh</code>; ví dụ <code>America/Los_Angeles</code>)</td></tr><tr><th scope="row"><code>COMPANION_DATA_DIR</code></th><td>Nơi lưu <code>companions.json</code> (mặc định <code>data</code>; file compose đã đặt sẵn)</td></tr></tbody></table></div>
+    <div class="table-wrap" style="margin-top:28px"><table><caption>Cài đặt (.env)</caption><thead><tr><th>Biến</th><th>Ý nghĩa</th></tr></thead><tbody><tr><th scope="row"><code>COMPANION_TOKENS</code></th><td>2 đến 10 token bot, cách nhau bằng dấu phẩy (bắt buộc)</td></tr><tr><th scope="row"><code>COMPANION_TIMEZONE</code></th><td>Múi giờ cho giờ im lặng và trần mỗi ngày (mặc định <code>Asia/Ho_Chi_Minh</code>; ví dụ <code>America/Los_Angeles</code>)</td></tr><tr><th scope="row"><code>COMPANION_DATA_DIR</code></th><td>Nơi lưu các file dữ liệu (mặc định <code>data</code>; file compose đã đặt sẵn)</td></tr></tbody></table></div>
   </div>
 </section>
 
@@ -98,18 +98,44 @@ docker compose up -d --build</code></pre><button type="button" data-copy>Copy</b
   <div class="wrap">
     <header class="sheet__head">
       <span class="sheet__no">S-03</span>
-      <h2 id="h-cmd">Các lệnh /companions</h2>
-      <p class="sheet__scale">Bảy lệnh<br>tất cả trong một nhóm</p>
+      <h2 id="h-cmd">Các lệnh</h2>
+      <p class="sheet__scale">Ba bảng<br>người quản lý trước, rồi đến mọi người</p>
     </header>
-    <div class="table-wrap"><table class="cmds"><thead><tr><th>Lệnh</th><th>Làm gì</th></tr></thead><tbody><tr><th scope="row"><code>/companions setup channel [language]</code></th><td>Chọn kênh và ngôn ngữ (English hoặc Tiếng Việt), và bật bot</td></tr><tr><th scope="row"><code>/companions on | off</code></th><td>Bật hoặc tắt</td></tr><tr><th scope="row"><code>/companions frequency level</code></th><td>Calm (tối đa 4 mỗi ngày), Normal (8) hoặc Lively (14)</td></tr><tr><th scope="row"><code>/companions quiet from until</code></th><td>Khoảng giờ bot im lặng</td></tr><tr><th scope="row"><code>/companions now</code></th><td>Bắt đầu một cuộc trò chuyện ngay, để thử</td></tr><tr><th scope="row"><code>/companions status</code></th><td>Cài đặt hiện tại và khi nào có cuộc trò chuyện tiếp theo</td></tr></tbody></table></div>
-    <p class="cmd-note">Bảy lệnh trong sáu dòng: <code>on</code> và <code>off</code> ở chung một dòng cho gọn.</p>
+    <div class="table-wrap"><table class="cmds"><thead><tr><th>Lệnh</th><th>Làm gì</th></tr></thead><tbody><tr><th scope="row"><code>/companions setup channel [language]</code></th><td>Chọn kênh và ngôn ngữ (English hoặc Tiếng Việt), và bật bot</td></tr><tr><th scope="row"><code>/companions on | off</code></th><td>Bật hoặc tắt</td></tr><tr><th scope="row"><code>/companions frequency level</code></th><td>Calm (tối đa 4 mỗi ngày), Normal (8) hoặc Lively (14)</td></tr><tr><th scope="row"><code>/companions quiet from until</code></th><td>Khoảng giờ bot im lặng</td></tr><tr><th scope="row"><code>/companions now [kind]</code></th><td>Bắt đầu một cuộc trò chuyện ngay, để thử (có thể chọn loại: câu hỏi, câu đố, fun fact, nói đùa, poll hoặc đố vui)</td></tr><tr><th scope="row"><code>/companions status</code></th><td>Cài đặt hiện tại và khi nào có cuộc trò chuyện tiếp theo</td></tr></tbody></table></div>
+    <p class="cmd-note">Ở bảng này <code>on</code> và <code>off</code> ở chung một dòng cho gọn.</p>
+    <div class="table-wrap" style="margin-top:28px"><table class="cmds"><caption>Các lệnh /companions khác (người quản lý)</caption><thead><tr><th>Lệnh</th><th>Làm gì</th></tr></thead><tbody><tr><th scope="row"><code>/companions stats [days]</code></th><td>Có bao nhiêu cuộc trò chuyện được bắt đầu, bao nhiêu cuộc khiến mọi người nói chuyện hoặc chơi, chia theo loại (mặc định 7 ngày gần nhất)</td></tr><tr><th scope="row"><code>/companions qotd [hour]</code></th><td>Đăng câu hỏi trong ngày vào giờ đó mỗi ngày (0-23), kể cả trong giờ im lặng. Để trống giờ là tắt</td></tr><tr><th scope="row"><code>/companions toggle what enabled</code></th><td>Bật hoặc tắt đố vui hay poll</td></tr><tr><th scope="row"><code>/companions content add-question | add-joke | add-fact | add-poll</code></th><td>Thêm nội dung của riêng bạn cho server này</td></tr><tr><th scope="row"><code>/companions content list kind</code><br><code>/companions content remove kind number</code></th><td>Xem và xóa những gì bạn đã thêm</td></tr></tbody></table></div>
+    <div class="table-wrap" style="margin-top:28px"><table class="cmds"><caption>/trivia (mọi người, không cần quyền đặc biệt)</caption><thead><tr><th>Lệnh</th><th>Làm gì</th></tr></thead><tbody><tr><th scope="row"><code>/trivia top [period]</code></th><td>Bảng xếp hạng đố vui, tuần này (mặc định) hoặc mọi thời đại</td></tr><tr><th scope="row"><code>/trivia forget</code></th><td>Xóa điểm đố vui của chính bạn khỏi mọi server</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<section class="sheet" id="own" aria-labelledby="h-own">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-04</span>
+      <h2 id="h-own">Biến nó thành của bạn</h2>
+      <p class="sheet__scale">Chuyện cười của bạn, luật của bạn<br>không cần triển khai lại</p>
+    </header>
+    <p>Người quản lý có thể dạy bot những chuyện nội bộ của server bằng các lệnh <code>content</code>: <code>add-question</code>, <code>add-joke</code>, <code>add-fact</code> và <code>add-poll</code>. Mỗi server chứa tối đa 100 mục mỗi loại, và mọi ping trong đó đều bị gỡ, nên sẽ không ai bị @everyone vì một câu đùa. Dùng <code>content list</code> để xem những gì đã thêm và <code>content remove</code> để rút lại một mục. <code>/companions toggle</code> bật hoặc tắt đố vui và poll.</p>
+    <p class="sub">Nội dung bạn thêm nằm trong <code>data/custom.json</code>. Muốn sửa kho có sẵn thì chỉnh các file trong <code>src/content/</code> (xem phần hỏi đáp).</p>
+  </div>
+</section>
+
+<section class="sheet" id="data" aria-labelledby="h-data">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-05</span>
+      <h2 id="h-data">Lưu những gì</h2>
+      <p class="sheet__scale">Bốn file trong <code>data/</code><br>đều nằm trên máy của bạn</p>
+    </header>
+    <div class="table-wrap"><table><thead><tr><th>File</th><th>Chứa</th></tr></thead><tbody><tr><th scope="row"><code>companions.json</code></th><td>Cài đặt theo từng server: kênh, ngôn ngữ, tần suất, giờ im lặng, câu hỏi trong ngày, công tắc đố vui và poll</td></tr><tr><th scope="row"><code>usage.json</code></th><td>Chỉ có bộ đếm theo ngày (mỗi loại có bao nhiêu cuộc trò chuyện được bắt đầu và được hưởng ứng). Không có tin nhắn, không có ID người dùng</td></tr><tr><th scope="row"><code>custom.json</code></th><td>Câu hỏi, chuyện cười, fun fact và poll do người quản lý thêm</td></tr><tr><th scope="row"><code>scores.json</code></th><td><strong>Nơi duy nhất có dữ liệu người dùng:</strong> ID Discord của những người trả lời đúng đố vui, cùng điểm theo tuần. <code>/trivia forget</code> xóa các mục của một người</td></tr></tbody></table></div>
+    <p class="cmd-note">Tin nhắn không bao giờ được lưu, và không có gì rời khỏi máy của bạn. Chi tiết ở trang <a href="privacy.html">quyền riêng tư</a>.</p>
   </div>
 </section>
 
 <section class="sheet" id="pi" aria-labelledby="h-pi">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-04</span>
+      <span class="sheet__no">S-06</span>
       <h2 id="h-pi">Cạnh bot nhạc trên một Pi</h2>
       <p class="sheet__scale">Hai dự án, một Raspberry Pi<br>không dùng chung gì lúc chạy</p>
     </header>
@@ -121,11 +147,11 @@ docker compose up -d --build</code></pre><button type="button" data-copy>Copy</b
 <section class="sheet" id="faq" aria-labelledby="h-faq">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-05</span>
+      <span class="sheet__no">S-07</span>
       <h2 id="h-faq">Hỏi đáp</h2>
       <p class="sheet__scale">Những câu hay gặp<br>và vài câu không ai hỏi</p>
     </header>
-    <div class="faq"><details><summary>Bot có đọc tin nhắn của tôi không?</summary><div class="ans"><p>Không. Bot chỉ dùng hai intent không đặc quyền là <code>Guilds</code> và <code>GuildMessages</code>, để biết có người vừa viết hoặc trả lời. Nội dung tin nhắn thì không đọc, không lưu.</p></div></details><details><summary>Bot có giả làm người không?</summary><div class="ans"><p>Không. Chúng giữ nhãn BOT của Discord, có chín tính cách rõ ràng và dùng token bot bình thường, không bao giờ là tài khoản người dùng.</p></div></details><details><summary>Chạy cạnh bot nhạc trên cùng một Raspberry Pi được không?</summary><div class="ans"><p>Được. Mỗi dự án một thư mục, một container, không dùng chung gì lúc chạy. Xem bảng ở trên.</p></div></details><details><summary>Làm sao thêm chuyện cười của riêng tôi?</summary><div class="ans"><p>Thêm mục vào <code>src/content/en.js</code> hoặc <code>src/content/vi.js</code> (các bài kiểm thử sẽ kiểm tra hình dạng từng mục). Thêm ngôn ngữ mới thì tạo file mới trong <code>src/content/</code> và thêm một dòng vào <code>src/content/index.js</code> và <code>src/settings.js</code>.</p></div></details><details><summary>Dữ liệu được lưu ở đâu?</summary><div class="ans"><p>Chỉ cài đặt theo từng server (kênh, ngôn ngữ, tần suất, giờ im lặng) trong <code>data/companions.json</code>. Chi tiết ở trang <a href="privacy.html">quyền riêng tư</a>.</p></div></details><details><summary>Làm sao thêm bot vào server khác sau này?</summary><div class="ans"><p>Mở <a href="invite.html">trợ lý mời bot</a>, dán Application ID và bấm mời từng bot vào server mới (nhớ mời bot đầu tiên trước). Hoặc chạy <code>npm run invites</code> trong thư mục dự án: nó in mọi link mời và một link đánh dấu cho trợ lý, lấy từ <code>.env</code> ngay trên máy bạn.</p></div></details></div>
+    <div class="faq"><details><summary>Bot có đọc tin nhắn của tôi không?</summary><div class="ans"><p>Không. Bot chỉ dùng hai intent không đặc quyền là <code>Guilds</code> và <code>GuildMessages</code>, để biết có người vừa viết hoặc trả lời. Nội dung tin nhắn thì không đọc, không lưu.</p></div></details><details><summary>Bot có giả làm người không?</summary><div class="ans"><p>Không. Chúng giữ nhãn BOT của Discord, có chín tính cách rõ ràng và dùng token bot bình thường, không bao giờ là tài khoản người dùng.</p></div></details><details><summary>Chạy cạnh bot nhạc trên cùng một Raspberry Pi được không?</summary><div class="ans"><p>Được. Mỗi dự án một thư mục, một container, không dùng chung gì lúc chạy. Xem bảng ở trên.</p></div></details><details><summary>Làm sao thêm chuyện cười của riêng tôi?</summary><div class="ans"><p>Người quản lý dùng <code>/companions content add-joke</code> (hoặc <code>add-question</code>, <code>add-fact</code>, <code>add-poll</code>), xem <a href="#own">phần trên</a>. Muốn sửa kho có sẵn thì thêm mục vào <code>src/content/en.js</code> hoặc <code>src/content/vi.js</code> (các bài kiểm thử sẽ kiểm tra hình dạng từng mục). Thêm ngôn ngữ mới thì tạo file mới trong <code>src/content/</code> và thêm một dòng vào <code>src/content/index.js</code> và <code>src/settings.js</code>.</p></div></details><details><summary>Dữ liệu được lưu ở đâu?</summary><div class="ans"><p>Trong bốn file ở <code>data/</code> trên máy của bạn: cài đặt theo từng server, bộ đếm sử dụng theo ngày (không có tin nhắn, không có ID người dùng), nội dung người quản lý đã thêm, và điểm đố vui. Bảng điểm là nơi duy nhất có dữ liệu người dùng: ID Discord của người trả lời đúng một vòng, và ai cũng tự xóa được bằng <code>/trivia forget</code>. Chi tiết ở trang <a href="privacy.html">quyền riêng tư</a>.</p></div></details><details><summary>Làm sao thêm bot vào server khác sau này?</summary><div class="ans"><p>Mở <a href="invite.html">trợ lý mời bot</a>, dán Application ID và bấm mời từng bot vào server mới (nhớ mời bot đầu tiên trước). Hoặc chạy <code>npm run invites</code> trong thư mục dự án: nó in mọi link mời và một link đánh dấu cho trợ lý, lấy từ <code>.env</code> ngay trên máy bạn.</p></div></details></div>
   </div>
 </section></div>
 </main>
@@ -138,7 +164,7 @@ docker compose up -d --build</code></pre><button type="button" data-copy>Copy</b
       <div class="w2"><small>Số tờ</small><strong>C-02</strong></div>
       <div class="w2"><small>Vẽ bởi</small><strong>nhaajt</strong></div>
       <div class="w2"><small>Ngày</small><strong>2026-10-02</strong></div>
-      <div class="w2"><small>Bản</small><strong>I</strong></div>
+      <div class="w2"><small>Bản</small><strong>II</strong></div>
       <div class="w6"><small>Tài liệu</small><span><a href="cai-dat.html">Cài đặt</a> &nbsp;&nbsp; <a href="invite.html">Mời bot</a> &nbsp;&nbsp; <a href="privacy.html">Quyền riêng tư</a></span></div>
     </div>
     <div class="foot__note">

@@ -45,7 +45,7 @@
   <span class="strip__name">Setup</span>
   <span class="hide-sm"><b>Scale</b>1:5</span>
   <span class="hide-sm"><b>Drawn</b>nhaajt</span>
-  <span class="hide-sm"><b>Rev</b>I</span>
+  <span class="hide-sm"><b>Rev</b>II</span>
 </div>
 
 <header class="top">
@@ -87,10 +87,10 @@
       <h2 id="h-manual">The manual way, step by step</h2>
       <p class="sheet__scale">Work through in order<br>no privileged intents needed</p>
     </header>
-    <ol class="build"><li><h3>Create 2 to 10 applications</h3><p>Open the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, create one application per bot, add a Bot to each and copy its token. No privileged intent is needed. The more bots, the livelier.</p></li><li><h3>Invite every bot to your server</h3><p>Use this link, replacing <code>CLIENT_ID</code> with that bot's Application ID (permissions: View Channel, Send Messages, Read Message History).</p><div class="code"><pre><code>https://discord.com/oauth2/authorize?client_id=CLIENT_ID&amp;scope=bot%20applications.commands&amp;permissions=562949953489920</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">With several bots, use the <a href="invite.html">invite helper</a>: paste the Application IDs and get one click per bot.</p><p><a class="btn btn--sm" href="invite.html">Use the invite helper</a></p></li><li><h3>Fill in the .env file</h3><p>Copy <code>.env.example</code> to <code>.env</code> and put the tokens in, comma-separated. The first token is Pip, the second is Grumble, and so on.</p><div class="code"><pre><code>cp .env.example .env</code></pre><button type="button" data-copy>Copy</button></div><div class="code"><pre><code>COMPANION_TOKENS=token1,token2,token3
+    <ol class="build"><li><h3>Create 2 to 10 applications</h3><p>Open the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, create one application per bot, add a Bot to each and copy its token. No privileged intent is needed. The more bots, the livelier.</p></li><li><h3>Invite every bot to your server</h3><p>Use this link, replacing <code>CLIENT_ID</code> with that bot's Application ID (permissions: View Channel, Send Messages, Read Message History, Send Polls).</p><div class="code"><pre><code>https://discord.com/oauth2/authorize?client_id=CLIENT_ID&amp;scope=bot%20applications.commands&amp;permissions=562949953489920</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">With several bots, use the <a href="invite.html">invite helper</a>: paste the Application IDs and get one click per bot.</p><p><a class="btn btn--sm" href="invite.html">Use the invite helper</a></p></li><li><h3>Fill in the .env file</h3><p>Copy <code>.env.example</code> to <code>.env</code> and put the tokens in, comma-separated. The first token is Pip, the second is Grumble, and so on.</p><div class="code"><pre><code>cp .env.example .env</code></pre><button type="button" data-copy>Copy</button></div><div class="code"><pre><code>COMPANION_TOKENS=token1,token2,token3
 COMPANION_TIMEZONE=Asia/Ho_Chi_Minh</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Run it</h3><p>With Docker (it publishes no ports):</p><div class="code"><pre><code>git clone https://github.com/nhaajtt/companionsDISCORD.git &amp;&amp; cd companionsDISCORD
 docker compose up -d --build</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">Without Docker (needs Node.js 20 or newer):</p><div class="code"><pre><code>npm install &amp;&amp; npm start</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Pick the channel</h3><p>In Discord, run the command below. The first bot hosts the command, and you need the Manage Server permission.</p><div class="code"><pre><code>/companions setup channel:#general language:English</code></pre><button type="button" data-copy>Copy</button></div></li></ol>
-    <div class="table-wrap" style="margin-top:28px"><table><caption>Settings (.env)</caption><thead><tr><th>Variable</th><th>Meaning</th></tr></thead><tbody><tr><th scope="row"><code>COMPANION_TOKENS</code></th><td>2 to 10 bot tokens, comma-separated (required)</td></tr><tr><th scope="row"><code>COMPANION_TIMEZONE</code></th><td>Time zone for quiet hours and the daily limit (default <code>Asia/Ho_Chi_Minh</code>; for example <code>America/Los_Angeles</code>)</td></tr><tr><th scope="row"><code>COMPANION_DATA_DIR</code></th><td>Where <code>companions.json</code> is stored (default <code>data</code>; the compose file sets it)</td></tr></tbody></table></div>
+    <div class="table-wrap" style="margin-top:28px"><table><caption>Settings (.env)</caption><thead><tr><th>Variable</th><th>Meaning</th></tr></thead><tbody><tr><th scope="row"><code>COMPANION_TOKENS</code></th><td>2 to 10 bot tokens, comma-separated (required)</td></tr><tr><th scope="row"><code>COMPANION_TIMEZONE</code></th><td>Time zone for quiet hours and the daily limit (default <code>Asia/Ho_Chi_Minh</code>; for example <code>America/Los_Angeles</code>)</td></tr><tr><th scope="row"><code>COMPANION_DATA_DIR</code></th><td>Where the data files are stored (default <code>data</code>; the compose file sets it)</td></tr></tbody></table></div>
   </div>
 </section>
 
@@ -98,18 +98,44 @@ docker compose up -d --build</code></pre><button type="button" data-copy>Copy</b
   <div class="wrap">
     <header class="sheet__head">
       <span class="sheet__no">S-03</span>
-      <h2 id="h-cmd">The /companions commands</h2>
-      <p class="sheet__scale">Six rows<br>all in one command group</p>
+      <h2 id="h-cmd">The commands</h2>
+      <p class="sheet__scale">Three tables<br>managers first, then everyone</p>
     </header>
-    <div class="table-wrap"><table class="cmds"><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><th scope="row"><code>/companions setup channel [language]</code></th><td>Choose the channel and language (English or Vietnamese), and turn them on</td></tr><tr><th scope="row"><code>/companions on | off</code></th><td>Turn them on or off</td></tr><tr><th scope="row"><code>/companions frequency level</code></th><td>Calm (up to 4 a day), Normal (8) or Lively (14)</td></tr><tr><th scope="row"><code>/companions quiet from until</code></th><td>Hours they stay silent</td></tr><tr><th scope="row"><code>/companions now</code></th><td>Start a conversation right away, to test it</td></tr><tr><th scope="row"><code>/companions status</code></th><td>Current settings and when the next chat is due</td></tr></tbody></table></div>
-    <p class="cmd-note">Seven commands, six rows: <code>on</code> and <code>off</code> share a line to save space.</p>
+    <div class="table-wrap"><table class="cmds"><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><th scope="row"><code>/companions setup channel [language]</code></th><td>Choose the channel and language (English or Vietnamese), and turn them on</td></tr><tr><th scope="row"><code>/companions on | off</code></th><td>Turn them on or off</td></tr><tr><th scope="row"><code>/companions frequency level</code></th><td>Calm (up to 4 a day), Normal (8) or Lively (14)</td></tr><tr><th scope="row"><code>/companions quiet from until</code></th><td>Hours they stay silent</td></tr><tr><th scope="row"><code>/companions now [kind]</code></th><td>Start a conversation right away, to test it (optionally a question, riddle, fact, banter, poll or trivia)</td></tr><tr><th scope="row"><code>/companions status</code></th><td>Current settings and when the next chat is due</td></tr></tbody></table></div>
+    <p class="cmd-note">In this table <code>on</code> and <code>off</code> share a line to save space.</p>
+    <div class="table-wrap" style="margin-top:28px"><table class="cmds"><caption>More /companions subcommands (managers)</caption><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><th scope="row"><code>/companions stats [days]</code></th><td>How many conversations were started, how many got people talking or playing, per kind (default: the last 7 days)</td></tr><tr><th scope="row"><code>/companions qotd [hour]</code></th><td>Post a question of the day every day at that hour (0-23), even during quiet hours. Leave the hour empty to turn it off</td></tr><tr><th scope="row"><code>/companions toggle what enabled</code></th><td>Turn trivia rounds or polls on or off</td></tr><tr><th scope="row"><code>/companions content add-question | add-joke | add-fact | add-poll</code></th><td>Add your own entries for this server</td></tr><tr><th scope="row"><code>/companions content list kind</code><br><code>/companions content remove kind number</code></th><td>See and remove what you added</td></tr></tbody></table></div>
+    <div class="table-wrap" style="margin-top:28px"><table class="cmds"><caption>/trivia (everyone, no special permission)</caption><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><th scope="row"><code>/trivia top [period]</code></th><td>The trivia leaderboard, this week (default) or all time</td></tr><tr><th scope="row"><code>/trivia forget</code></th><td>Erase your own trivia scores from every server</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<section class="sheet" id="own" aria-labelledby="h-own">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-04</span>
+      <h2 id="h-own">Make it your own</h2>
+      <p class="sheet__scale">Your jokes, your rules<br>no redeploy needed</p>
+    </header>
+    <p>Managers can teach the bots your server's in-jokes with the <code>content</code> commands: <code>add-question</code>, <code>add-joke</code>, <code>add-fact</code> and <code>add-poll</code>. Each server can hold up to 100 entries of each kind, and any pings in them are stripped, so nobody gets @everyone'd by a joke. Use <code>content list</code> to see what you added and <code>content remove</code> to take an entry back. <code>/companions toggle</code> switches trivia rounds or polls on and off.</p>
+    <p class="sub">Your entries live in <code>data/custom.json</code>. To change the built-in banks instead, edit the files in <code>src/content/</code> (see the FAQ).</p>
+  </div>
+</section>
+
+<section class="sheet" id="data" aria-labelledby="h-data">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-05</span>
+      <h2 id="h-data">What is stored</h2>
+      <p class="sheet__scale">Four files in <code>data/</code><br>all on your own machine</p>
+    </header>
+    <div class="table-wrap"><table><thead><tr><th>File</th><th>Holds</th></tr></thead><tbody><tr><th scope="row"><code>companions.json</code></th><td>Per-server settings: channel, language, frequency, quiet hours, question of the day, trivia and poll switches</td></tr><tr><th scope="row"><code>usage.json</code></th><td>Daily counters only (how many conversations of each kind were started and engaged). No messages, no user ids</td></tr><tr><th scope="row"><code>custom.json</code></th><td>The questions, jokes, facts and polls your managers added</td></tr><tr><th scope="row"><code>scores.json</code></th><td><strong>The one place with user data:</strong> the Discord user ids of people who got a trivia answer right, with their points per week. <code>/trivia forget</code> erases a person's entries</td></tr></tbody></table></div>
+    <p class="cmd-note">No message is ever stored, and nothing leaves your machine. More on the <a href="privacy.html">privacy page</a>.</p>
   </div>
 </section>
 
 <section class="sheet" id="pi" aria-labelledby="h-pi">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-04</span>
+      <span class="sheet__no">S-06</span>
       <h2 id="h-pi">Running next to musiDISCORD on one Pi</h2>
       <p class="sheet__scale">Two projects, one Raspberry Pi<br>nothing shared at runtime</p>
     </header>
@@ -121,11 +147,11 @@ docker compose up -d --build</code></pre><button type="button" data-copy>Copy</b
 <section class="sheet" id="faq" aria-labelledby="h-faq">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">S-05</span>
+      <span class="sheet__no">S-07</span>
       <h2 id="h-faq">FAQ</h2>
       <p class="sheet__scale">Questions people ask<br>and a few nobody does</p>
     </header>
-    <div class="faq"><details><summary>Do the bots read my messages?</summary><div class="ans"><p>No. They only use the non-privileged <code>Guilds</code> and <code>GuildMessages</code> intents, to notice that someone wrote or replied. They never read or store the content.</p></div></details><details><summary>Do they pretend to be human?</summary><div class="ans"><p>No. They keep Discord's BOT tag, have nine distinct personalities and run on normal bot tokens, never a user account.</p></div></details><details><summary>Can they run next to the music bot on one Raspberry Pi?</summary><div class="ans"><p>Yes. Separate folders, separate containers, and nothing shared at runtime. See the table above.</p></div></details><details><summary>How do I add my own jokes?</summary><div class="ans"><p>Add entries to <code>src/content/en.js</code> or <code>src/content/vi.js</code> (the tests check the shape of every entry). Adding a language means a new file in <code>src/content/</code> and a line in <code>src/content/index.js</code> and <code>src/settings.js</code>.</p></div></details><details><summary>Where is my data kept?</summary><div class="ans"><p>Only per-server settings (channel, language, frequency, quiet hours), in <code>data/companions.json</code>. The details are on the <a href="privacy.html">privacy page</a>.</p></div></details><details><summary>How do I add the bots to another server later?</summary><div class="ans"><p>Open the <a href="invite.html">invite helper</a>, paste the Application IDs and invite each bot to the new server (invite the first bot first). Or run <code>npm run invites</code> in the project folder: it prints every invite link and a bookmark link for the helper, read from <code>.env</code> right on your machine.</p></div></details></div>
+    <div class="faq"><details><summary>Do the bots read my messages?</summary><div class="ans"><p>No. They only use the non-privileged <code>Guilds</code> and <code>GuildMessages</code> intents, to notice that someone wrote or replied. They never read or store the content.</p></div></details><details><summary>Do they pretend to be human?</summary><div class="ans"><p>No. They keep Discord's BOT tag, have nine distinct personalities and run on normal bot tokens, never a user account.</p></div></details><details><summary>Can they run next to the music bot on one Raspberry Pi?</summary><div class="ans"><p>Yes. Separate folders, separate containers, and nothing shared at runtime. See the table above.</p></div></details><details><summary>How do I add my own jokes?</summary><div class="ans"><p>Managers can use <code>/companions content add-joke</code> (or <code>add-question</code>, <code>add-fact</code>, <code>add-poll</code>), see <a href="#own">above</a>. To change the built-in banks, add entries to <code>src/content/en.js</code> or <code>src/content/vi.js</code> (the tests check the shape of every entry). Adding a language means a new file in <code>src/content/</code> and a line in <code>src/content/index.js</code> and <code>src/settings.js</code>.</p></div></details><details><summary>Where is my data kept?</summary><div class="ans"><p>In four files in <code>data/</code> on your own machine: per-server settings, daily usage counters (no messages, no user ids), the content your managers added, and trivia scores. The scores are the one place with user data: the Discord user ids of people who answered a round correctly, which each person can erase with <code>/trivia forget</code>. The details are on the <a href="privacy.html">privacy page</a>.</p></div></details><details><summary>How do I add the bots to another server later?</summary><div class="ans"><p>Open the <a href="invite.html">invite helper</a>, paste the Application IDs and invite each bot to the new server (invite the first bot first). Or run <code>npm run invites</code> in the project folder: it prints every invite link and a bookmark link for the helper, read from <code>.env</code> right on your machine.</p></div></details></div>
   </div>
 </section></div>
 </main>
@@ -138,7 +164,7 @@ docker compose up -d --build</code></pre><button type="button" data-copy>Copy</b
       <div class="w2"><small>Sheet no.</small><strong>C-02</strong></div>
       <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
       <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
-      <div class="w2"><small>Rev</small><strong>I</strong></div>
+      <div class="w2"><small>Rev</small><strong>II</strong></div>
       <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="invite.html">Invite</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
     </div>
     <div class="foot__note">
