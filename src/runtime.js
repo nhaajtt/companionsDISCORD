@@ -14,6 +14,7 @@ import { CompanionEngine } from "./engine.js";
 import { LANGUAGES, PRESETS, createSettingsStore, validTimeZone } from "./settings.js";
 
 const TICK_MS = 15_000;
+const REGISTER_ATTEMPTS = 6;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const companionsCommand = new SlashCommandBuilder()
@@ -125,7 +126,18 @@ export async function startCompanions({ tokens, store, timezone, log = console.l
 
   // The slash command lives on the first bot, registered per server so it shows up immediately
   const host = slots[0].client;
-  const registerFor = (guild) => guild.commands.set([companionsCommand.toJSON()]).catch((e) => console.error(`Could not register /companions in ${guild.name}:`, e.message));
+  // Registration is retried because the network (DNS in particular) can hiccup right after the container starts
+  const registerFor = async (guild) => {
+    for (let attempt = 1; attempt <= REGISTER_ATTEMPTS; attempt++) {
+      try {
+        await guild.commands.set([companionsCommand.toJSON()]);
+        return;
+      } catch (error) {
+        console.error(`Could not register /companions in ${guild.name} (attempt ${attempt} of ${REGISTER_ATTEMPTS}):`, error.message);
+        if (attempt < REGISTER_ATTEMPTS) await sleep(Math.min(60_000, 5_000 * 2 ** (attempt - 1)));
+      }
+    }
+  };
   // The list of servers is only known once the bot is ready
   if (host.isReady()) host.guilds.cache.forEach(registerFor);
   else host.once(Events.ClientReady, (c) => c.guilds.cache.forEach(registerFor));
