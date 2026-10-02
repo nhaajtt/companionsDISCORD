@@ -9,7 +9,7 @@
 
   var MAX = 10;
   var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow"];
-  var PERMISSIONS = 562949953489920;
+  var PERMISSIONS = 562949954538496;
   var KEY = "companions-invite-ids";
 
   function personality(n) {

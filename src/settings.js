@@ -19,6 +19,10 @@ export const DEFAULTS = {
   trivia: true, // multiple-choice trivia with answer buttons
   polls: true, // "this or that" polls
   qotdHour: null, // post a question of the day at this hour (0-23), or null for never
+  voiceChannelId: null, // the voice room the companions sit in, 24/7
+  voiceBots: 1, // how many companions sit there
+  voiceGreet: false, // say hi in the chat channel when someone joins that room
+  welcome: false, // greet new members (needs the server's join messages) with an icebreaker
 };
 
 export const LANGUAGES = ["en", "vi"];

@@ -42,9 +42,9 @@ export function formatStats(summary) {
 }
 
 /** Leaderboard lines: "1. <@id>: 5 points". */
-export function formatTop(entries, title) {
+export function formatTop(entries, title, unit = ["point", "points"]) {
   const medal = (i) => ["🥇", "🥈", "🥉"][i] ?? `**${i + 1}.**`;
-  return `**${title}**\n${entries.map((e, i) => `${medal(i)} <@${e.userId}>: ${e.points} point${e.points === 1 ? "" : "s"}`).join("\n")}`;
+  return `**${title}**\n${entries.map((e, i) => `${medal(i)} <@${e.userId}>: ${e.points} ${unit[e.points === 1 ? 0 : 1]}`).join("\n")}`;
 }
 
 const truncate = (text, max) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);

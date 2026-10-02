@@ -9,14 +9,21 @@ import {
   Events,
   GatewayIntentBits,
   MessageFlags,
+  MessageType,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
+import { VoiceConnectionStatus, entersState, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
 import { CustomError, KINDS as CUSTOM_KINDS } from "./custom.js";
 import { CompanionEngine } from "./engine.js";
 import { formatContentList, formatStats, formatTop, hoursText } from "./format.js";
+import { POMODORO_LIMITS, fill } from "./pomodoro.js";
+import { ReminderError, parseDuration } from "./reminders.js";
 import { LANGUAGES, PRESETS, createSettingsStore, validTimeZone } from "./settings.js";
+import { VoiceKeeper } from "./voice.js";
+import { VoiceTools } from "./voicetools.js";
 import { getContent } from "./content/index.js";
+import { getTools } from "./content/tools.js";
 
 const TICK_MS = 15_000;
 const REGISTER_ATTEMPTS = 6;
@@ -90,6 +97,32 @@ export const companionsCommand = new SlashCommandBuilder()
       .addStringOption((o) => o.setName("what").setDescription("Which one").setRequired(true).addChoices({ name: "Trivia rounds", value: "trivia" }, { name: "Polls", value: "polls" }))
       .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
   )
+  .addSubcommand((s) =>
+    s
+      .setName("welcome")
+      .setDescription("Greet new members with an icebreaker (needs the server's join messages turned on)")
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommandGroup((g) =>
+    g
+      .setName("voice")
+      .setDescription("Companions that sit in a voice channel 24/7")
+      .addSubcommand((s) =>
+        s
+          .setName("join")
+          .setDescription("Make the companions sit in a voice channel and stay there")
+          .addChannelOption((o) => o.setName("channel").setDescription("The voice channel").addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice).setRequired(true))
+          .addIntegerOption((o) => o.setName("bots").setDescription("How many companions sit there (default 1)").setMinValue(1).setMaxValue(10)),
+      )
+      .addSubcommand((s) => s.setName("leave").setDescription("Make the companions leave the voice channel"))
+      .addSubcommand((s) => s.setName("status").setDescription("Who is in the voice channel"))
+      .addSubcommand((s) =>
+        s
+          .setName("greet")
+          .setDescription("Say hi in the chat channel when someone joins the voice channel")
+          .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+      ),
+  )
   .addSubcommandGroup((g) =>
     g
       .setName("content")
@@ -132,6 +165,62 @@ export const triviaCommand = new SlashCommandBuilder()
   )
   .addSubcommand((s) => s.setName("forget").setDescription("Erase your trivia scores from every server"));
 
+export const voiceCommand = new SlashCommandBuilder()
+  .setName("voice")
+  .setDescription("Time spent in the voice room the companions sit in")
+  .setDMPermission(false)
+  .addSubcommand((s) =>
+    s
+      .setName("top")
+      .setDescription("Who spends the most time in the voice room")
+      .addStringOption((o) => o.setName("period").setDescription("Which ranking (default: this week)").addChoices({ name: "This week", value: "week" }, { name: "All time", value: "all" })),
+  )
+  .addSubcommand((s) => s.setName("forget").setDescription("Erase your voice time from every server"));
+
+export const pomodoroCommand = new SlashCommandBuilder()
+  .setName("pomodoro")
+  .setDescription("A focus session with the companions, announced in the chat channel")
+  .setDMPermission(false)
+  .addSubcommand((s) =>
+    s
+      .setName("start")
+      .setDescription("Start a focus session (you must be in the voice room the companions sit in)")
+      .addIntegerOption((o) => o.setName("work").setDescription(`Minutes of work (default ${POMODORO_LIMITS.work[2]})`).setMinValue(POMODORO_LIMITS.work[0]).setMaxValue(POMODORO_LIMITS.work[1]))
+      .addIntegerOption((o) => o.setName("break").setDescription(`Minutes of break (default ${POMODORO_LIMITS.brk[2]})`).setMinValue(POMODORO_LIMITS.brk[0]).setMaxValue(POMODORO_LIMITS.brk[1]))
+      .addIntegerOption((o) => o.setName("rounds").setDescription(`How many rounds (default ${POMODORO_LIMITS.rounds[2]})`).setMinValue(POMODORO_LIMITS.rounds[0]).setMaxValue(POMODORO_LIMITS.rounds[1])),
+  )
+  .addSubcommand((s) => s.setName("stop").setDescription("Stop the focus session"))
+  .addSubcommand((s) => s.setName("status").setDescription("Where the focus session is"));
+
+export const remindCommand = new SlashCommandBuilder()
+  .setName("remind")
+  .setDescription("A companion reminds you of something, in this channel")
+  .setDMPermission(false)
+  .addSubcommand((s) =>
+    s
+      .setName("add")
+      .setDescription("Set a reminder")
+      .addStringOption((o) => o.setName("in").setDescription("How long from now: 10m, 2h, 1d, 1d12h").setRequired(true).setMaxLength(20))
+      .addStringOption((o) => o.setName("text").setDescription("What to remind you of").setRequired(true).setMaxLength(200)),
+  )
+  .addSubcommand((s) => s.setName("list").setDescription("Your waiting reminders"))
+  .addSubcommand((s) => s.setName("cancel").setDescription("Cancel a reminder").addIntegerOption((o) => o.setName("number").setDescription("Its number in the list").setRequired(true).setMinValue(1)));
+
+export const eventCommand = new SlashCommandBuilder()
+  .setName("event")
+  .setDescription("An event countdown: the companions announce it a day before, an hour before and when it starts")
+  .setDMPermission(false)
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageEvents)
+  .addSubcommand((s) =>
+    s
+      .setName("add")
+      .setDescription("Add an event countdown in this channel")
+      .addStringOption((o) => o.setName("in").setDescription("How long from now: 3h, 2d, 1w, 1d12h").setRequired(true).setMaxLength(20))
+      .addStringOption((o) => o.setName("name").setDescription("The event").setRequired(true).setMaxLength(200)),
+  )
+  .addSubcommand((s) => s.setName("list").setDescription("Upcoming events"))
+  .addSubcommand((s) => s.setName("cancel").setDescription("Cancel an event").addIntegerOption((o) => o.setName("number").setDescription("Its number in the list").setRequired(true).setMinValue(1)));
+
 const REQUIRED = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory];
 
 /** The text of a trivia message: the question, then the four options. The buttons only carry the letters. */
@@ -140,11 +229,11 @@ function triviaText({ label, question, options }) {
 }
 
 /** Starts every companion bot and the engine. `tokens` are bot tokens; the first one hosts the slash commands. */
-export async function startCompanions({ tokens, store, usage, scores, custom, timezone, log = console.log }) {
+export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, log = console.log }) {
   const slots = [];
 
   for (const [slot, token] of tokens.entries()) {
-    const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+    const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] });
     client.once(Events.ClientReady, (c) => log(`Companion ${slot + 1} is online as ${c.user.tag}`));
     try {
       await client.login(token);
@@ -170,7 +259,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ti
   const bots = {
     available: (guildId, channelId) => slots.filter(({ client }) => canWrite(client, guildId, channelId)).map(({ slot }) => ({ slot })),
 
-    async send({ slot, guildId, channelId, text, replyTo, poll, trivia }) {
+    async send({ slot, guildId, channelId, text, replyTo, poll, trivia, pingUsers }) {
       const channel = channelOf(slot, guildId, channelId);
       if (!channel?.isTextBased()) return null;
       const reply = replyTo ? { messageReference: replyTo, failIfNotExists: false } : undefined;
@@ -202,7 +291,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ti
           return message.id;
         }
 
-        const message = await channel.send({ content: text, reply, allowedMentions: NO_PINGS });
+        const message = await channel.send({ content: text, reply, allowedMentions: pingUsers?.length ? { parse: [], users: pingUsers, repliedUser: false } : NO_PINGS });
         return message.id;
       } catch (error) {
         console.error(`Companion ${slot + 1} could not send a message:`, error.message);
@@ -227,9 +316,108 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ti
   const content = (language, guildId) => custom.merge(getContent(language), guildId);
   const engine = new CompanionEngine({ store, content, bots, timezone, log, usage, scores });
 
+  // Voice: the companions sit in a room 24/7. Each bot has its own voice "group" so several can sit in one server.
+  const groupOf = (slot) => `companion-${slot}`;
+  const voicePort = {
+    candidates: (guildId, channelId) =>
+      slots
+        .filter(({ client }) => {
+          const guild = client.guilds.cache.get(guildId);
+          const channel = guild?.channels.cache.get(channelId);
+          const me = guild?.members.me;
+          return Boolean(channel?.isVoiceBased() && me && channel.permissionsFor(me)?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect]));
+        })
+        .map(({ slot }) => slot),
+    isIn: (slot, guildId, channelId) =>
+      getVoiceConnection(guildId, groupOf(slot))?.state.status === VoiceConnectionStatus.Ready &&
+      bySlot.get(slot)?.guilds.cache.get(guildId)?.members.me?.voice.channelId === channelId,
+    async join(slot, guildId, channelId) {
+      const guild = bySlot.get(slot)?.guilds.cache.get(guildId);
+      if (!guild) return false;
+      getVoiceConnection(guildId, groupOf(slot))?.destroy();
+      // Not deafened and not speaking: it just sits there like a quiet member
+      const connection = joinVoiceChannel({ channelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: false, selfMute: true, group: groupOf(slot) });
+      connection.on("error", (error) => console.error(`Companion ${slot + 1} voice error:`, error.message));
+      connection.on(VoiceConnectionStatus.Disconnected, async () => {
+        try {
+          // Discord moves the bot between voice servers now and then; wait to see if it reconnects by itself
+          await Promise.race([entersState(connection, VoiceConnectionStatus.Signalling, 5_000), entersState(connection, VoiceConnectionStatus.Connecting, 5_000)]);
+        } catch {
+          connection.destroy();
+        }
+      });
+      try {
+        await entersState(connection, VoiceConnectionStatus.Ready, 20_000);
+        log(`Companion ${slot + 1} is sitting in the voice channel of ${guild.name}.`);
+        return true;
+      } catch {
+        connection.destroy();
+        return false;
+      }
+    },
+    async leave(slot, guildId) {
+      getVoiceConnection(guildId, groupOf(slot))?.destroy();
+    },
+  };
+  const keeper = new VoiceKeeper({ store, port: voicePort, log });
+
+  const hostClient = slots[0].client;
+  const humansIn = (guildId) => {
+    const channelId = store.get(guildId).voiceChannelId;
+    const channel = channelId ? hostClient.guilds.cache.get(guildId)?.channels.cache.get(channelId) : null;
+    return channel?.members ? channel.members.filter((m) => !m.user.bot).size : 0;
+  };
+  /** Says something in the chat channel, from a companion that sits in the voice room when possible. */
+  const say = async ({ guildId, text, pingUsers }) => {
+    const settings = store.get(guildId);
+    if (!settings.channelId) return;
+    const slot = keeper.assigned(guildId)[0] ?? bots.available(guildId, settings.channelId)[0]?.slot;
+    if (slot === undefined) return;
+    await bots.send({ slot, guildId, channelId: settings.channelId, text, pingUsers });
+  };
+  const voiceTools = new VoiceTools({ store, hours, tools: getTools, say, humansIn, timezone, log });
+  const seeded = new Set();
+  const seedVoiceGuild = (guildId) => {
+    const settings = store.get(guildId);
+    const channel = settings.voiceChannelId ? hostClient.guilds.cache.get(guildId)?.channels.cache.get(settings.voiceChannelId) : null;
+    channel?.members?.forEach((m) => !m.user.bot && voiceTools.userJoined({ guildId, userId: m.id, channelId: channel.id, existing: true }));
+  };
+
+  /** Delivers the reminders and event heads-ups that are due. One that cannot be sent (no bot can write there) is retried. */
+  const deliverReminders = async () => {
+    for (const { item, stage } of reminders.due(Date.now())) {
+      const lines = getTools(store.get(item.guildId).language);
+      const slot = bots.available(item.guildId, item.channelId)[0]?.slot;
+      if (slot === undefined) {
+        if (stage === "due" && Date.now() - item.at > 24 * 3_600_000) reminders.done(item.id);
+        continue;
+      }
+      const pick = (list) => list[Math.floor(Math.random() * list.length)];
+      const text =
+        item.kind === "remind"
+          ? fill(pick(lines.remind), { user: `<@${item.userId}>`, text: item.text })
+          : fill({ day: lines.eventDay, hour: lines.eventHour, due: lines.eventNow }[stage], { text: item.text });
+      await bots.send({ slot, guildId: item.guildId, channelId: item.channelId, text, pingUsers: item.kind === "remind" ? [item.userId] : [] });
+      if (stage === "due") reminders.done(item.id);
+    }
+    reminders.flush();
+  };
+
   for (const { client } of slots) {
     // Every bot hears every message; the engine ignores duplicates. Bots (including the companions) are never "people".
     client.on(Events.MessageCreate, (message) => {
+      // A new member joined: the server's "join" system message (no privileged intent needed). Only the first bot handles it.
+      if (client === hostClient && message.guildId && message.type === MessageType.UserJoin && !message.author.bot) {
+        const settings = store.get(message.guildId);
+        if (settings.welcome && settings.enabled && settings.channelId) {
+          const lines = getTools(settings.language);
+          const questions = content(settings.language, message.guildId).questions;
+          const greeting = fill(lines.welcome[Math.floor(Math.random() * lines.welcome.length)], { user: `<@${message.author.id}>` });
+          const ask = questions[Math.floor(Math.random() * questions.length)]?.text;
+          say({ guildId: message.guildId, text: ask ? `${greeting}\n${lines.welcomeAsk} ${ask}` : greeting }).catch(() => {});
+        }
+        return;
+      }
       if (!message.guildId || message.author.bot || message.system || message.webhookId) return;
       engine.noteHumanMessage({
         guildId: message.guildId,
@@ -248,13 +436,23 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ti
     });
   }
 
+  // People moving in and out of the voice rooms (only the first bot listens, the others would repeat it)
+  hostClient.on(Events.VoiceStateUpdate, (oldState, newState) => {
+    const member = newState.member ?? oldState.member;
+    if (!member || member.user.bot || oldState.channelId === newState.channelId) return;
+    const home = store.get(newState.guild.id).voiceChannelId;
+    if (!home) return;
+    if (oldState.channelId === home) voiceTools.userLeft({ guildId: newState.guild.id, userId: member.id });
+    if (newState.channelId === home) voiceTools.userJoined({ guildId: newState.guild.id, userId: member.id, channelId: home });
+  });
+
   // The slash commands live on the first bot, registered per server so they show up immediately
   const host = slots[0].client;
   // Registration is retried because the network (DNS in particular) can hiccup right after the container starts
   const registerFor = async (guild) => {
     for (let attempt = 1; attempt <= REGISTER_ATTEMPTS; attempt++) {
       try {
-        await guild.commands.set([companionsCommand.toJSON(), triviaCommand.toJSON()]);
+        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand].map((c) => c.toJSON()));
         return;
       } catch (error) {
         console.error(`Could not register the commands in ${guild.name} (attempt ${attempt} of ${REGISTER_ATTEMPTS}):`, error.message);
@@ -268,9 +466,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ti
   host.on(Events.GuildCreate, registerFor);
 
   host.on(Events.InteractionCreate, (interaction) => {
-    if (!interaction.isChatInputCommand() || !["companions", "trivia"].includes(interaction.commandName)) return;
-    const handler = interaction.commandName === "trivia" ? handleTrivia : handleCommand;
-    handler(interaction, { store, engine, slots, timezone, usage, scores, custom }).catch(async (error) => {
+    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
+    if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
+    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
       const payload = { content: "Something went wrong with that command.", flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) await interaction.followUp(payload).catch(() => {});
@@ -280,12 +478,25 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ti
 
   const timer = setInterval(() => engine.tick().catch((e) => console.error("Companions tick failed:", e)), TICK_MS);
   timer.unref?.();
+  const toolsTimer = setInterval(async () => {
+    try {
+      await keeper.tick();
+      for (const [guildId] of store.all()) if (!seeded.has(guildId)) (seeded.add(guildId), seedVoiceGuild(guildId));
+      await voiceTools.tick();
+      await deliverReminders();
+    } catch (error) {
+      console.error("Companion tools tick failed:", error);
+    }
+  }, TICK_MS);
+  toolsTimer.unref?.();
   log(`Companions running with ${slots.length} bots. Time zone: ${timezone}.`);
 
   return {
     engine,
     stop: async () => {
       clearInterval(timer);
+      clearInterval(toolsTimer);
+      slots.forEach(({ slot }) => store.all().forEach(([guildId]) => getVoiceConnection(guildId, groupOf(slot))?.destroy()));
       await Promise.all(slots.map(({ client }) => client.destroy()));
     },
   };
@@ -307,7 +518,84 @@ async function handleTrivia(interaction, { engine, scores, store }) {
   return interaction.reply({ content: formatTop(entries, period === "week" ? labels.topWeek : labels.topAll), allowedMentions: { parse: [] } });
 }
 
-async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom }) {
+async function handleVoiceTop(interaction, { hours, engine, store }) {
+  const guildId = interaction.guildId;
+  const lines = getTools(store.get(guildId).language);
+  if (interaction.options.getSubcommand() === "forget") {
+    const erased = hours.forget(interaction.user.id);
+    return interaction.reply({ content: erased ? lines.voiceForgetDone : lines.voiceForgetNone, flags: MessageFlags.Ephemeral });
+  }
+  const period = interaction.options.getString("period") ?? "week";
+  const entries = hours.top(guildId, { day: period === "week" ? engine.today() : null, limit: 10 });
+  if (!entries.length) return interaction.reply({ content: lines.voiceTopEmpty, flags: MessageFlags.Ephemeral });
+  return interaction.reply({ content: formatTop(entries, period === "week" ? lines.voiceTopWeek : lines.voiceTopAll, ["minute", "minutes"]), allowedMentions: { parse: [] } });
+}
+
+async function handlePomodoro(interaction, { store, voiceTools, keeper, say }) {
+  const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
+  const guildId = interaction.guildId;
+  const sub = interaction.options.getSubcommand();
+  const settings = store.get(guildId);
+  const pomodoro = voiceTools.pomodoro;
+
+  if (sub === "stop") return reply(pomodoro.stop(guildId) ? "🍅 The focus session is stopped." : "There is no focus session running.");
+  if (sub === "status") {
+    const s = pomodoro.status(guildId);
+    return reply(s ? `🍅 ${s.phase === "work" ? "Working" : "On a break"}: round ${s.round} of ${s.rounds}, about ${s.minutesLeft} minute${s.minutesLeft === 1 ? "" : "s"} left.` : "There is no focus session running.");
+  }
+
+  if (!settings.voiceChannelId) return reply("The companions are not sitting in a voice channel yet. A manager can use `/companions voice join`.");
+  if (!settings.channelId) return reply("Pick a chat channel first with `/companions setup`, that is where the steps are announced.");
+  if (interaction.member?.voice?.channelId !== settings.voiceChannelId) return reply(`Join <#${settings.voiceChannelId}> first, the focus session belongs to that room.`);
+  if (!keeper.assigned(guildId).length) return reply("No companion can reach that voice channel right now.");
+  const started = pomodoro.start(guildId, {
+    work: interaction.options.getInteger("work") ?? undefined,
+    brk: interaction.options.getInteger("break") ?? undefined,
+    rounds: interaction.options.getInteger("rounds") ?? undefined,
+  });
+  if (!started.ok) return reply("A focus session is already running. Use `/pomodoro stop` to end it.");
+  await reply("🍅 Started. The steps are announced in the chat channel.");
+  await say({ guildId, text: voiceTools.startText(guildId, started.session) });
+}
+
+async function handleRemind(interaction, { reminders }) {
+  const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
+  const guildId = interaction.guildId;
+  const kind = interaction.commandName === "event" ? "event" : "remind";
+  const sub = interaction.options.getSubcommand();
+  const label = kind === "event" ? "event" : "reminder";
+  const mine = () => reminders.list(guildId, interaction.user.id, kind);
+
+  if (sub === "list") {
+    const items = mine();
+    if (!items.length) return reply(`No ${label}s waiting.`);
+    return reply(items.map((i, n) => `**${n + 1}.** <t:${Math.floor(i.at / 1000)}:R>: ${i.text}`).join("\n"));
+  }
+  if (sub === "cancel") {
+    const item = mine()[interaction.options.getInteger("number", true) - 1];
+    return reply(item && reminders.cancel(guildId, item.userId, item.id) ? `🗑️ Cancelled.` : `There is no ${label} with that number.`);
+  }
+
+  const inMs = parseDuration(interaction.options.getString("in", true));
+  if (inMs === null) return reply("I could not read that time. Use something like 10m, 2h, 1d or 1d12h.");
+  try {
+    const item = reminders.add({
+      kind,
+      guildId,
+      channelId: interaction.channelId,
+      userId: interaction.user.id,
+      inMs,
+      text: interaction.options.getString(kind === "event" ? "name" : "text", true),
+      now: Date.now(),
+    });
+    return reply(kind === "event" ? `📅 Event added: <t:${Math.floor(item.at / 1000)}:F> (<t:${Math.floor(item.at / 1000)}:R>). It will be announced in this channel.` : `⏰ I will remind you <t:${Math.floor(item.at / 1000)}:R> in this channel.`);
+  } catch (error) {
+    if (error instanceof ReminderError) return reply(`⚠️ ${error.message}`);
+    throw error;
+  }
+}
+
+async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, keeper, voicePort, seedVoiceGuild }) {
   const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
   const guildId = interaction.guildId;
   const group = interaction.options.getSubcommandGroup(false);
@@ -315,6 +603,41 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
   const settings = store.get(guildId);
 
   if (group === "content") return handleContent(interaction, { custom, guildId, sub, reply });
+
+  if (group === "voice") {
+    if (sub === "join") {
+      const channel = interaction.options.getChannel("channel", true);
+      const count = interaction.options.getInteger("bots") ?? 1;
+      store.update(guildId, { voiceChannelId: channel.id, voiceBots: count });
+      const eligible = voicePort.candidates(guildId, channel.id).length;
+      if (!eligible) return reply(`⚠️ Saved, but no companion can see and connect to ${channel}. Give them View Channel and Connect there (bots invited before this feature may need the Connect permission added to their role).`);
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      await keeper.tick();
+      seedVoiceGuild(guildId);
+      const status = keeper.status(guildId);
+      return interaction.editReply(
+        `🎧 ${Math.min(count, eligible)} companion${Math.min(count, eligible) === 1 ? "" : "s"} will sit in ${channel} and stay there, even when it is empty (${status.present} there now).` +
+          (eligible < count ? ` Only ${eligible} can connect to it.` : ""),
+      );
+    }
+    if (sub === "leave") {
+      await keeper.leave(guildId);
+      return reply("👋 The companions left the voice channel and will not come back until you use `/companions voice join` again.");
+    }
+    if (sub === "greet") {
+      const enabled = interaction.options.getBoolean("enabled", true);
+      store.update(guildId, { voiceGreet: enabled });
+      return reply(enabled ? "👋 They will say hi in the chat channel when someone joins the voice channel." : "🔇 No more greetings for people joining the voice channel.");
+    }
+    const status = keeper.status(guildId);
+    return reply(status.channelId ? `🎧 Voice channel: <#${status.channelId}>. ${status.present} of ${status.wanted} wanted companions are there now (${status.eligible} can connect). Greetings: ${settings.voiceGreet ? "on" : "off"}.` : "The companions are not sitting in any voice channel. Use `/companions voice join`.");
+  }
+
+  if (sub === "welcome") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { welcome: enabled });
+    return reply(enabled ? "👋 New members get a funny welcome and an icebreaker in the chat channel. This works when the server's join messages are on (Server Settings, System Messages)." : "🔇 No more welcome messages.");
+  }
 
   if (sub === "setup") {
     const channel = interaction.options.getChannel("channel", true);
@@ -383,6 +706,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     `**Quiet hours:** ${settings.quietStart === settings.quietEnd ? "none" : `${settings.quietStart}:00 to ${settings.quietEnd}:00`} (${timezone})`,
     `**Question of the day:** ${settings.qotdHour === null || settings.qotdHour === undefined ? "off" : `every day at ${settings.qotdHour}:00`}`,
     `**Trivia:** ${settings.trivia === false ? "off" : "on"}, **polls:** ${settings.polls === false ? "off" : "on"}`,
+    `**Voice channel:** ${settings.voiceChannelId ? `<#${settings.voiceChannelId}> (${settings.voiceBots} companion${settings.voiceBots === 1 ? "" : "s"})` : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
     `**Your own content:** ${custom.count(guildId)} entries`,
     `**Bots that can write there:** ${status.botsAvailable} of ${slots.length}`,
     status.talking ? "Right now: in the middle of a conversation." : status.nextStartInMs === null ? "" : `Next conversation: in about ${hoursText(status.nextStartInMs)}, if it is not quiet hours.`,

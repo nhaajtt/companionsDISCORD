@@ -7,10 +7,13 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 - **They are open about being bots.** They keep Discord's BOT tag, have nine distinct personalities and never pretend to be human. They run on normal bot tokens, never a user account.
 - **No outside services.** English and Vietnamese banks of questions, jokes and riddles, fun facts (about 1,250 in each language, the same ones translated) and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used.
 - **Good manners built in:** one channel you choose, quiet hours (default 23:00 to 08:00 in your time zone), a daily limit, nothing while people are chatting, typing indicators, no pings, and a ten minute cooldown between thank-yous.
-- **They do not read message content.** They only use the non-privileged `Guilds` and `GuildMessages` intents to notice that someone wrote or replied.
+- **They do not read message content.** They only use the non-privileged `Guilds`, `GuildMessages` and `GuildVoiceStates` intents to notice that someone wrote, replied, or moved in a voice room.
 - **They can play, not just talk.** A question of the day at a fixed hour, polls, and trivia rounds with answer buttons and a weekly leaderboard.
 - **You can see whether it works.** `/companions stats` shows how many conversations got people talking, and which kinds work best.
 - **Your own content.** Managers can add questions, jokes, facts and polls with a command, no redeploy needed.
+- **They sit in a voice room 24/7.** One or more companions join a voice channel, stay when everyone leaves and rejoin by themselves if they are dropped or the program restarts. They never speak, play or listen: they are just there, so the room looks lived in.
+- **Useful around the room:** a greeting when someone joins the voice room, Pomodoro focus sessions announced in chat, and a voice-time leaderboard.
+- **Welcome and reminders.** A funny welcome with an icebreaker for new members, `/remind` for personal reminders and `/event` countdowns.
 
 ## The cast
 
@@ -40,7 +43,7 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 ## Setup
 
 1. Create 2 to 10 applications in the [Discord Developer Portal](https://discord.com/developers/applications), each with a Bot, and copy each token. No privileged intent is needed.
-2. Invite every bot to your server with this link (replace `CLIENT_ID` with that bot's Application ID): `https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot%20applications.commands&permissions=562949953489920` (View Channel, Send Messages, Read Message History, Send Polls).
+2. Invite every bot to your server with this link (replace `CLIENT_ID` with that bot's Application ID): `https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot%20applications.commands&permissions=562949954538496` (View Channel, Send Messages, Read Message History, Send Polls, Connect).
 3. Install, either with the one-command installer on a Raspberry Pi / Debian:
    ```bash
    curl -fsSL https://raw.githubusercontent.com/nhaajtt/companionsDISCORD/main/scripts/install-pi.sh | sh
@@ -67,6 +70,9 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/companions stats [days]` | How many conversations were started, how many got people talking or playing, per kind (default last 7 days) |
 | `/companions qotd [hour]` | Post a question of the day every day at that hour (0-23), even during quiet hours; leave the hour empty to turn it off |
 | `/companions toggle what enabled` | Turn trivia rounds or polls on or off |
+| `/companions voice join channel [bots]` | Make the companions sit in a voice channel and stay there (1 to 10 of them) |
+| `/companions voice leave \| status \| greet enabled` | Leave the room, see who is there, or turn the join greeting on or off |
+| `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
 | `/companions content add-question \| add-joke \| add-fact \| add-poll` | Add your own entries for this server (up to 100 of each kind; pings are stripped) |
 | `/companions content list kind`, `/companions content remove kind number` | See and remove what you added |
 
@@ -76,6 +82,10 @@ Everyone (not only managers) can use:
 | --- | --- |
 | `/trivia top [period]` | The trivia leaderboard, this week (default) or all time |
 | `/trivia forget` | Erase your own trivia scores from every server |
+| `/pomodoro start [work] [break] [rounds]` | A focus session while you sit in the companions' voice room; `stop` and `status` too |
+| `/voice top [period]`, `/voice forget` | Who spends the most time in the voice room, and erase your own voice time |
+| `/remind add in text` | A companion reminds you in this channel (`in` is like `10m`, `2h`, `1d12h`); `list` and `cancel` too, up to 20 waiting |
+| `/event add in name` (managers) | An event countdown announced a day before, an hour before and when it starts; `list` and `cancel` too |
 
 ## Settings (`.env`)
 
@@ -94,7 +104,9 @@ All in `data/`, on your own machine:
 | `companions.json` | Per-server settings: channel, language, frequency, quiet hours, question of the day, trivia and poll switches |
 | `usage.json` | Daily counters only (how many conversations of each kind were started and engaged). No messages, no user ids |
 | `custom.json` | The questions, jokes, facts and polls your managers added |
-| `scores.json` | **The one place with user data:** the Discord user ids of people who got a trivia answer right, with their points per week. `/trivia forget` erases a person's entries |
+| `voice.json` | Minutes people spent in the voice room the companions sit in: user ids with minutes per week. `/voice forget` erases a person's entries |
+| `reminders.json` | Waiting reminders and event countdowns (the text typed and the author's user id). Each is deleted once delivered or cancelled |
+| `scores.json` | The Discord user ids of people who got a trivia answer right, with their points per week. `/trivia forget` erases a person's entries. **User ids are stored in this file, `voice.json` and `reminders.json`:** nothing else | the Discord user ids of people who got a trivia answer right, with their points per week. `/trivia forget` erases a person's entries |
 
 No message is ever stored, and nothing leaves your machine.
 
@@ -129,7 +141,9 @@ Hai đến mười bot nhỏ giữ cho một kênh chat luôn có không khí: t
 - Cài đặt: tạo 2 đến 10 ứng dụng trong Discord Developer Portal, chạy bộ cài một lệnh ở trên (hoặc `docker compose up -d --build` sau khi điền `.env`), rồi trong Discord gõ `/companions setup channel:#chat-chung language:Tiếng Việt`.
 - Trên cùng một Pi 5 bạn có thể chạy song song với bot nhạc musiDISCORD, mỗi bot một thư mục (bảng ở trên).
 - Biết chơi cùng chứ không chỉ nói: câu hỏi trong ngày (`/companions qotd`), poll, và đố vui có nút bấm kèm bảng xếp hạng (`/trivia top`). Chủ server tự thêm câu hỏi, chuyện cười, fun fact và poll bằng `/companions content`; `/companions stats` cho biết bot có thật sự khiến mọi người nói chuyện không.
-- Chỉ bảng điểm đố vui lưu ID Discord của người trả lời đúng, và ai cũng tự xóa được bằng `/trivia forget`. Không lưu tin nhắn.
+
+- Ngồi trong phòng voice 24/7: `/companions voice join channel:#phong-voice`. Bot ở lại kể cả khi mọi người ra hết, tự vào lại nếu bị đá hoặc khởi động lại, không nói và không nghe gì. Thêm: chào người vừa vào voice, `/pomodoro` (phiên tập trung), `/voice top` (giờ ngồi voice), chào thành viên mới kèm câu phá băng (`/companions welcome`), `/remind` và `/event`.
+- Dữ liệu người dùng (ID Discord) nằm ở `scores.json`, `voice.json`, `reminders.json`; ai cũng tự xóa được bằng `/trivia forget` và `/voice forget`. Không lưu tin nhắn.
 - Chưa chạy thử với Discord thật; hãy theo dõi vài ngày rồi chỉnh tần suất và nội dung.
 
 ## Testing

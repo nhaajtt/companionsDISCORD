@@ -3,6 +3,7 @@ import "dotenv/config";
 import path from "node:path";
 import { createCustomStore } from "./custom.js";
 import { startCompanions } from "./runtime.js";
+import { createReminderStore } from "./reminders.js";
 import { createScoreStore } from "./scores.js";
 import { createSettingsStore, validTimeZone } from "./settings.js";
 import { createUsageStore } from "./usage.js";
@@ -29,9 +30,11 @@ const store = createSettingsStore(path.join(dataDir, "companions.json"));
 const usage = createUsageStore(path.join(dataDir, "usage.json"));
 const scores = createScoreStore(path.join(dataDir, "scores.json"));
 const custom = createCustomStore(path.join(dataDir, "custom.json"));
+const hours = createScoreStore(path.join(dataDir, "voice.json"));
+const reminders = createReminderStore(path.join(dataDir, "reminders.json"));
 let stop;
 try {
-  ({ stop } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, timezone }));
+  ({ stop } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, hours, reminders, timezone }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);
