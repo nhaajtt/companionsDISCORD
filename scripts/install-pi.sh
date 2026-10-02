@@ -123,7 +123,7 @@ if [ -f .env ] && grep -Eq '^COMPANION_TOKENS=.+' .env; then
   say "Keeping the existing .env"
 else
   say "Configuring the companions"
-  echo "Create 2 to 10 applications at https://discord.com/developers/applications, add a Bot to each, and copy each bot token."
+  echo "Create 2 to 30 applications at https://discord.com/developers/applications, add a Bot to each, and copy each bot token."
   TOKENS="${COMPANION_TOKENS:-}"
   while [ -z "$TOKENS" ]; do
     ask_secret "Bot tokens, separated by commas (hidden):" ""

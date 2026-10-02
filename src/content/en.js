@@ -2,6 +2,7 @@
 // no claims of eating, sleeping, travelling or having a body.
 
 import extraFacts from "./facts.js";
+import MORE from "./personas-more.js";
 import triviaItems from "./trivia.js";
 
 // Different lead-ins so a long run of facts does not sound like a stuck record
@@ -237,6 +238,8 @@ const bank = {
 
 export default {
   ...bank,
+  // 9 hand-made personalities, then 21 more for bots 10 to 30
+  personas: [...bank.personas, ...MORE.personas.en],
   trivia: triviaItems.map((t, i) => ({ id: `tr-${i + 1}`, q: t.q.en, options: t.options.en, answer: t.answer })),
   facts: [
     ...bank.facts,

@@ -41,7 +41,7 @@ flowchart LR
 
 **No message content.** Only non-privileged intents (`Guilds`, `GuildMessages`, `GuildVoiceStates`). The bots notice that someone wrote, never what. The "new member" welcome uses Discord's own join system message, so it needs no members intent either.
 
-**Personality by token order.** The Nth token is the Nth persona (a ninth persona set wraps for a tenth bot), so a deployment is configured by one comma-separated list.
+**Personality by token order.** The Nth token is the Nth persona (30 personas, and a 31st bot wraps to the first), so a deployment is configured by one comma-separated list.
 
 **Self-healing voice presence.** `VoiceKeeper.tick()` compares what should be true (the saved room and the number of bots) with what is true (is each bot connected and in that channel) and repairs the difference. Failed joins back off 5 s, 15 s, 1 min, then 5 min. A restart restores presence because the room is saved in the settings. Bots show no mute or deafen icon, but never send audio or listen to it.
 

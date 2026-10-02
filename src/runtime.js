@@ -9,6 +9,7 @@ import {
   Client,
   Events,
   GatewayIntentBits,
+  Options,
   MessageFlags,
   MessageType,
   PermissionFlagsBits,
@@ -141,7 +142,7 @@ export const companionsCommand = new SlashCommandBuilder()
           .setName("join")
           .setDescription("Add a voice room or change its number of bots (free companions sit there and stay)")
           .addChannelOption((o) => o.setName("channel").setDescription("The voice channel (pick a room that is already added to change its number of bots)").addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice).setRequired(true))
-          .addIntegerOption((o) => o.setName("bots").setDescription("How many companions sit there (default 1)").setMinValue(1).setMaxValue(10)),
+          .addIntegerOption((o) => o.setName("bots").setDescription("How many companions sit there (default 1)").setMinValue(1).setMaxValue(30)),
       )
       .addSubcommand((s) =>
         s
@@ -267,16 +268,27 @@ function triviaText({ label, question, options }) {
 export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, alerter = { notify: async () => false }, log = console.log }) {
   const slots = [];
 
-  for (const [slot, token] of tokens.entries()) {
-    const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] });
+  const logIn = async (slot, token) => {
+    // With up to 30 bots in one process, keep each client light: nothing here reads old messages, reactions or presences
+    const client = new Client({
+      intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates],
+      makeCache: Options.cacheWithLimits({ ...Options.DefaultMakeCacheSettings, MessageManager: 0, ReactionManager: 0, PresenceManager: 0 }),
+    });
     client.once(Events.ClientReady, (c) => log(`Companion ${slot + 1} is online as ${c.user.tag}`));
     try {
       await client.login(token);
-      slots.push({ slot, client });
+      return { slot, client };
     } catch (error) {
       console.error(`Companion ${slot + 1} could not log in (${error.message}). Skipping it.`);
       client.destroy();
+      return null;
     }
+  };
+  // Log in a few at a time: one by one is slow with 30 bots, all at once is rude to the gateway
+  const LOGIN_BATCH = 5;
+  for (let start = 0; start < tokens.length; start += LOGIN_BATCH) {
+    const batch = await Promise.all(tokens.slice(start, start + LOGIN_BATCH).map((token, i) => logIn(start + i, token)));
+    slots.push(...batch.filter(Boolean));
   }
   if (slots.length < 2) throw new Error("At least two companion bots must be able to log in.");
   const bySlot = new Map(slots.map((s) => [s.slot, s.client]));

@@ -1,6 +1,8 @@
 // Funny notes (custom status lines) for each companion, in persona order: Pip, Grumble, Nova, Sage, Bean, Diva, Dog, Dog 2, Cow.
 // A bot shows one of its own notes from the moment it starts and moves to the next one every 15 minutes.
-export default {
+import MORE from "./personas-more.js";
+
+const BASE = {
   en: [
     // Pip
     [
@@ -510,3 +512,5 @@ export default {
     ],
   ],
 };
+
+export default { en: [...BASE.en, ...MORE.notes.en], vi: [...BASE.vi, ...MORE.notes.vi] };

@@ -68,8 +68,8 @@ test("content: every bank is complete and well-formed in both languages", () => 
   for (const language of ["en", "vi"]) {
     const c = getContent(language);
     assert.equal(c.language, language);
-    assert.equal(c.personas.length, 9, `${language}: nine personalities`);
-    assert.equal(new Set(c.personas.map((p) => p.name)).size, 9, `${language}: distinct names`);
+    assert.equal(c.personas.length, 30, `${language}: thirty personalities`);
+    assert.equal(new Set(c.personas.map((p) => p.name)).size, 30, `${language}: distinct names`);
 
     for (const [kind, key] of Object.entries(CONTENT_KEY)) {
       assert.ok(c[key].length >= 12, `${language}: enough ${key}`);
@@ -372,8 +372,8 @@ test("bots six to nine speak with their own personalities, not a copy of the fir
       }
     }
   }
-  // the tenth bot wraps around to the first personality
+  // the 31st bot wraps around to the first personality
   const en = getContent("en");
-  const script = buildScript({ kind: "riddle", item: en.riddles[0], slots: [9, 0], content: en, rng: seeded(2) });
+  const script = buildScript({ kind: "riddle", item: en.riddles[0], slots: [30, 0], content: en, rng: seeded(2) });
   assert.ok(en.personas[0].giveUp.includes(script[1].text));
 });

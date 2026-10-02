@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/nhaajtt/companionsDISCORD/actions/workflows/ci.yml/badge.svg)](https://github.com/nhaajtt/companionsDISCORD/actions/workflows/ci.yml)
 
-Two to ten small Discord bots that keep a channel lively. Every so often one of them asks a question, tells a joke or a riddle, shares a fun fact or starts a short chat with another bot. If nobody answers after a few minutes, another bot jumps in. If a person joins the conversation, the bots step back, and they thank anyone who replies to them.
+Two to thirty small Discord bots that keep a channel lively. Every so often one of them asks a question, tells a joke or a riddle, shares a fun fact or starts a short chat with another bot. If nobody answers after a few minutes, another bot jumps in. If a person joins the conversation, the bots step back, and they thank anyone who replies to them.
 
 Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by [nhaajt](https://github.com/nhaajtt). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD), the self-hosted music bot, and the two can run side by side on the same Raspberry Pi.
 
-- **They are open about being bots.** They keep Discord's BOT tag, have nine distinct personalities and never pretend to be human. They run on normal bot tokens, never a user account.
+- **They are open about being bots.** They keep Discord's BOT tag, have 30 distinct personalities and never pretend to be human. They run on normal bot tokens, never a user account.
 - **No outside services.** English and Vietnamese banks of questions, jokes and riddles, fun facts (about 1,250 in each language, the same ones translated) and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used.
 - **Good manners built in:** one channel you choose, quiet hours (default 23:00 to 08:00 in your time zone), a daily limit, nothing while people are chatting, typing indicators, no pings, and a ten minute cooldown between thank-yous.
 - **They do not read message content.** They only use the non-privileged `Guilds`, `GuildMessages` and `GuildVoiceStates` intents to notice that someone wrote, replied, or moved in a voice room.
@@ -36,7 +36,7 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 | Dog 2 | Easily distracted, snack-obsessed sidekick who means well |
 | Cow | Calm pasture philosopher who answers slowly, with a pun |
 
-Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on up to the ninth, Cow. With fewer than nine bots the first ones are used; a tenth bot would share Pip's personality.
+Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on up to the ninth, Cow, then Byte (glitchy robot), Echo (repeats the last words), Maple (cozy adviser), Zip (always in a hurry), Mochi (gentle encourager), Rex (movie-trailer voice), Pixel (8-bit gamer), Luna (night-sky poet), Sizzle (cooking-show chef), Gizmo (inventor), Clue (noir detective), Anchor (sea captain), Jinx (fortune-cookie omens), Quill (pompous professor), Ziggy (hype DJ), Blip (anxious worrier), Tofu (deadpan, very literal), Sparky (power puns), Misty (vague prophecies), Rocket (countdown optimist) and Waffle (dumb puns). With fewer bots the first ones are used; a 31st bot would share Pip's personality. Every personality has its own lines and 25 notes in both languages.
 
 ## How a conversation goes
 
@@ -117,7 +117,7 @@ docker run -d --name companionsdiscord --restart unless-stopped   --env-file .en
 
 | Variable | Meaning |
 | --- | --- |
-| `COMPANION_TOKENS` | 2 to 10 bot tokens, comma-separated (required) |
+| `COMPANION_TOKENS` | 2 to 30 bot tokens, comma-separated (required) |
 | `COMPANION_TIMEZONE` | Time zone for quiet hours and the daily limit (default `Asia/Ho_Chi_Minh`) |
 | `COMPANION_DATA_DIR` | Where the data files are stored (default `data`; the compose file sets it) |
 | `ALERT_WEBHOOK_URL` | Optional Discord webhook. The bots post a short message there when one is offline or a voice bot cannot rejoin for more than 10 minutes, on an unhandled error, and when they start (each kind at most every 30 minutes; anything token-like is hidden) |

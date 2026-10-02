@@ -11,16 +11,17 @@ import { createSettingsStore, localParts, validTimeZone } from "./settings.js";
 import { createStatusServer } from "./status.js";
 import { createUsageStore } from "./usage.js";
 
+const MAX_BOTS = 30;
 const tokens = (process.env.COMPANION_TOKENS ?? "")
   .split(",")
   .map((t) => t.trim())
   .filter(Boolean);
 
 if (tokens.length < 2) {
-  console.error("Set COMPANION_TOKENS to at least two bot tokens separated by commas (up to 10). See .env.example.");
+  console.error("Set COMPANION_TOKENS to at least two bot tokens separated by commas (up to 30). See .env.example.");
   process.exit(1);
 }
-if (tokens.length > 10) console.warn(`Only the first 10 of the ${tokens.length} tokens are used.`);
+if (tokens.length > MAX_BOTS) console.warn(`Only the first ${MAX_BOTS} of the ${tokens.length} tokens are used.`);
 
 const timezone = process.env.COMPANION_TIMEZONE || process.env.TIMEZONE || "Asia/Ho_Chi_Minh";
 if (!validTimeZone(timezone)) {
@@ -53,13 +54,13 @@ setInterval(backupNow, 3_600_000).unref();
 let stop;
 let snapshot;
 try {
-  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, hours, reminders, timezone, alerter }));
+  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, MAX_BOTS), store, usage, scores, custom, hours, reminders, timezone, alerter }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);
 }
 
-alerter.notify("start", `Started with ${tokens.slice(0, 10).length} bot${tokens.length === 1 ? "" : "s"}.`);
+alerter.notify("start", `Started with ${tokens.slice(0, MAX_BOTS).length} bot${tokens.length === 1 ? "" : "s"}.`);
 
 const statusPort = Number(process.env.STATUS_PORT);
 if (statusPort > 0) {

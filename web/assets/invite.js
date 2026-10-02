@@ -7,8 +7,8 @@
 })(typeof window !== "undefined" ? window : this, function () {
   "use strict";
 
-  var MAX = 10;
-  var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow"];
+  var MAX = 30;
+  var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow", "Byte", "Echo", "Maple", "Zip", "Mochi", "Rex", "Pixel", "Luna", "Sizzle", "Gizmo", "Clue", "Anchor", "Jinx", "Quill", "Ziggy", "Blip", "Tofu", "Sparky", "Misty", "Rocket", "Waffle"];
   var PERMISSIONS = 562949954538496;
   var KEY = "companions-invite-ids";
 
