@@ -70,8 +70,9 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/companions stats [days]` | How many conversations were started, how many got people talking or playing, per kind (default last 7 days) |
 | `/companions qotd [hour]` | Post a question of the day every day at that hour (0-23), even during quiet hours; leave the hour empty to turn it off |
 | `/companions toggle what enabled` | Turn trivia rounds or polls on or off |
-| `/companions voice join channel [bots]` | Make the companions sit in a voice channel and stay there (1 to 10 of them) |
-| `/companions voice leave \| status \| greet enabled` | Leave the room, see who is there, or turn the join greeting on or off |
+| `/companions voice join channel [bots]` | Add a voice room. Companions are handed out in order: the first room gets bots 1, 2, ..., the next room gets the next free ones, and so on. Use a room that is already added to change its number of bots |
+| `/companions voice leave [channel]` | Remove one room (the bots of the later rooms move up) or, with no channel, every room |
+| `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the join greeting on or off |
 | `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
 | `/companions content add-question \| add-joke \| add-fact \| add-poll` | Add your own entries for this server (up to 100 of each kind; pings are stripped) |
 | `/companions content list kind`, `/companions content remove kind number` | See and remove what you added |
@@ -147,7 +148,7 @@ Hai đến mười bot nhỏ giữ cho một kênh chat luôn có không khí: t
 - Trên cùng một Pi 5 bạn có thể chạy song song với bot nhạc musiDISCORD, mỗi bot một thư mục (bảng ở trên).
 - Biết chơi cùng chứ không chỉ nói: câu hỏi trong ngày (`/companions qotd`), poll, và đố vui có nút bấm kèm bảng xếp hạng (`/trivia top`). Chủ server tự thêm câu hỏi, chuyện cười, fun fact và poll bằng `/companions content`; `/companions stats` cho biết bot có thật sự khiến mọi người nói chuyện không.
 
-- Ngồi trong phòng voice 24/7: `/companions voice join channel:#phong-voice`. Bot ở lại kể cả khi mọi người ra hết, tự vào lại nếu bị đá hoặc khởi động lại, không nói và không nghe gì. Thêm: chào người vừa vào voice, `/pomodoro` (phiên tập trung), `/voice top` (giờ ngồi voice), chào thành viên mới kèm câu phá băng (`/companions welcome`), `/remind` và `/event`.
+- Ngồi trong phòng voice 24/7: `/companions voice join channel:#phong-voice bots:2`, rồi thêm phòng khác bằng chính lệnh đó: bot được chia theo thứ tự 1, 2, 3... (phòng đầu lấy bot đầu, phòng sau lấy các bot kế tiếp), xóa một phòng thì các phòng sau dồn lên (`/companions voice leave`). Bot ở lại kể cả khi mọi người ra hết, tự vào lại nếu bị đá hoặc khởi động lại, không nói và không nghe gì. Thêm: chào người vừa vào voice, `/pomodoro` (phiên tập trung), `/voice top` (giờ ngồi voice), chào thành viên mới kèm câu phá băng (`/companions welcome`), `/remind` và `/event`.
 - Dữ liệu người dùng (ID Discord) nằm ở `scores.json`, `voice.json`, `reminders.json`; ai cũng tự xóa được bằng `/trivia forget` và `/voice forget`. Không lưu tin nhắn.
 - Chưa chạy thử với Discord thật; hãy theo dõi vài ngày rồi chỉnh tần suất và nội dung.
 

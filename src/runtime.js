@@ -20,7 +20,7 @@ import { formatContentList, formatStats, formatTop, hoursText } from "./format.j
 import { POMODORO_LIMITS, fill } from "./pomodoro.js";
 import { ReminderError, parseDuration } from "./reminders.js";
 import { LANGUAGES, PRESETS, createSettingsStore, validTimeZone } from "./settings.js";
-import { VoiceKeeper } from "./voice.js";
+import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { VoiceTools } from "./voicetools.js";
 import { getContent } from "./content/index.js";
 import { getTools } from "./content/tools.js";
@@ -110,12 +110,17 @@ export const companionsCommand = new SlashCommandBuilder()
       .addSubcommand((s) =>
         s
           .setName("join")
-          .setDescription("Make the companions sit in a voice channel and stay there")
-          .addChannelOption((o) => o.setName("channel").setDescription("The voice channel").addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice).setRequired(true))
+          .setDescription("Add a voice room: the next free companions (1, 2, 3... in order) sit there and stay")
+          .addChannelOption((o) => o.setName("channel").setDescription("The voice channel (pick a room that is already added to change its number of bots)").addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice).setRequired(true))
           .addIntegerOption((o) => o.setName("bots").setDescription("How many companions sit there (default 1)").setMinValue(1).setMaxValue(10)),
       )
-      .addSubcommand((s) => s.setName("leave").setDescription("Make the companions leave the voice channel"))
-      .addSubcommand((s) => s.setName("status").setDescription("Who is in the voice channel"))
+      .addSubcommand((s) =>
+        s
+          .setName("leave")
+          .setDescription("Remove a voice room (later rooms move up), or every room if you pick none")
+          .addChannelOption((o) => o.setName("channel").setDescription("The room to remove (leave empty to remove them all)").addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice)),
+      )
+      .addSubcommand((s) => s.setName("status").setDescription("Which companions sit in which voice room"))
       .addSubcommand((s) =>
         s
           .setName("greet")
@@ -363,9 +368,10 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
 
   const hostClient = slots[0].client;
   const humansIn = (guildId) => {
-    const channelId = store.get(guildId).voiceChannelId;
-    const channel = channelId ? hostClient.guilds.cache.get(guildId)?.channels.cache.get(channelId) : null;
-    return channel?.members ? channel.members.filter((m) => !m.user.bot).size : 0;
+    return roomsOf(store.get(guildId)).reduce((n, room) => {
+      const channel = hostClient.guilds.cache.get(guildId)?.channels.cache.get(room.channelId);
+      return n + (channel?.members ? channel.members.filter((m) => !m.user.bot).size : 0);
+    }, 0);
   };
   /** Says something in the chat channel, from a companion that sits in the voice room when possible. */
   const say = async ({ guildId, text, pingUsers }) => {
@@ -379,8 +385,10 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   const seeded = new Set();
   const seedVoiceGuild = (guildId) => {
     const settings = store.get(guildId);
-    const channel = settings.voiceChannelId ? hostClient.guilds.cache.get(guildId)?.channels.cache.get(settings.voiceChannelId) : null;
-    channel?.members?.forEach((m) => !m.user.bot && voiceTools.userJoined({ guildId, userId: m.id, channelId: channel.id, existing: true }));
+    for (const room of roomsOf(settings)) {
+      const channel = hostClient.guilds.cache.get(guildId)?.channels.cache.get(room.channelId);
+      channel?.members?.forEach((m) => !m.user.bot && voiceTools.userJoined({ guildId, userId: m.id, channelId: channel.id, existing: true }));
+    }
   };
 
   /** Delivers the reminders and event heads-ups that are due. One that cannot be sent (no bot can write there) is retried. */
@@ -440,10 +448,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   hostClient.on(Events.VoiceStateUpdate, (oldState, newState) => {
     const member = newState.member ?? oldState.member;
     if (!member || member.user.bot || oldState.channelId === newState.channelId) return;
-    const home = store.get(newState.guild.id).voiceChannelId;
-    if (!home) return;
-    if (oldState.channelId === home) voiceTools.userLeft({ guildId: newState.guild.id, userId: member.id });
-    if (newState.channelId === home) voiceTools.userJoined({ guildId: newState.guild.id, userId: member.id, channelId: home });
+    const settings = store.get(newState.guild.id);
+    if (oldState.channelId && isVoiceRoom(settings, oldState.channelId)) voiceTools.userLeft({ guildId: newState.guild.id, userId: member.id });
+    if (newState.channelId && isVoiceRoom(settings, newState.channelId)) voiceTools.userJoined({ guildId: newState.guild.id, userId: member.id, channelId: newState.channelId });
   });
 
   // The slash commands live on the first bot, registered per server so they show up immediately
@@ -506,8 +513,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       joined += sum.totalJoined;
       triviaAnswers += sum.triviaAnswers;
       const voice = keeper.status(guildId);
-      if (voice.present > 0) rooms++;
-      sitting += voice.present ?? 0;
+      rooms += voice.rooms.filter((r) => r.present > 0).length;
+      sitting += voice.present;
     }
     return {
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
@@ -546,6 +553,18 @@ async function handleTrivia(interaction, { engine, scores, store }) {
   return interaction.reply({ content: formatTop(entries, period === "week" ? labels.topWeek : labels.topAll), allowedMentions: { parse: [] } });
 }
 
+/** "Room 1: #a: 1. Pip, 2. Grumble ...", with how many are there yet. */
+function voiceSummary(status, slots) {
+  const nameOf = (slot) => slots.find((s) => s.slot === slot)?.client.user?.username ?? `Companion ${slot + 1}`;
+  return status.rooms
+    .map((room, i) => {
+      const who = room.slots.map((slot) => `${slot + 1}. ${nameOf(slot)}`).join(", ") || "nobody can connect";
+      const note = room.asked > room.wanted ? ` (you asked for ${room.asked}, only ${room.wanted} can connect)` : "";
+      return `**Room ${i + 1}:** <#${room.channelId}>: ${who}${note}. ${room.present} of ${room.wanted} are there now.`;
+    })
+    .join("\n");
+}
+
 async function handleVoiceTop(interaction, { hours, engine, store }) {
   const guildId = interaction.guildId;
   const lines = getTools(store.get(guildId).language);
@@ -572,9 +591,10 @@ async function handlePomodoro(interaction, { store, voiceTools, keeper, say }) {
     return reply(s ? `🍅 ${s.phase === "work" ? "Working" : "On a break"}: round ${s.round} of ${s.rounds}, about ${s.minutesLeft} minute${s.minutesLeft === 1 ? "" : "s"} left.` : "There is no focus session running.");
   }
 
-  if (!settings.voiceChannelId) return reply("The companions are not sitting in a voice channel yet. A manager can use `/companions voice join`.");
+  const rooms = roomsOf(settings);
+  if (!rooms.length) return reply("The companions are not sitting in a voice channel yet. A manager can use `/companions voice join`.");
   if (!settings.channelId) return reply("Pick a chat channel first with `/companions setup`, that is where the steps are announced.");
-  if (interaction.member?.voice?.channelId !== settings.voiceChannelId) return reply(`Join <#${settings.voiceChannelId}> first, the focus session belongs to that room.`);
+  if (!rooms.some((r) => r.channelId === interaction.member?.voice?.channelId)) return reply(`Join one of the rooms the companions sit in (${rooms.map((r) => `<#${r.channelId}>`).join(", ")}) first, the focus session belongs to it.`);
   if (!keeper.assigned(guildId).length) return reply("No companion can reach that voice channel right now.");
   const started = pomodoro.start(guildId, {
     work: interaction.options.getInteger("work") ?? undefined,
@@ -636,21 +656,21 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     if (sub === "join") {
       const channel = interaction.options.getChannel("channel", true);
       const count = interaction.options.getInteger("bots") ?? 1;
-      store.update(guildId, { voiceChannelId: channel.id, voiceBots: count });
-      const eligible = voicePort.candidates(guildId, channel.id).length;
-      if (!eligible) return reply(`⚠️ Saved, but no companion can see and connect to ${channel}. Give them View Channel and Connect there (bots invited before this feature may need the Connect permission added to their role).`);
+      if (!voicePort.candidates(guildId, channel.id).length) return reply(`⚠️ No companion can see and connect to ${channel}. Give them View Channel and Connect there (bots invited before this feature may need the Connect permission added to their role). Nothing was changed.`);
+      keeper.setRoom(guildId, channel.id, count);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       await keeper.tick();
       seedVoiceGuild(guildId);
-      const status = keeper.status(guildId);
-      return interaction.editReply(
-        `🎧 ${Math.min(count, eligible)} companion${Math.min(count, eligible) === 1 ? "" : "s"} will sit in ${channel} and stay there, even when it is empty (${status.present} there now).` +
-          (eligible < count ? ` Only ${eligible} can connect to it.` : ""),
-      );
+      return interaction.editReply(`🎧 Saved.\n${voiceSummary(keeper.status(guildId), slots)}`);
     }
     if (sub === "leave") {
-      await keeper.leave(guildId);
-      return reply("👋 The companions left the voice channel and will not come back until you use `/companions voice join` again.");
+      const channel = interaction.options.getChannel("channel");
+      if (channel && !isVoiceRoom(settings, channel.id)) return reply(`The companions are not sitting in ${channel}.`);
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      await keeper.removeRoom(guildId, channel?.id ?? null);
+      await keeper.tick();
+      const left = keeper.status(guildId);
+      return interaction.editReply(left.rooms.length ? `👋 Removed ${channel}. The later rooms moved up.\n${voiceSummary(left, slots)}` : "👋 The companions left every voice room and will not come back until you use `/companions voice join` again.");
     }
     if (sub === "greet") {
       const enabled = interaction.options.getBoolean("enabled", true);
@@ -658,7 +678,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
       return reply(enabled ? "👋 They will say hi in the chat channel when someone joins the voice channel." : "🔇 No more greetings for people joining the voice channel.");
     }
     const status = keeper.status(guildId);
-    return reply(status.channelId ? `🎧 Voice channel: <#${status.channelId}>. ${status.present} of ${status.wanted} wanted companions are there now (${status.eligible} can connect). Greetings: ${settings.voiceGreet ? "on" : "off"}.` : "The companions are not sitting in any voice channel. Use `/companions voice join`.");
+    return reply(status.rooms.length ? `${voiceSummary(status, slots)}\nGreetings: ${settings.voiceGreet ? "on" : "off"}.` : "The companions are not sitting in any voice channel. Use `/companions voice join`.");
   }
 
   if (sub === "welcome") {
@@ -734,7 +754,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     `**Quiet hours:** ${settings.quietStart === settings.quietEnd ? "none" : `${settings.quietStart}:00 to ${settings.quietEnd}:00`} (${timezone})`,
     `**Question of the day:** ${settings.qotdHour === null || settings.qotdHour === undefined ? "off" : `every day at ${settings.qotdHour}:00`}`,
     `**Trivia:** ${settings.trivia === false ? "off" : "on"}, **polls:** ${settings.polls === false ? "off" : "on"}`,
-    `**Voice channel:** ${settings.voiceChannelId ? `<#${settings.voiceChannelId}> (${settings.voiceBots} companion${settings.voiceBots === 1 ? "" : "s"})` : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
+    `**Voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
     `**Your own content:** ${custom.count(guildId)} entries`,
     `**Bots that can write there:** ${status.botsAvailable} of ${slots.length}`,
     status.talking ? "Right now: in the middle of a conversation." : status.nextStartInMs === null ? "" : `Next conversation: in about ${hoursText(status.nextStartInMs)}, if it is not quiet hours.`,

@@ -2,6 +2,7 @@
 // and announce Pomodoro steps. It never talks to Discord; the things it needs come in through deps.
 import { PomodoroSessions, fill } from "./pomodoro.js";
 import { isQuietHour, localParts } from "./settings.js";
+import { isVoiceRoom } from "./voice.js";
 
 const MIN = 60_000;
 const GREET_COOLDOWN_MS = 30 * MIN; // greet the same person at most this often
@@ -39,7 +40,7 @@ export class VoiceTools {
   userJoined({ guildId, userId, channelId, existing = false }) {
     const { store, now, rng, say, timezone } = this.#deps;
     const settings = store.get(guildId);
-    if (!settings.voiceChannelId || channelId !== settings.voiceChannelId) return;
+    if (!isVoiceRoom(settings, channelId)) return;
     const key = `${guildId}:${userId}`;
     if (!this.#sessions.has(key)) this.#sessions.set(key, { guildId, userId, since: now() });
     if (existing || !settings.voiceGreet || !settings.enabled || !settings.channelId) return;
