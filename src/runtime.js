@@ -20,10 +20,11 @@ import { CompanionEngine } from "./engine.js";
 import { formatContentList, formatStats, formatTop, hoursText } from "./format.js";
 import { POMODORO_LIMITS, fill } from "./pomodoro.js";
 import { ReminderError, parseDuration } from "./reminders.js";
-import { LANGUAGES, PRESETS, createSettingsStore, validTimeZone } from "./settings.js";
+import { LANGUAGES, PRESETS, createSettingsStore, localParts, validTimeZone } from "./settings.js";
 import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { VoiceTools, presenceText } from "./voicetools.js";
 import { getContent } from "./content/index.js";
+import { activeSeasons, withSeasons } from "./content/seasons.js";
 import { getTools } from "./content/tools.js";
 
 const TICK_MS = 15_000;
@@ -319,7 +320,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     },
   };
 
-  const content = (language, guildId) => custom.merge(getContent(language), guildId);
+  // The built-in bank, plus the packs of the season (Halloween, Christmas...), plus what the server's managers added
+  const content = (language, guildId) => custom.merge(withSeasons(getContent(language), language, localParts(Date.now(), timezone).day), guildId);
   const engine = new CompanionEngine({ store, content, bots, timezone, log, usage, scores });
 
   // Voice: the companions sit in a room 24/7. Each bot has its own voice "group" so several can sit in one server.
@@ -793,6 +795,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     `**Question of the day:** ${settings.qotdHour === null || settings.qotdHour === undefined ? "off" : `every day at ${settings.qotdHour}:00`}`,
     `**Trivia:** ${settings.trivia === false ? "off" : "on"}, **polls:** ${settings.polls === false ? "off" : "on"}`,
     `**Voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
+    `**Seasonal packs today:** ${activeSeasons(localParts(Date.now(), timezone).day).join(", ") || "none"}`,
     `**Your own content:** ${custom.count(guildId)} entries`,
     `**Bots that can write there:** ${status.botsAvailable} of ${slots.length}`,
     status.talking ? "Right now: in the middle of a conversation." : status.nextStartInMs === null ? "" : `Next conversation: in about ${hoursText(status.nextStartInMs)}, if it is not quiet hours.`,
