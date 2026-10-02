@@ -17,7 +17,8 @@ import {
 import { VoiceConnectionStatus, entersState, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
 import { CustomError, KINDS as CUSTOM_KINDS } from "./custom.js";
 import { CompanionEngine } from "./engine.js";
-import { formatContentList, formatStats, formatTop, hoursText } from "./format.js";
+import { collectRecap, formatContentList, formatRecap, formatStats, formatTop, hoursText } from "./format.js";
+import { weekStart } from "./scores.js";
 import { POMODORO_LIMITS, fill } from "./pomodoro.js";
 import { ReminderError, parseDuration } from "./reminders.js";
 import { LANGUAGES, PRESETS, createSettingsStore, localParts, validTimeZone } from "./settings.js";
@@ -97,6 +98,12 @@ export const companionsCommand = new SlashCommandBuilder()
       .setName("toggle")
       .setDescription("Turn trivia rounds or polls on or off")
       .addStringOption((o) => o.setName("what").setDescription("Which one").setRequired(true).addChoices({ name: "Trivia rounds", value: "trivia" }, { name: "Polls", value: "polls" }))
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("recap")
+      .setDescription("Post a short recap of the week every Monday morning")
       .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
   )
   .addSubcommand((s) =>
@@ -416,6 +423,18 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     }
   };
 
+  /** On Monday mornings (10:00 and later), posts the recap of the week before in the servers that turned it on. */
+  const maybeRecap = async () => {
+    const { hour, day } = localParts(Date.now(), timezone);
+    const monday = weekStart(day);
+    if (hour < 10 || day !== monday) return;
+    for (const [guildId, settings] of store.all()) {
+      if (!settings.recap || !settings.enabled || !settings.channelId || settings.lastRecap === monday) continue;
+      store.update(guildId, { lastRecap: monday });
+      await say({ guildId, text: formatRecap(getTools(settings.language), collectRecap({ usage, scores, hours, guildId, day })) });
+    }
+  };
+
   /** What each companion shows under its name: the voice room it sits in, a focus session, or an idle line. */
   const lastPresence = new Map();
   const updatePresence = () => {
@@ -545,6 +564,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       await deliverReminders();
       updatePresence();
       checkHealth();
+      await maybeRecap();
     } catch (error) {
       console.error("Companion tools tick failed:", error);
     }
@@ -735,6 +755,12 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     return reply(status.rooms.length ? `${voiceSummary(status, slots)}\nGreetings: ${settings.voiceGreet ? "on" : "off"}.` : "The companions are not sitting in any voice channel. Use `/companions voice join`.");
   }
 
+  if (sub === "recap") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { recap: enabled });
+    return reply(enabled ? "📰 Every Monday morning (10:00 and later) the bots post a short recap of the week before: conversations, trivia champion and voice time." : "🔇 No more weekly recaps.");
+  }
+
   if (sub === "welcome") {
     const enabled = interaction.options.getBoolean("enabled", true);
     store.update(guildId, { welcome: enabled });
@@ -808,7 +834,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     `**Quiet hours:** ${settings.quietStart === settings.quietEnd ? "none" : `${settings.quietStart}:00 to ${settings.quietEnd}:00`} (${timezone})`,
     `**Question of the day:** ${settings.qotdHour === null || settings.qotdHour === undefined ? "off" : `every day at ${settings.qotdHour}:00`}`,
     `**Trivia:** ${settings.trivia === false ? "off" : "on"}, **polls:** ${settings.polls === false ? "off" : "on"}`,
-    `**Voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
+    `**Weekly recap:** ${settings.recap ? "on" : "off"}, **voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
     `**Seasonal packs today:** ${activeSeasons(localParts(Date.now(), timezone).day).join(", ") || "none"}`,
     `**Your own content:** ${custom.count(guildId)} entries`,
     `**Bots that can write there:** ${status.botsAvailable} of ${slots.length}`,

@@ -1,3 +1,4 @@
+import { dayRange } from "./usage.js";
 // Text for the admin commands, kept free of Discord objects so it can be tested.
 
 const KIND_NAMES = {
@@ -45,6 +46,39 @@ export function formatStats(summary) {
 export function formatTop(entries, title, unit = ["point", "points"]) {
   const medal = (i) => ["🥇", "🥈", "🥉"][i] ?? `**${i + 1}.**`;
   return `**${title}**\n${entries.map((e, i) => `${medal(i)} <@${e.userId}>: ${e.points} ${unit[e.points === 1 ? 0 : 1]}`).join("\n")}`;
+}
+
+/** What happened in the week before the Monday `day`: gathers the numbers the recap needs. */
+export function collectRecap({ usage, scores, hours, guildId, day }) {
+  const sum = usage.summary(guildId, dayRange(day, 2)[1], 7); // the 7 days that end yesterday
+  const lastWeek = dayRange(day, 8)[7]; // a day of the previous week, which is how the boards pick a week
+  return {
+    convos: sum.total,
+    joined: sum.totalJoined,
+    triviaAnswers: sum.triviaAnswers,
+    triviaCorrect: sum.triviaCorrect,
+    topPlayer: scores.top(guildId, { day: lastWeek, limit: 1 })[0] ?? null,
+    topVoice: hours.top(guildId, { day: lastWeek, limit: 1 })[0] ?? null,
+  };
+}
+
+const fillText = (template, values) => String(template ?? "").replace(/\{(\w+)\}/g, (_, k) => values[k] ?? "");
+
+/**
+ * The weekly recap post. `lines` is the `tools` bank of a language and `data` is
+ * { convos, joined, triviaAnswers, triviaCorrect, topPlayer: {userId, points}|null, topVoice: {userId, points}|null }.
+ */
+export function formatRecap(lines, data) {
+  const parts = [`**${lines.recapTitle}**`];
+  if (!data.convos && !data.topPlayer && !data.topVoice) parts.push(lines.recapQuiet);
+  else {
+    if (data.convos) parts.push(fillText(lines.recapConvos, { n: data.convos, j: data.joined }));
+    if (data.triviaAnswers) parts.push(fillText(lines.recapTrivia, { a: data.triviaAnswers, c: data.triviaCorrect }));
+    if (data.topPlayer) parts.push(fillText(lines.recapTop, { user: `<@${data.topPlayer.userId}>`, points: data.topPlayer.points }));
+    if (data.topVoice) parts.push(fillText(lines.recapVoice, { user: `<@${data.topVoice.userId}>`, minutes: data.topVoice.points }));
+    parts.push(lines.recapOutro);
+  }
+  return parts.join("\n");
 }
 
 const truncate = (text, max) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);

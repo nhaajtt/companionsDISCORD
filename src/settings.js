@@ -23,6 +23,8 @@ export const DEFAULTS = {
   voiceChannelId: null, // older single-room setting, still understood
   voiceBots: 1,
   voiceGreet: false, // say hi in the chat channel when someone joins that room
+  recap: false, // post a short recap of the week every Monday morning
+  lastRecap: "", // the Monday of the last recap that was posted
   welcome: false, // greet new members (needs the server's join messages) with an icebreaker
 };
 

@@ -5,6 +5,10 @@ import path from "node:path";
 import test from "node:test";
 import { createAlerter, scrub } from "../src/alerts.js";
 import { backupData } from "../src/backup.js";
+import { getTools } from "../src/content/tools.js";
+import { collectRecap, formatRecap } from "../src/format.js";
+import { createScoreStore } from "../src/scores.js";
+import { createUsageStore } from "../src/usage.js";
 import { createSettingsStore } from "../src/settings.js";
 import { VoiceKeeper } from "../src/voice.js";
 
@@ -85,4 +89,37 @@ test("the keeper reports a bot that has been unable to join for a while", async 
   const stuck = keeper.stuck(10 * 60_000);
   assert.equal(stuck.length, 1);
   assert.deepEqual([stuck[0].guildId, stuck[0].slot], ["g", 0]);
+});
+
+test("the weekly recap gathers last week's numbers and reads well in both languages", () => {
+  const dir = tmp();
+  const usage = createUsageStore(path.join(dir, "u.json"));
+  const scores = createScoreStore(path.join(dir, "s.json"));
+  const hours = createScoreStore(path.join(dir, "h.json"));
+  // Monday 2026-10-05 is the day of the recap; the week before is Mon 09-28 to Sun 10-04
+  for (const day of ["2026-09-29", "2026-10-03"]) {
+    usage.record("g", day, { type: "start", kind: "question" });
+    usage.record("g", day, { type: "end", kind: "question", joined: true });
+    usage.record("g", day, { type: "trivia", answered: 3, correct: 2 });
+  }
+  usage.record("g", "2026-10-05", { type: "start", kind: "fact" }); // this week, must not be counted
+  scores.add("g", "u1", "2026-09-30", 3);
+  scores.add("g", "u2", "2026-10-05", 9); // this week, must not count
+  hours.add("g", "u3", "2026-10-02", 125);
+
+  const data = collectRecap({ usage, scores, hours, guildId: "g", day: "2026-10-05" });
+  assert.deepEqual([data.convos, data.joined, data.triviaAnswers, data.triviaCorrect], [2, 2, 6, 4]);
+  assert.deepEqual(data.topPlayer, { userId: "u1", points: 3 });
+  assert.deepEqual(data.topVoice, { userId: "u3", points: 125 });
+
+  const en = formatRecap(getTools("en"), data);
+  assert.match(en, /2 conversations/);
+  assert.match(en, /<@u1> with 3 points/);
+  assert.match(en, /<@u3>, 125 minutes/);
+  const vi = formatRecap(getTools("vi"), data);
+  assert.match(vi, /2 cuộc trò chuyện/);
+  assert.match(vi, /<@u3>, 125 phút/);
+
+  const quiet = formatRecap(getTools("en"), collectRecap({ usage, scores, hours, guildId: "empty", day: "2026-10-05" }));
+  assert.match(quiet, /quiet week/);
 });
