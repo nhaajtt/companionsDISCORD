@@ -81,6 +81,14 @@ export function createScoreStore(file) {
         .slice(0, limit);
     },
 
+    /** Forgets everything stored for a server. */
+    forgetGuild(guildId) {
+      if (!(guildId in data)) return false;
+      delete data[guildId];
+      save();
+      return true;
+    },
+
     /** Removes a user's scores from every server. Returns how many servers had an entry. */
     forget(userId) {
       let count = 0;

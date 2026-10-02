@@ -121,6 +121,18 @@ export const companionsCommand = new SlashCommandBuilder()
   )
   .addSubcommandGroup((g) =>
     g
+      .setName("data")
+      .setDescription("Your server's data")
+      .addSubcommand((s) => s.setName("export").setDescription("Get your settings and the content you added as a file"))
+      .addSubcommand((s) =>
+        s
+          .setName("delete")
+          .setDescription("Erase everything stored about this server (settings, content, scores, voice time, reminders)")
+          .addBooleanOption((o) => o.setName("confirm").setDescription("Set to true to confirm. This cannot be undone").setRequired(true)),
+      ),
+  )
+  .addSubcommandGroup((g) =>
+    g
       .setName("voice")
       .setDescription("Companions that sit in a voice channel 24/7")
       .addSubcommand((s) =>
@@ -470,6 +482,33 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     }
   };
 
+  /** Erases everything stored about a server, in every store. Returns whether anything was there. */
+  const forgetGuild = (guildId) => {
+    const results = [store.remove(guildId), usage.forgetGuild(guildId), scores.forgetGuild(guildId), hours.forgetGuild(guildId), custom.forgetGuild(guildId), reminders.forgetGuild(guildId) > 0];
+    return results.some(Boolean);
+  };
+
+  // When every companion has left a server (kicked, or the server was deleted), its data is erased after a day
+  const pendingForget = new Map();
+  for (const { client } of slots) {
+    client.on(Events.GuildDelete, (guild) => {
+      if (guild.unavailable) return; // an outage, not a removal
+      clearTimeout(pendingForget.get(guild.id));
+      pendingForget.set(
+        guild.id,
+        setTimeout(() => {
+          pendingForget.delete(guild.id);
+          if (slots.some(({ client: c }) => c.guilds.cache.has(guild.id))) return; // some companion is still there
+          if (forgetGuild(guild.id)) log(`Every companion left server ${guild.id}, so its stored data was erased.`);
+        }, 24 * 3_600_000).unref?.(),
+      );
+    });
+    client.on(Events.GuildCreate, (guild) => {
+      clearTimeout(pendingForget.get(guild.id));
+      pendingForget.delete(guild.id);
+    });
+  }
+
   /** Delivers the reminders and event heads-ups that are due. One that cannot be sent (no bot can write there) is retried. */
   const deliverReminders = async () => {
     for (const { item, stage } of reminders.due(Date.now())) {
@@ -554,7 +593,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.InteractionCreate, (interaction) => {
     const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
-    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say }).catch(async (error) => {
+    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
       const payload = { content: "Something went wrong with that command.", flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) await interaction.followUp(payload).catch(() => {});
@@ -562,9 +601,20 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     });
   });
 
-  const timer = setInterval(() => engine.tick().catch((e) => console.error("Companions tick failed:", e)), TICK_MS);
+  let engineRunning = false;
+  const timer = setInterval(() => {
+    if (engineRunning) return;
+    engineRunning = true;
+    engine
+      .tick()
+      .catch((e) => console.error("Companions tick failed:", e))
+      .finally(() => (engineRunning = false));
+  }, TICK_MS);
   timer.unref?.();
+  let toolsRunning = false;
   const toolsTimer = setInterval(async () => {
+    if (toolsRunning) return; // the last round is still going (many servers, slow joins): do not start another on top of it
+    toolsRunning = true;
     try {
       await keeper.tick();
       for (const [guildId] of store.all()) if (!seeded.has(guildId)) (seeded.add(guildId), seedVoiceGuild(guildId));
@@ -575,6 +625,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       await maybeRecap();
     } catch (error) {
       console.error("Companion tools tick failed:", error);
+    } finally {
+      toolsRunning = false;
     }
   }, TICK_MS);
   toolsTimer.unref?.();
@@ -731,7 +783,7 @@ async function handleRemind(interaction, { reminders }) {
   }
 }
 
-async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, keeper, voicePort, seedVoiceGuild }) {
+async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild }) {
   const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
   const guildId = interaction.guildId;
   const group = interaction.options.getSubcommandGroup(false);
@@ -739,6 +791,22 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
   const settings = store.get(guildId);
 
   if (group === "content") return handleContent(interaction, { custom, guildId, sub, reply });
+
+  if (group === "data") {
+    if (sub === "export") {
+      const payload = { exportedAt: new Date().toISOString(), settings: store.saved(guildId), customContent: custom.exportGuild(guildId), upcomingEvents: reminders.list(guildId, null, "event").length };
+      return interaction.reply({
+        content: "📦 Your server's settings and the content you added. Scores, voice time and counters are not included.",
+        files: [{ attachment: Buffer.from(JSON.stringify(payload, null, 2)), name: `companions-${guildId}.json` }],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+    if (!interaction.options.getBoolean("confirm", true)) return reply("Nothing was erased. Run the command again with `confirm:true` if you are sure.");
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await keeper.removeRoom(guildId);
+    const erased = forgetGuild(guildId);
+    return interaction.editReply(erased ? "🗑️ Everything stored about this server was erased. The bots will stay silent until you run `/companions setup` again." : "There was nothing stored about this server.");
+  }
 
   if (group === "voice") {
     if (sub === "join") {

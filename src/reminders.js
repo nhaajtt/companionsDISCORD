@@ -100,6 +100,14 @@ export function createReminderStore(file) {
     /** Persist the notified flags after due(). */
     flush: save,
 
+    /** Forgets every reminder and event of a server. */
+    forgetGuild(guildId) {
+      const before = data.items.length;
+      data.items = data.items.filter((i) => i.guildId !== guildId);
+      if (data.items.length !== before) save();
+      return before - data.items.length;
+    },
+
     /** Removes everything a user has, in every server. Returns how many entries were removed. */
     forget(userId) {
       const before = data.items.length;

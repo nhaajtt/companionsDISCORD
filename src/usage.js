@@ -85,6 +85,14 @@ export function createUsageStore(file) {
       save();
     },
 
+    /** Forgets a server's counters. */
+    forgetGuild(guildId) {
+      if (!(guildId in data)) return false;
+      delete data[guildId];
+      save();
+      return true;
+    },
+
     /** Totals over the last `days` days up to and including `today`. */
     summary(guildId, today, days = 7) {
       const wanted = dayRange(today, days);

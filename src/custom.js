@@ -46,6 +46,17 @@ export function createCustomStore(file) {
   };
 
   return {
+    /** Forgets everything a server added. */
+    forgetGuild(guildId) {
+      if (!(guildId in data)) return false;
+      delete data[guildId];
+      save();
+      return true;
+    },
+
+    /** What a server added, as plain data (for the export). */
+    exportGuild: (guildId) => JSON.parse(JSON.stringify(data[guildId] ?? {})),
+
     list: (guildId, kind) => [...(data[guildId]?.[KEY[kind]] ?? [])],
     count: (guildId) => KINDS.reduce((sum, kind) => sum + (data[guildId]?.[KEY[kind]]?.length ?? 0), 0),
 

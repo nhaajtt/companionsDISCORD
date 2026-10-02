@@ -73,6 +73,18 @@ export function createSettingsStore(file) {
   return {
     get: (guildId) => ({ ...DEFAULTS, ...data[guildId] }),
     all: () => Object.keys(data).map((guildId) => [guildId, { ...DEFAULTS, ...data[guildId] }]),
+    /** The settings that were saved for a server (nothing for one that never configured anything). */
+    saved: (guildId) => (data[guildId] ? { ...data[guildId] } : null),
+    /** Forgets a server's settings. */
+    remove(guildId) {
+      if (!(guildId in data)) return false;
+      delete data[guildId];
+      mkdirSync(path.dirname(file), { recursive: true });
+      const tmp = `${file}.tmp`;
+      writeFileSync(tmp, JSON.stringify(data, null, 2));
+      renameSync(tmp, file);
+      return true;
+    },
     update(guildId, patch) {
       data[guildId] = { ...data[guildId], ...patch };
       mkdirSync(path.dirname(file), { recursive: true });
