@@ -2,7 +2,7 @@
 
 ## 4.0
 
-- Each companion shows a status line under its name (voice room, focus session, idle line).
+- Each companion shows a note under its name from the moment it starts: 25 funny notes per personality in both languages, rotating every 15 minutes; people in the voice room and focus sessions take over when they happen.
 - Seasonal packs: Halloween, Christmas, New Year, Tet, Valentine, in English and Vietnamese.
 - Weekly recap on Monday mornings, trivia streaks with milestone shout-outs, voice regular announcements.
 - Adaptive tuning of the kinds of conversation per server, and the best hour in `/companions stats`.

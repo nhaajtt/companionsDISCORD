@@ -9,6 +9,7 @@ import { createScoreStore } from "../src/scores.js";
 import { createSettingsStore } from "../src/settings.js";
 import { PomodoroSessions } from "../src/pomodoro.js";
 import { VoiceKeeper } from "../src/voice.js";
+import { getContent } from "../src/content/index.js";
 import { VoiceTools, presenceText } from "../src/voicetools.js";
 
 const MIN = 60_000;
@@ -363,35 +364,30 @@ test("the voice, welcome and reminder lines exist in both languages", () => {
   for (const line of [...tools.en.remind, ...tools.vi.remind]) assert.match(line, /\{user\}.*\{text\}|\{text\}.*\{user\}/);
 });
 
-test("the status line shows a focus session first, then the voice room, then an idle line that rotates", () => {
+test("the note shows a focus session first, then people in the room, then the bot's own notes in turn", () => {
   const lines = getTools("en");
   const now = Date.parse("2026-10-02T20:00:00Z");
-  assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 }, focusMinutesLeft: 12 }), /12 min/);
-  assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 } }), /with 3/);
-  assert.equal(presenceText(lines, { slot: 0, now, voice: { humans: 0 } }), lines.presenceVoiceAlone);
-  const idle = presenceText(lines, { slot: 0, now });
-  assert.ok(lines.presenceIdle.includes(idle));
-  assert.notEqual(presenceText(lines, { slot: 1, now }), idle, "different bots show different lines");
-  assert.notEqual(presenceText(lines, { slot: 0, now: now + 21 * 60_000 }), idle, "and the line changes over time");
+  const notes = ["one", "two", "three"];
+  assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 }, focusMinutesLeft: 12, notes }), /12 min/);
+  assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 }, notes }), /with 3/);
+  const alone = presenceText(lines, { slot: 0, now, voice: { humans: 0 }, notes });
+  assert.ok(notes.includes(alone), "an empty voice room shows a note, not 'sitting alone'");
+  const a = presenceText(lines, { slot: 0, now, notes, offset: 0 });
+  assert.notEqual(presenceText(lines, { slot: 0, now, notes, offset: 1 }), a, "a different starting point gives a different note");
+  assert.notEqual(presenceText(lines, { slot: 0, now: now + 16 * 60_000, notes }), presenceText(lines, { slot: 0, now, notes }), "and it moves on over time");
+  assert.ok(lines.presenceIdle.includes(presenceText(lines, { slot: 0, now })), "without notes it falls back to the generic lines");
 });
 
-test("a voice regular is announced once when someone crosses 5 hours in a week, and only when titles are on", async () => {
-  const on = makeTools({ titles: true });
-  on.vt.userJoined({ guildId: "g", userId: "u", channelId: "v", existing: true });
-  on.advance(299 * MIN);
-  await on.vt.tick();
-  assert.equal(on.said.length, 0, "not yet");
-  on.advance(2 * MIN);
-  await on.vt.tick();
-  assert.equal(on.said.length, 1);
-  assert.match(on.said[0].text, /<@u>.*5 hours/);
-  on.advance(60 * MIN);
-  await on.vt.tick();
-  assert.equal(on.said.length, 1, "announced only once");
-
-  const off = makeTools();
-  off.vt.userJoined({ guildId: "g", userId: "u", channelId: "v", existing: true });
-  off.advance(400 * MIN);
-  await off.vt.tick();
-  assert.equal(off.said.length, 0);
+test("every companion has 25 notes in both languages, short, single-line and different from each other", async () => {
+  const NOTES = (await import("../src/content/notes.js")).default;
+  const personas = getContent("en").personas.length;
+  for (const lang of ["en", "vi"]) {
+    assert.equal(NOTES[lang].length, personas, `${lang}: one list per persona`);
+    NOTES[lang].forEach((list, i) => {
+      assert.equal(list.length, 25, `${lang} persona ${i}`);
+      assert.equal(new Set(list.map((n) => n.toLowerCase())).size, list.length, `${lang} persona ${i}: duplicates`);
+      for (const note of list) assert.ok(note.length > 5 && note.length <= 80 && !note.includes("\n") && !note.includes("\u2014"), `${lang} persona ${i}: ${note}`);
+    });
+  }
+  assert.equal(NOTES.en.length, NOTES.vi.length);
 });

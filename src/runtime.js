@@ -27,6 +27,7 @@ import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { VoiceTools, presenceText } from "./voicetools.js";
 import { getContent } from "./content/index.js";
 import { activeSeasons, withSeasons } from "./content/seasons.js";
+import NOTES from "./content/notes.js";
 import { getTools } from "./content/tools.js";
 
 const TICK_MS = 15_000;
@@ -457,6 +458,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
 
   /** What each companion shows under its name: the voice room it sits in, a focus session, or an idle line. */
   const lastPresence = new Map();
+  // each bot starts at a random place in its list of notes, so a restart does not always begin with the same one
+  const noteOffset = new Map(slots.map(({ slot }) => [slot, Math.floor(Math.random() * 1000)]));
   const updatePresence = () => {
     const now = Date.now();
     for (const { slot, client } of slots) {
@@ -475,7 +478,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         focus = voiceTools.pomodoro.status(guildId)?.minutesLeft ?? null;
         break;
       }
-      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus });
+      const notes = (NOTES[language] ?? NOTES.en)[slot % NOTES.en.length];
+      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot) });
       if (lastPresence.get(slot) === text) continue;
       lastPresence.set(slot, text);
       client.user.setPresence({ status: "online", activities: [{ name: "custom", type: ActivityType.Custom, state: text }] });
@@ -508,6 +512,10 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       pendingForget.delete(guild.id);
     });
   }
+
+  // every bot has a note from the moment it starts, not only after the first round of the timer
+  updatePresence();
+  setTimeout(updatePresence, 5_000).unref?.();
 
   /** Delivers the reminders and event heads-ups that are due. One that cannot be sent (no bot can write there) is retried. */
   const deliverReminders = async () => {

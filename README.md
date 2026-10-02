@@ -15,7 +15,7 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 - **Your own content.** Managers can add questions, jokes, facts and polls with a command, no redeploy needed.
 - **They sit in a voice room 24/7.** One or more companions join a voice channel, stay when everyone leaves and rejoin by themselves if they are dropped or the program restarts. They never speak, play or listen: they are just there, so the room looks lived in.
 - **Useful around the room:** a greeting when someone joins the voice room, Pomodoro focus sessions announced in chat, and a voice-time leaderboard.
-- **They look alive.** Each companion shows a short status under its name ("Sitting in voice with 3", "Focus session: 12 min left", or a funny idle line).
+- **They look alive.** Each companion shows a funny note under its name from the moment it starts (25 per personality in each language, a new one every 15 minutes, starting at a random one), or "Sitting in voice with 3" and "Focus session: 12 min left" when that is happening.
 - **Seasons.** Halloween, Christmas, New Year, Tet and Valentine packs of questions, jokes, facts and polls are mixed in on the right days, in both languages.
 - **They learn what works.** Adaptive tuning favours the kinds of conversation that get your members talking, and `/companions stats` shows the best hour.
 - **A weekly recap, trivia streaks and voice regular titles** give a reason to come back.
