@@ -2,9 +2,9 @@
 // it is given a `port` and the settings store, and tick() puts things right.
 // The bots never speak, play or listen in the channels; they are just there.
 //
-// A server can have several rooms. They are an ordered list, and bots are handed out in order: the first room gets the
-// first bots (by slot number), the second room gets the next ones, and so on. Removing a room makes the later rooms'
-// bots move up, so the order always holds.
+// A server can have several rooms, each with its own bots. A bot stays in the room it was given: asking for more bots in a
+// room, or adding a room, only uses bots that are free (the lowest numbers first) and never takes one from another room.
+// Lowering a room's number frees its highest-numbered bots, and removing a room frees all of its bots.
 //
 // "Join to create" channels (a channel that makes a new room for whoever joins and moves them there) are handled too:
 // when a bot that joined room X is moved to a new room in the same category, that new room is remembered as the real
@@ -41,15 +41,38 @@ export class VoiceKeeper {
     this.#deps = { store, port, now, log, settleMs, sleep };
   }
 
-  /** Who sits where: [{ channelId, bots, slots }] in room order, the lowest free slots first. */
+  /** Who sits where: [{ channelId, bots, slots }]. Bots already given to a room stay there; missing ones are the lowest free bots. */
   plan(guildId, settings = this.#deps.store.get(guildId)) {
-    const used = new Set();
-    return roomsOf(settings).map(({ channelId, bots }) => {
-      const eligible = [...this.#deps.port.candidates(guildId, channelId)].sort((a, b) => a - b).filter((slot) => !used.has(slot));
-      const slots = eligible.slice(0, Math.max(1, bots ?? 1));
-      slots.forEach((slot) => used.add(slot));
-      return { channelId, bots: bots ?? 1, slots };
+    const rooms = roomsOf(settings);
+    const taken = new Set();
+    const result = rooms.map((room) => {
+      const want = Math.max(1, room.bots ?? 1);
+      const eligible = new Set(this.#deps.port.candidates(guildId, room.channelId));
+      const slots = [...new Set(room.slots ?? [])].filter((slot) => eligible.has(slot) && !taken.has(slot)).sort((a, b) => a - b).slice(0, want);
+      slots.forEach((slot) => taken.add(slot));
+      return { channelId: room.channelId, bots: want, slots, eligible };
     });
+    for (const room of result) {
+      const free = [...room.eligible].sort((a, b) => a - b).filter((slot) => !taken.has(slot));
+      for (const slot of free.slice(0, room.bots - room.slots.length)) {
+        room.slots.push(slot);
+        taken.add(slot);
+      }
+      room.slots.sort((a, b) => a - b);
+    }
+    return result;
+  }
+
+  /** Writes the plan's bot numbers into the settings so every bot stays where it is, also after a restart. */
+  #persist(guildId) {
+    const { store } = this.#deps;
+    const settings = store.get(guildId);
+    const plan = this.plan(guildId, settings);
+    if (!plan.length) return;
+    // when nothing at all can connect to a room (the server is not loaded yet), keep what was stored
+    const rooms = roomsOf(settings).map((room, i) => ({ channelId: room.channelId, bots: room.bots, slots: plan[i].eligible.size ? plan[i].slots : room.slots ?? [] }));
+    const same = rooms.length === (settings.voiceRooms ?? []).length && rooms.every((r, i) => JSON.stringify(r) === JSON.stringify(settings.voiceRooms?.[i]));
+    if (!same) store.update(guildId, { voiceRooms: rooms, voiceChannelId: null });
   }
 
   /** Every bot that is meant to be in some room of this server. */
@@ -79,7 +102,8 @@ export class VoiceKeeper {
   async tick() {
     const { store, port, now, log, settleMs, sleep } = this.#deps;
     for (const [guildId, settings] of store.all()) {
-      const plan = this.plan(guildId, settings);
+      this.#persist(guildId);
+      const plan = this.plan(guildId, store.get(guildId));
       if (!plan.length) continue;
       const wanted = new Map(plan.flatMap((room) => room.slots.map((slot) => [slot, room.channelId])));
 
@@ -127,10 +151,11 @@ export class VoiceKeeper {
     if (existing) existing.bots = bots;
     else rooms.push({ channelId, bots });
     this.#deps.store.update(guildId, { voiceRooms: rooms, voiceChannelId: null });
+    this.#persist(guildId);
     return rooms;
   }
 
-  /** Removes one room (the bots of the later rooms move up), or every room when no channel is given. */
+  /** Removes one room (its bots become free, the other rooms keep theirs), or every room when no channel is given. */
   async removeRoom(guildId, channelId = null) {
     const { store, port } = this.#deps;
     const before = roomsOf(store.get(guildId));
@@ -145,6 +170,7 @@ export class VoiceKeeper {
       this.#redirects.delete(`${guildId}:${room.channelId}`);
     }
     store.update(guildId, { voiceRooms: after, voiceChannelId: null });
+    this.#persist(guildId);
     for (const key of [...this.#fails.keys()]) if (key.startsWith(`${guildId}:`)) this.#fails.delete(key);
     return removed.length;
   }

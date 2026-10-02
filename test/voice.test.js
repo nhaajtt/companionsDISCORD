@@ -85,7 +85,7 @@ test("lowering the number of bots makes the extra ones leave, and leave() clears
   const port = fakePort();
   const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
   await keeper.tick();
-  store.update("g", { voiceBots: 1 });
+  keeper.setRoom("g", "v", 1);
   await keeper.tick();
   assert.deepEqual(port.leaves.sort(), [1, 2]);
   await keeper.removeRoom("g");
@@ -94,23 +94,53 @@ test("lowering the number of bots makes the extra ones leave, and leave() clears
   assert.equal(port.joins.length, 3, "nothing joins after leave()");
 });
 
-test("bots are handed out room by room in order, and later rooms move up when one is removed", async () => {
+test("a bot stays in its room: new or bigger rooms only use free bots, nobody is taken from another room", async () => {
   const store = createSettingsStore(path.join(tmp(), "s.json"));
-  const port = fakePort([0, 1, 2, 3]);
+  const port = fakePort([0, 1, 2, 3, 4, 5]);
   const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
-  keeper.setRoom("g", "a", 2);
+  keeper.setRoom("g", "a", 1);
   keeper.setRoom("g", "b", 1);
   keeper.setRoom("g", "c", 1);
-  assert.deepEqual(keeper.plan("g").map((r) => [r.channelId, r.slots]), [["a", [0, 1]], ["b", [2]], ["c", [3]]]);
+  const slots = () => Object.fromEntries(keeper.plan("g").map((r) => [r.channelId, r.slots]));
+  assert.deepEqual(slots(), { a: [0], b: [1], c: [2] });
 
-  keeper.setRoom("g", "b", 2); // changing b to two bots pushes c's bot out of the pool
-  assert.deepEqual(keeper.plan("g").map((r) => r.slots), [[0, 1], [2, 3], []]);
+  keeper.setRoom("g", "b", 2); // b grows: it takes the lowest free bot, c keeps its own
+  assert.deepEqual(slots(), { a: [0], b: [1, 3], c: [2] });
+
+  keeper.setRoom("g", "d", 2);
+  assert.deepEqual(slots(), { a: [0], b: [1, 3], c: [2], d: [4, 5] });
+
+  keeper.setRoom("g", "b", 1); // b shrinks: it gives up its highest bot
+  assert.deepEqual(slots(), { a: [0], b: [1], c: [2], d: [4, 5] });
+
+  await keeper.removeRoom("g", "a"); // nobody else moves, bot 0 is free again
+  assert.deepEqual(slots(), { b: [1], c: [2], d: [4, 5] });
+  keeper.setRoom("g", "e", 2);
+  assert.deepEqual(slots().e, [0, 3], "the freed bots are used first, lowest numbers first");
+});
+
+test("when no bot is free a bigger room gets fewer bots instead of stealing", () => {
+  const store = createSettingsStore(path.join(tmp(), "s.json"));
+  const keeper = new VoiceKeeper({ store, port: fakePort([0, 1, 2]), settleMs: 0 });
+  keeper.setRoom("g", "a", 1);
   keeper.setRoom("g", "b", 1);
+  keeper.setRoom("g", "c", 2);
+  assert.deepEqual(keeper.plan("g").map((r) => [r.channelId, r.slots]), [["a", [0]], ["b", [1]], ["c", [2]]]);
+  assert.deepEqual(keeper.status("g").rooms.map((r) => [r.asked, r.wanted]), [[1, 1], [1, 1], [2, 1]]);
+});
 
-  await keeper.removeRoom("g", "a");
-  assert.deepEqual(keeper.plan("g").map((r) => [r.channelId, r.slots]), [["b", [0]], ["c", [1]]], "b and c move up to the first bots");
-  await keeper.removeRoom("g", "b");
-  assert.deepEqual(keeper.plan("g").map((r) => [r.channelId, r.slots]), [["c", [0]]]);
+test("the assignment is saved, so a restart keeps every bot where it was", async () => {
+  const file = path.join(tmp(), "s.json");
+  const store = createSettingsStore(file);
+  const keeper = new VoiceKeeper({ store, port: fakePort([0, 1, 2, 3]), settleMs: 0 });
+  keeper.setRoom("g", "a", 1);
+  keeper.setRoom("g", "b", 2);
+  const again = new VoiceKeeper({ store: createSettingsStore(file), port: fakePort([0, 1, 2, 3]), settleMs: 0 });
+  assert.deepEqual(again.plan("g").map((r) => r.slots), [[0], [1, 2]]);
+  // a server that is not loaded yet (nothing can connect) does not wipe what was saved
+  const blind = new VoiceKeeper({ store: createSettingsStore(file), port: fakePort([]), settleMs: 0 });
+  await blind.tick();
+  assert.deepEqual(createSettingsStore(file).get("g").voiceRooms.map((r) => r.slots), [[0], [1, 2]]);
 });
 
 test("a bot that is sent to another room goes there", async () => {
@@ -138,7 +168,7 @@ test("a bot that is sent to another room goes there", async () => {
   assert.deepEqual(joined, [[0, "a"], [1, "b"]]);
   await keeper.removeRoom("g", "a");
   await keeper.tick();
-  assert.deepEqual(joined.at(-1), [0, "b"], "the first bot takes the first room that is left");
+  assert.equal(joined.length, 2, "bot 1 stays in room b, nobody moves");
 });
 
 test("a join-to-create channel: bots share the room it made instead of making one each, and do not loop", async () => {
@@ -188,7 +218,7 @@ test("settings with the older single room still work", () => {
   const keeper = new VoiceKeeper({ store, port: fakePort(), settleMs: 0 });
   assert.deepEqual(keeper.plan("g").map((r) => [r.channelId, r.slots]), [["old", [0, 1]]]);
   keeper.setRoom("g", "new", 1);
-  assert.deepEqual(store.get("g").voiceRooms, [{ channelId: "old", bots: 2 }, { channelId: "new", bots: 1 }]);
+  assert.deepEqual(store.get("g").voiceRooms, [{ channelId: "old", bots: 2, slots: [0, 1] }, { channelId: "new", bots: 1, slots: [2] }]);
   assert.equal(store.get("g").voiceChannelId, null);
 });
 
