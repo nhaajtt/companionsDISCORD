@@ -68,7 +68,8 @@ test("content: every bank is complete and well-formed in both languages", () => 
   for (const language of ["en", "vi"]) {
     const c = getContent(language);
     assert.equal(c.language, language);
-    assert.equal(c.personas.length, 5, `${language}: five personalities`);
+    assert.equal(c.personas.length, 9, `${language}: nine personalities`);
+    assert.equal(new Set(c.personas.map((p) => p.name)).size, 9, `${language}: distinct names`);
 
     for (const [kind, key] of Object.entries(CONTENT_KEY)) {
       assert.ok(c[key].length >= 12, `${language}: enough ${key}`);
@@ -330,19 +331,49 @@ test("Vietnamese content runs through the same engine", async () => {
   assert.ok(getContent("vi").riddles.some((r) => r.setup === h.sent[0].text));
 });
 
-test("the large Vietnamese fact bank is real facts: unique, sentence-like, no arithmetic filler", () => {
-  const all = getContent("vi").facts;
-  const facts = all.filter((f) => f.id.startsWith("vf-"));
-  assert.ok(facts.length >= 300, `expected the extended bank, got ${facts.length}`);
-  assert.equal(new Set(all.map((f) => f.id)).size, all.length, "ids are unique across the whole bank");
-  assert.equal(new Set(facts.map((f) => f.id)).size, facts.length, "unique ids");
-  assert.equal(new Set(facts.map((f) => f.text.toLowerCase())).size, facts.length, "no repeated text");
-  for (const { text } of facts) {
-    assert.ok(text.length >= 30 && text.length < 300, `length: ${text}`);
-    assert.ok(/[.!?\p{Emoji}]$/u.test(text), `ends like a sentence: ${text}`);
-    assert.ok(!/\d{9,}/.test(text), `no long digit strings: ${text}`);
-    assert.ok(!/\b\d+ (là số|chia hết|mũ)\b/.test(text), `no arithmetic filler: ${text}`);
+const VIETNAMESE_LETTERS = /[ăâđêôơưàáảãạèéẻẽẹìíỉĩịòóỏõọùúủũụỳýỷỹỵấầẩẫậắằẳẵặếềểễệốồổỗộớờởỡợứừửữựĂÂĐÊÔƠƯ]/;
+
+test("the large fact banks hold real facts: unique, sentence-like, no arithmetic filler, the same facts in both languages", () => {
+  const banks = { vi: getContent("vi").facts, en: getContent("en").facts };
+  const bulk = { vi: banks.vi.filter((f) => f.id.startsWith("vf-")), en: banks.en.filter((f) => f.id.startsWith("ef-")) };
+
+  assert.ok(bulk.vi.length >= 1000, `Vietnamese bank: ${bulk.vi.length}`);
+  assert.equal(bulk.vi.length, bulk.en.length, "same number of facts in both languages");
+
+  for (const language of ["vi", "en"]) {
+    const all = banks[language];
+    assert.equal(new Set(all.map((f) => f.id)).size, all.length, `${language}: unique ids across the whole bank`);
+    assert.equal(new Set(all.map((f) => f.text.toLowerCase())).size, all.length, `${language}: no repeated text`);
+    for (const { text } of bulk[language]) {
+      assert.ok(text.length >= 30 && text.length < 320, `${language} length: ${text}`);
+      assert.ok(/[.!?"”\p{Emoji}]$/u.test(text), `${language} ends like a sentence: ${text}`);
+      assert.ok(!/\d{9,}/.test(text), `${language} no long digit strings: ${text}`);
+      assert.ok(!/\b\d+ (là số|chia hết|mũ)\b/.test(text), `${language} no arithmetic filler: ${text}`);
+      assert.ok(!/\.\."|undefined|\$\{/.test(text), `${language} no formatting leftovers: ${text}`);
+    }
+    // the lead-ins vary
+    assert.ok(new Set(bulk[language].slice(0, 30).map((f) => f.text.split(":")[0])).size >= 4, `${language}: varied lead-ins`);
   }
-  // the lead-ins vary
-  assert.ok(new Set(facts.slice(30).map((f) => f.text.split(":")[0])).size >= 4);
+
+  for (const { text } of bulk.en) assert.ok(!VIETNAMESE_LETTERS.test(text), `English text has Vietnamese letters: ${text}`);
+  // Vietnamese facts of the pair really are Vietnamese (accented letters appear in nearly all of them)
+  const accented = bulk.vi.filter((f) => VIETNAMESE_LETTERS.test(f.text)).length;
+  assert.ok(accented / bulk.vi.length > 0.95, `only ${accented} of ${bulk.vi.length} Vietnamese facts have accents`);
+});
+
+test("bots six to nine speak with their own personalities, not a copy of the first five", () => {
+  for (const language of ["en", "vi"]) {
+    const c = getContent(language);
+    const lines = (p) => new Set([...p.lead, ...p.giveUp, ...p.react, ...p.ack, ...p.factReact]);
+    for (let a = 0; a < c.personas.length; a++) {
+      for (let b = a + 1; b < c.personas.length; b++) {
+        const shared = [...lines(c.personas[a])].filter((l) => lines(c.personas[b]).has(l));
+        assert.equal(shared.length, 0, `${language}: ${c.personas[a].name} and ${c.personas[b].name} share lines`);
+      }
+    }
+  }
+  // the tenth bot wraps around to the first personality
+  const en = getContent("en");
+  const script = buildScript({ kind: "riddle", item: en.riddles[0], slots: [9, 0], content: en, rng: seeded(2) });
+  assert.ok(en.personas[0].giveUp.includes(script[1].text));
 });

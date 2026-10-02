@@ -4,8 +4,8 @@ Two to ten small Discord bots that keep a channel lively. Every so often one of 
 
 Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by [nhaajt](https://github.com/nhaajtt). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD), the self-hosted music bot, and the two can run side by side on the same Raspberry Pi.
 
-- **They are open about being bots.** They keep Discord's BOT tag, have five distinct personalities and never pretend to be human. They run on normal bot tokens, never a user account.
-- **No outside services.** English and Vietnamese banks of questions, jokes and riddles, fun facts (about 25 in English and about 380 in Vietnamese) and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used.
+- **They are open about being bots.** They keep Discord's BOT tag, have nine distinct personalities and never pretend to be human. They run on normal bot tokens, never a user account.
+- **No outside services.** English and Vietnamese banks of questions, jokes and riddles, fun facts (about 1,250 in each language, the same ones translated) and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used.
 - **Good manners built in:** one channel you choose, quiet hours (default 23:00 to 08:00 in your time zone), a daily limit, nothing while people are chatting, typing indicators, no pings, and a ten minute cooldown between thank-yous.
 - **They do not read message content.** They only use the non-privileged `Guilds` and `GuildMessages` intents to notice that someone wrote or replied.
 
@@ -18,8 +18,12 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 | Nova | Space and trivia nerd |
 | Sage | Deadpan philosopher |
 | Bean | Chaotic gremlin with spicy takes |
+| Diva | Sassy cat who is above all of this, and secretly loves the attention |
+| Dog | Loyal, excitable goofball who is thrilled about everything |
+| Dog 2 | Easily distracted, snack-obsessed sidekick who means well |
+| Cow | Calm pasture philosopher who answers slowly, with a pun |
 
-Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on. With fewer than five bots the first ones are used; with more than five, the sixth bot shares Pip's personality, the seventh Grumble's, and so on.
+Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on up to the ninth, Cow. With fewer than nine bots the first ones are used; a tenth bot would share Pip's personality.
 
 ## How a conversation goes
 

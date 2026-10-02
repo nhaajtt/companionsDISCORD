@@ -8,7 +8,7 @@
   "use strict";
 
   var MAX = 10;
-  var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean"];
+  var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow"];
   var PERMISSIONS = 101376;
   var KEY = "companions-invite-ids";
 
