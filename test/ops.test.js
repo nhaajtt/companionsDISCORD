@@ -6,9 +6,10 @@ import test from "node:test";
 import { createAlerter, scrub } from "../src/alerts.js";
 import { backupData } from "../src/backup.js";
 import { getTools } from "../src/content/tools.js";
-import { collectRecap, formatRecap } from "../src/format.js";
+import { collectRecap, formatRecap, formatStats } from "../src/format.js";
 import { createScoreStore } from "../src/scores.js";
-import { createUsageStore } from "../src/usage.js";
+import { pickKind } from "../src/script.js";
+import { adaptiveWeights, createUsageStore } from "../src/usage.js";
 import { createSettingsStore } from "../src/settings.js";
 import { VoiceKeeper } from "../src/voice.js";
 
@@ -143,4 +144,53 @@ test("streaks count consecutive days, reset after a missed day and are peeked wi
   scores.add("g", "u", "2026-10-06");
   assert.deepEqual(scores.streak("g", "u", "2026-10-06"), { current: 1, best: 3 });
   assert.equal(scores.weekTotal("g", "u", "2026-10-02"), 4);
+});
+
+test("adaptive weights favour kinds that get people talking, stay bounded, and wait for enough data", () => {
+  assert.equal(adaptiveWeights({ total: 19, totalJoined: 10, started: { question: 19 }, joined: { question: 10 } }), null, "too little data");
+  const summary = {
+    total: 60,
+    totalJoined: 30,
+    started: { question: 20, riddle: 20, fact: 15, poll: 3, trivia: 2 },
+    joined: { question: 16, riddle: 2, fact: 8, poll: 0, trivia: 2 },
+  };
+  const w = adaptiveWeights(summary);
+  assert.ok(w.question > 1.2 && w.question <= 2, `questions work well here: ${w.question}`);
+  assert.ok(w.riddle < 0.8 && w.riddle >= 0.5, `riddles do not: ${w.riddle}`);
+  assert.ok(Math.abs(w.fact - 1) < 0.25, `facts are about average: ${w.fact}`);
+  assert.equal(w.poll, 1, "fewer than 5 tries: no opinion yet");
+  assert.equal(adaptiveWeights({ total: 30, totalJoined: 0, started: { question: 30 }, joined: {} }).question, 1, "nobody ever joined: nothing to learn from");
+});
+
+test("the weights really change which kind is picked", () => {
+  const bank = { questions: [{ id: "q" }], riddles: [{ id: "r" }], facts: [], banter: [], polls: [], trivia: [] };
+  let seed = 7;
+  const rng = () => {
+    seed = (seed * 16807) % 2147483647;
+    return seed / 2147483647;
+  };
+  const count = (multipliers) => {
+    const n = { question: 0, riddle: 0 };
+    for (let i = 0; i < 2000; i++) n[pickKind(bank, [], rng, null, multipliers)]++;
+    return n;
+  };
+  const plain = count(null);
+  const boosted = count({ question: 2, riddle: 0.5 });
+  assert.ok(boosted.question / boosted.riddle > (plain.question / plain.riddle) * 2.5, `${JSON.stringify(plain)} then ${JSON.stringify(boosted)}`);
+});
+
+test("usage keeps engagement per hour and the stats show the best hour and the adaptive mix", () => {
+  const usage = createUsageStore(path.join(tmp(), "u.json"));
+  for (let i = 0; i < 6; i++) {
+    usage.record("g", "2026-10-01", { type: "start", kind: "question", hour: 9 });
+    usage.record("g", "2026-10-01", { type: "end", kind: "question", joined: i < 1, hour: 9 });
+    usage.record("g", "2026-10-01", { type: "start", kind: "question", hour: 19 });
+    usage.record("g", "2026-10-01", { type: "end", kind: "question", joined: i < 5, hour: 19 });
+  }
+  const summary = usage.summary("g", "2026-10-02", 7);
+  assert.deepEqual(summary.byHour["19"], { started: 6, joined: 5 });
+  const text = formatStats(summary, { weights: { question: 1.6, riddle: 0.6 }, adaptive: true });
+  assert.match(text, /Best hour.*19:00/);
+  assert.match(text, /Adaptive tuning is on: picking questions ×1\.6/);
+  assert.match(formatStats(summary, { adaptive: false }), /Adaptive tuning is off/);
 });

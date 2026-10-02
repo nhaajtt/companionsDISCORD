@@ -19,6 +19,7 @@ import { CustomError, KINDS as CUSTOM_KINDS } from "./custom.js";
 import { CompanionEngine } from "./engine.js";
 import { collectRecap, formatContentList, formatRecap, formatStats, formatTop, hoursText } from "./format.js";
 import { weekStart } from "./scores.js";
+import { adaptiveWeights } from "./usage.js";
 import { POMODORO_LIMITS, fill } from "./pomodoro.js";
 import { ReminderError, parseDuration } from "./reminders.js";
 import { LANGUAGES, PRESETS, createSettingsStore, localParts, validTimeZone } from "./settings.js";
@@ -96,8 +97,8 @@ export const companionsCommand = new SlashCommandBuilder()
   .addSubcommand((s) =>
     s
       .setName("toggle")
-      .setDescription("Turn trivia rounds or polls on or off")
-      .addStringOption((o) => o.setName("what").setDescription("Which one").setRequired(true).addChoices({ name: "Trivia rounds", value: "trivia" }, { name: "Polls", value: "polls" }))
+      .setDescription("Turn trivia rounds, polls or adaptive tuning on or off")
+      .addStringOption((o) => o.setName("what").setDescription("Which one").setRequired(true).addChoices({ name: "Trivia rounds", value: "trivia" }, { name: "Polls", value: "polls" }, { name: "Adaptive tuning", value: "adaptive" }))
       .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
   )
   .addSubcommand((s) =>
@@ -829,7 +830,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     const what = interaction.options.getString("what", true);
     const enabled = interaction.options.getBoolean("enabled", true);
     store.update(guildId, { [what]: enabled });
-    return reply(`${what === "trivia" ? "🧠 Trivia rounds" : "📊 Polls"} are now ${enabled ? "on" : "off"}.`);
+    return reply(`${{ trivia: "🧠 Trivia rounds", polls: "📊 Polls", adaptive: "🎯 Adaptive tuning" }[what]} ${what === "adaptive" ? "is" : "are"} now ${enabled ? "on" : "off"}.`);
   }
 
   if (sub === "now") {
@@ -840,7 +841,8 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
 
   if (sub === "stats") {
     const days = interaction.options.getInteger("days") ?? 7;
-    return reply(formatStats(usage.summary(guildId, engine.today(), days)));
+    const summary = usage.summary(guildId, engine.today(), days);
+    return reply(formatStats(summary, { adaptive: settings.adaptive !== false, weights: adaptiveWeights(usage.summary(guildId, engine.today(), 30)) }));
   }
 
   // status

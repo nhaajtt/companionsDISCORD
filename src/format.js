@@ -15,7 +15,7 @@ const ORDER = ["question", "qotd", "riddle", "fact", "banter", "poll", "trivia"]
 const pct = (part, whole) => (whole ? `${Math.round((part / whole) * 100)}%` : "0%");
 
 /** The /companions stats message for a summary from the usage store. */
-export function formatStats(summary) {
+export function formatStats(summary, { weights = null, adaptive = true } = {}) {
   const { days, started, joined, replies, total, totalJoined, totalReplies, acks, triviaAnswers, triviaCorrect } = summary;
   if (!total) {
     return `📊 **Last ${days} days**\nNo conversations yet. Use \`/companions now\` to start one, or wait for the next one.`;
@@ -34,6 +34,20 @@ export function formatStats(summary) {
     const r = replies[kind] ?? 0;
     lines.push(`• ${KIND_NAMES[kind]}: ${n} started, ${j} engaged (${pct(j, n)}), ${r} direct repl${r === 1 ? "y" : "ies"}`);
   }
+  const hours = Object.entries(summary.byHour ?? {})
+    .filter(([, h]) => h.started >= 5)
+    .map(([hour, h]) => ({ hour: Number(hour), started: h.started, rate: h.joined / h.started }));
+  if (hours.length >= 2) {
+    const best = hours.reduce((a, b) => (b.rate > a.rate ? b : a));
+    lines.push(`⏰ Best hour to start (the bots' time zone): **${String(best.hour).padStart(2, "0")}:00**, ${pct(Math.round(best.rate * best.started), best.started)} engaged over ${best.started} tries.`);
+  }
+  if (adaptive && weights) {
+    const moved = Object.entries(weights)
+      .filter(([, w]) => Math.abs(w - 1) >= 0.15)
+      .sort((a, b) => b[1] - a[1])
+      .map(([kind, w]) => `${KIND_NAMES[kind] ?? kind} ×${w.toFixed(1)}`);
+    lines.push(moved.length ? `🎯 Adaptive tuning is on: picking ${moved.join(", ")} compared with the default mix.` : "🎯 Adaptive tuning is on: no kind stands out yet, so the default mix is used.");
+  } else if (!adaptive) lines.push("🎯 Adaptive tuning is off.");
   if (triviaAnswers) lines.push("", `🧠 Trivia: ${triviaAnswers} answers, ${triviaCorrect} correct (${pct(triviaCorrect, triviaAnswers)}).`);
   lines.push(
     "",

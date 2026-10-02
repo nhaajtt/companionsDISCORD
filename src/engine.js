@@ -3,6 +3,7 @@
 // That keeps it easy to test with a fake clock.
 import { ackText, between, buildScript, freshItems, pickItem, pickKind } from "./script.js";
 import { PRESETS, isQuietHour, localParts } from "./settings.js";
+import { adaptiveWeights } from "./usage.js";
 
 const MIN = 60_000;
 const HUMANS_BUSY_MS = 3 * MIN; // do not start a conversation while people are chatting
@@ -64,7 +65,8 @@ export class CompanionEngine {
 
   #record(guildId, event) {
     const { usage, now, timezone } = this.#deps;
-    usage?.record(guildId, localParts(now(), timezone).day, event);
+    const { day, hour } = localParts(now(), timezone);
+    usage?.record(guildId, day, { hour, ...event });
   }
 
   /** Today's date in the configured time zone ("2026-10-02"). */
@@ -164,7 +166,9 @@ export class CompanionEngine {
 
     const content = contentFor(settings.language, guildId);
     const allowed = this.#allowedKinds(settings);
-    const kind = wanted && freshItems(content, wanted, st.recent).length ? wanted : pickKind(content, st.recent, rng, allowed);
+    // Unless it is switched off, kinds that get people talking in this server are picked a bit more often
+    const multipliers = settings.adaptive === false || !this.#deps.usage?.summary ? null : adaptiveWeights(this.#deps.usage.summary(guildId, this.today(), 30));
+    const kind = wanted && freshItems(content, wanted, st.recent).length ? wanted : pickKind(content, st.recent, rng, allowed, multipliers);
     if (!kind) {
       st.recent = []; // everything was used recently: start over
       st.nextStartAt = now() + RETRY_MS;
@@ -311,7 +315,9 @@ export class CompanionEngine {
   #end(guildId, settings, st) {
     const conv = st.conv;
     if (conv) {
-      this.#record(guildId, { type: "end", kind: conv.statKind, joined: st.lastHumanAt >= conv.startedAt || conv.interacted });
+      // the hour is the one the conversation started in, so "which hours work" lines up
+      const hour = localParts(conv.startedAt, this.#deps.timezone).hour;
+      this.#record(guildId, { type: "end", kind: conv.statKind, joined: st.lastHumanAt >= conv.startedAt || conv.interacted, hour });
     }
     st.conv = null;
     st.nextStartAt = this.#deps.now() + this.#gap(settings);

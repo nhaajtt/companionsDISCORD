@@ -15,6 +15,28 @@ export function dayRange(day, count) {
   return Array.from({ length: count }, (_, i) => new Date(base - i * 86_400_000).toISOString().slice(0, 10));
 }
 
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+/**
+ * How much more or less often each kind of conversation should be picked in a server, from what happened there.
+ * A kind that gets people talking more than the server's average is picked up to twice as often, one that gets less
+ * down to half as often. Kinds with fewer than 5 tries stay at 1, and nothing changes before 20 conversations.
+ */
+export function adaptiveWeights(summary, { minTotal = 20, minKind = 5 } = {}) {
+  if (!summary || summary.total < minTotal) return null;
+  const average = summary.totalJoined / summary.total;
+  const out = {};
+  for (const [kind, started] of Object.entries(summary.started)) {
+    if (started < minKind || average === 0) {
+      out[kind] = 1;
+      continue;
+    }
+    const rate = ((summary.joined[kind] ?? 0) + average * 3) / (started + 3); // pulled toward the average while there is little data
+    out[kind] = clamp(rate / average, 0.5, 2);
+  }
+  return out;
+}
+
 export function createUsageStore(file) {
   let data = {};
   try {
@@ -42,8 +64,14 @@ export function createUsageStore(file) {
     record(guildId, day, event) {
       const days = (data[guildId] ??= {});
       const d = (days[day] ??= { started: {}, joined: {}, replies: {}, acks: 0, triviaAnswers: 0, triviaCorrect: 0 });
-      if (event.type === "start") bump(d.started, event.kind);
-      else if (event.type === "end" && event.joined) bump(d.joined, event.kind);
+      const hourly = (d.byHour ??= {});
+      if (event.type === "start") {
+        bump(d.started, event.kind);
+        if (Number.isInteger(event.hour)) bump((hourly[event.hour] ??= { started: 0, joined: 0 }), "started");
+      } else if (event.type === "end" && event.joined) {
+        bump(d.joined, event.kind);
+        if (Number.isInteger(event.hour)) bump((hourly[event.hour] ??= { started: 0, joined: 0 }), "joined");
+      }
       else if (event.type === "reply") bump(d.replies, event.kind);
       else if (event.type === "ack") d.acks++;
       else if (event.type === "trivia") {
@@ -60,13 +88,18 @@ export function createUsageStore(file) {
     /** Totals over the last `days` days up to and including `today`. */
     summary(guildId, today, days = 7) {
       const wanted = dayRange(today, days);
-      const out = { days, started: {}, joined: {}, replies: {}, total: 0, totalJoined: 0, totalReplies: 0, acks: 0, triviaAnswers: 0, triviaCorrect: 0 };
+      const out = { days, started: {}, joined: {}, replies: {}, total: 0, totalJoined: 0, totalReplies: 0, acks: 0, triviaAnswers: 0, triviaCorrect: 0, byHour: {} };
       for (const day of wanted) {
         const d = data[guildId]?.[day];
         if (!d) continue;
         for (const [k, n] of Object.entries(d.started)) bump(out.started, k, n);
         for (const [k, n] of Object.entries(d.joined)) bump(out.joined, k, n);
         for (const [k, n] of Object.entries(d.replies)) bump(out.replies, k, n);
+        for (const [hour, h] of Object.entries(d.byHour ?? {})) {
+          const total = (out.byHour[hour] ??= { started: 0, joined: 0 });
+          total.started += h.started;
+          total.joined += h.joined;
+        }
         out.acks += d.acks;
         out.triviaAnswers += d.triviaAnswers;
         out.triviaCorrect += d.triviaCorrect;

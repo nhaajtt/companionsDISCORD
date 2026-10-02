@@ -10,10 +10,10 @@ const pick = (list, rng) => list[Math.floor(rng() * list.length)];
 export const CONTENT_KEY = { question: "questions", riddle: "riddles", fact: "facts", banter: "banter", poll: "polls", trivia: "trivia" };
 
 /** Picks a kind of conversation (weighted), skipping kinds that are switched off or have no unused content left. */
-export function pickKind(content, recent, rng, allowed = null) {
-  const options = Object.entries(KIND_WEIGHTS).filter(
-    ([kind]) => (!allowed || allowed.has(kind)) && freshItems(content, kind, recent).length > 0,
-  );
+export function pickKind(content, recent, rng, allowed = null, multipliers = null) {
+  const options = Object.entries(KIND_WEIGHTS)
+    .filter(([kind]) => (!allowed || allowed.has(kind)) && freshItems(content, kind, recent).length > 0)
+    .map(([kind, weight]) => [kind, weight * (multipliers?.[kind] ?? 1)]);
   if (!options.length) return null;
   let roll = rng() * options.reduce((sum, [, weight]) => sum + weight, 0);
   for (const [kind, weight] of options) {
