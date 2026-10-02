@@ -335,8 +335,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       const guild = bySlot.get(slot)?.guilds.cache.get(guildId);
       if (!guild) return false;
       getVoiceConnection(guildId, groupOf(slot))?.destroy();
-      // Not deafened and not speaking: it just sits there like a quiet member
-      const connection = joinVoiceChannel({ channelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: false, selfMute: true, group: groupOf(slot) });
+      // Neither muted nor deafened, so no mute or deafen icon shows; it just never sends or plays any audio
+      const connection = joinVoiceChannel({ channelId, guildId, adapterCreator: guild.voiceAdapterCreator, selfDeaf: false, selfMute: false, group: groupOf(slot) });
       connection.on("error", (error) => console.error(`Companion ${slot + 1} voice error:`, error.message));
       connection.on(VoiceConnectionStatus.Disconnected, async () => {
         try {

@@ -43,7 +43,7 @@ flowchart LR
 
 **Personality by token order.** The Nth token is the Nth persona (a ninth persona set wraps for a tenth bot), so a deployment is configured by one comma-separated list.
 
-**Self-healing voice presence.** `VoiceKeeper.tick()` compares what should be true (the saved room and the number of bots) with what is true (is each bot connected and in that channel) and repairs the difference. Failed joins back off 5 s, 15 s, 1 min, then 5 min. A restart restores presence because the room is saved in the settings. Bots sit muted and never play or receive audio.
+**Self-healing voice presence.** `VoiceKeeper.tick()` compares what should be true (the saved room and the number of bots) with what is true (is each bot connected and in that channel) and repairs the difference. Failed joins back off 5 s, 15 s, 1 min, then 5 min. A restart restores presence because the room is saved in the settings. Bots show no mute or deafen icon, but never send audio or listen to it.
 
 **Small, honest data.** Plain JSON files with atomic writes (write a temp file, rename). The only user data are Discord ids in the trivia scores, voice minutes and waiting reminders, each erasable by the person (`/trivia forget`, `/voice forget`, reminders are deleted once delivered or cancelled). The status endpoint exposes totals only.
 
