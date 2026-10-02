@@ -45,6 +45,8 @@ Personality is picked by the order of the tokens: the first token is Pip, the se
    Without Docker (Node.js 20 or newer): `npm install && npm start`.
 4. In Discord, run `/companions setup channel:#general language:English`. The first bot hosts the command, and you need the Manage Server permission.
 
+   **Adding the bots to another server later:** Discord cannot invite several bots at once, so `npm run invites` prints every invite link from your `.env` (add `-- --open` to open them in your browser one after another) plus a bookmark link for the [invite helper page](https://companionsdiscord.vercel.app/invite.html), which keeps the Application IDs (public, never tokens) in your browser and opens all the links in one click each.
+
 | Command | What it does |
 | --- | --- |
 | `/companions setup channel [language]` | Choose the channel and language (English or Vietnamese), and turn them on |

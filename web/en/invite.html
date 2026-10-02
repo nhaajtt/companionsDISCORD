@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invite helper, companionsDISCORD</title>
+<meta name="description" content="Discord has no way to invite several bots in one go, so this page makes it one click per bot. Paste Application IDs, press Authorize.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/en/invite.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/invite.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/invite.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/invite.html">
+<meta property="og:title" content="Invite helper, companionsDISCORD">
+<meta property="og:description" content="Discord has no way to invite several bots in one go, so this page makes it one click per bot. Paste Application IDs, press Authorize.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/en/invite.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/pages.css">
+<link rel="stylesheet" href="../assets/companions.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Project</b>companionsDISCORD</span>
+  <span><b>C-03</b></span>
+  <span class="strip__name">Invite</span>
+  <span class="hide-sm"><b>Scale</b>1:5</span>
+  <span class="hide-sm"><b>Drawn</b>nhaajt</span>
+  <span class="hide-sm"><b>Rev</b>I</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, back to home">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="setup.html">Setup</a><a href="invite.html" aria-current="page">Invite</a><a href="privacy.html">Privacy</a></nav>
+  <div class="lang" role="group" aria-label="Language"><a href="../invite.html" hreflang="vi" lang="vi" title="Tiếng Việt">VI</a><a href="invite.html" hreflang="en" lang="en" title="English" aria-current="true">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Switch to light theme" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Invite helper</h1>
+  <p class="lead">Discord has no way to invite a whole flock of bots in one go. So this page makes it one click per bot, and all you do is press Authorize. A big flock still means some clicking, but at least no copying links by hand.</p>
+</div>
+<section class="sheet helper" id="tool" aria-labelledby="h-tool">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-01</span>
+      <h2 id="h-tool">Paste and invite</h2>
+      <p class="sheet__scale">One row per bot<br>one click per row</p>
+    </header>
+    <div class="warn" role="note">
+      <h3>Paste Application IDs ONLY. NEVER paste a bot token.</h3>
+      <p>An Application ID is a long number and it is public; anyone can see it. A token is the long text with dots in it. Whoever has a token controls that bot.</p>
+      <p>If you paste a token by mistake, the box shows a red message and drops it, never stored and never displayed. Even so, if a token has leaked anywhere, reset it in the Developer Portal.</p>
+    </div>
+    <noscript><p class="noscript-note">This page needs JavaScript to turn IDs into links. You can still build the links by hand from the template on the <a href="setup.html#manual">setup page</a>.</p></noscript>
+    <label for="ids">Application IDs (one per line, or separated by commas or spaces; at most 10)</label>
+    <textarea id="ids" name="ids" rows="5" spellcheck="false" autocomplete="off" autocapitalize="off" aria-describedby="err" placeholder="1555518097337876590
+1555518757097578606"></textarea>
+    <div class="msg-err" id="err" role="alert" hidden></div>
+    <div class="helper__bar">
+      <button type="button" class="btn btn--solid" id="open-all" disabled>Open all</button>
+      <button type="button" class="btn" id="bookmark" disabled>Copy bookmark link</button>
+      <button type="button" class="btn" id="clear" disabled>Clear</button>
+      <span class="helper__count" id="count" role="status" aria-live="polite">0 bots</span>
+    </div>
+    <ol class="bots" id="list" aria-label="Bot list"></ol>
+    <div class="msg-info" id="info" role="status" aria-live="polite" hidden></div>
+    <p class="sub">"Open all" opens the links one after another, about 0.7 seconds apart. Browsers may block the extra pop-ups: if so, allow pop-ups for this site, or use the "Open invite" button on each row.</p>
+    <p class="sub">The IDs live in the <code>#ids=</code> part of the page address and in your browser's own storage, so you can bookmark this page or send it to a friend (it contains public IDs only). Nothing leaves your machine.</p>
+  </div>
+</section>
+
+<section class="sheet sheet--short" id="grants" aria-labelledby="h-grants">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-02</span>
+      <h2 id="h-grants">What the invite grants</h2>
+      <p class="sheet__scale">Three permissions, nothing privileged<br>and one order worth following</p>
+    </header>
+    <p>Each invite asks for exactly three permissions: View Channel, Send Messages and Read Message History. No privileged intents. Invite the first bot first, because it hosts the <code>/companions</code> command.</p>
+  </div>
+</section>
+
+<section class="sheet sheet--short" id="where" aria-labelledby="h-where">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-03</span>
+      <h2 id="h-where">Where do I find the Application ID?</h2>
+      <p class="sheet__scale">Two ways<br>one needs no typing</p>
+    </header>
+    <div class="helper-help">
+      <h3>In the Developer Portal</h3>
+      <p>Open the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, pick the bot's application, open <b>General Information</b> and copy the <b>Application ID</b>.</p>
+    </div>
+    <div class="helper-help">
+      <h3>From your .env file, right on your machine</h3>
+      <p>Run the command below in the project folder. It prints every invite link and a ready-made bookmark link, straight from <code>.env</code>. It reads the IDs out of the tokens locally; the tokens never leave your machine.</p>
+      <div class="code"><pre><code>npm run invites</code></pre><button type="button" data-copy>Copy</button></div>
+    </div>
+    <p class="cmd-note">Done inviting? Back to the <a href="setup.html">setup page</a>.</p>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Project</small><strong>companionsDISCORD</strong><span>A few small bots that keep a channel from going quiet</span></div>
+      <div class="w2"><small>Sheet no.</small><strong>C-03</strong></div>
+      <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Rev</small><strong>I</strong></div>
+      <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="invite.html">Invite</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">approved by Bean (Bean approves everything)</span>
+      <span>Made by <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">source code</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/main.js"></script>
+<script src="../assets/invite.js"></script>
+</body>
+</html>

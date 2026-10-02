@@ -36,4 +36,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/privacy.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/privacy.html"/>
   </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/invite.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/invite.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/invite.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/invite.html"/>
+  </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/en/invite.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/invite.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/invite.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/invite.html"/>
+  </url>
 </urlset>

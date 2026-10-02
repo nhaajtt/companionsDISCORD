@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "invites": "node scripts/invites.js",
     "test": "node --test"
   },
   "engines": {

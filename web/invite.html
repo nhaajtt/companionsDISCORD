@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trợ lý mời bot, companionsDISCORD</title>
+<meta name="description" content="Discord không cho mời nhiều bot một lượt, nên trang này biến việc đó thành một cú bấm cho mỗi bot. Dán Application ID, bấm Authorize.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/invite.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/invite.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/invite.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/invite.html">
+<meta property="og:title" content="Trợ lý mời bot, companionsDISCORD">
+<meta property="og:description" content="Discord không cho mời nhiều bot một lượt, nên trang này biến việc đó thành một cú bấm cho mỗi bot. Dán Application ID, bấm Authorize.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/invite.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/companions.css">
+</head>
+<body>
+<a class="skip" href="#content">Bỏ qua, tới nội dung</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Dự án</b>companionsDISCORD</span>
+  <span><b>C-03</b></span>
+  <span class="strip__name">Mời bot</span>
+  <span class="hide-sm"><b>Tỉ lệ</b>1:5</span>
+  <span class="hide-sm"><b>Vẽ bởi</b>nhaajt</span>
+  <span class="hide-sm"><b>Bản</b>I</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, về trang chủ">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Các trang"><a href="index.html">Trang chủ</a><a href="cai-dat.html">Cài đặt</a><a href="invite.html" aria-current="page">Mời bot</a><a href="privacy.html">Quyền riêng tư</a></nav>
+  <div class="lang" role="group" aria-label="Ngôn ngữ"><a href="invite.html" hreflang="vi" lang="vi" title="Tiếng Việt" aria-current="true">VI</a><a href="en/invite.html" hreflang="en" lang="en" title="English">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Chuyển sang giao diện sáng" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Trợ lý mời bot</h1>
+  <p class="lead">Discord không có nút mời cả đàn bot một lượt. Nên trang này làm cho việc đó chỉ còn một cú bấm cho mỗi bot, và bạn chỉ việc bấm Authorize. Đàn bot đông thì bấm hơi mỏi tay, nhưng ít ra không phải ngồi chép link.</p>
+</div>
+<section class="sheet helper" id="tool" aria-labelledby="h-tool">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-01</span>
+      <h2 id="h-tool">Dán và mời</h2>
+      <p class="sheet__scale">Mỗi bot một dòng<br>mỗi dòng một cú bấm</p>
+    </header>
+    <div class="warn" role="note">
+      <h3>Chỉ dán Application ID. KHÔNG BAO GIỜ dán token.</h3>
+      <p>Application ID là dãy số dài, công khai, ai cũng thấy được. Token là đoạn chữ dài có dấu chấm. Ai có token là điều khiển được con bot đó.</p>
+      <p>Nếu bạn dán nhầm một token, ô nhập sẽ báo đỏ và bỏ nó đi, không lưu và không hiển thị. Dù vậy, nếu token đã lộ ở đâu đó thì hãy đặt lại trong Developer Portal.</p>
+    </div>
+    <noscript><p class="noscript-note">Trang này cần JavaScript để biến ID thành link. Bạn vẫn có thể tự ghép link theo mẫu ở trang <a href="cai-dat.html#manual">cài đặt</a>.</p></noscript>
+    <label for="ids">Application ID (mỗi dòng một ID, hoặc cách nhau bằng dấu phẩy hay khoảng trắng; tối đa 10)</label>
+    <textarea id="ids" name="ids" rows="5" spellcheck="false" autocomplete="off" autocapitalize="off" aria-describedby="err" placeholder="1555518097337876590
+1555518757097578606"></textarea>
+    <div class="msg-err" id="err" role="alert" hidden></div>
+    <div class="helper__bar">
+      <button type="button" class="btn btn--solid" id="open-all" disabled>Mở tất cả</button>
+      <button type="button" class="btn" id="bookmark" disabled>Chép link đánh dấu</button>
+      <button type="button" class="btn" id="clear" disabled>Xóa hết</button>
+      <span class="helper__count" id="count" role="status" aria-live="polite">0 bot</span>
+    </div>
+    <ol class="bots" id="list" aria-label="Danh sách bot"></ol>
+    <div class="msg-info" id="info" role="status" aria-live="polite" hidden></div>
+    <p class="sub">"Mở tất cả" mở từng link cách nhau chừng 0,7 giây. Trình duyệt có thể chặn các cửa sổ phụ: khi đó hãy cho phép pop-up với trang này, hoặc dùng nút "Mở lời mời" ở từng dòng.</p>
+    <p class="sub">Các ID nằm trong phần <code>#ids=</code> của địa chỉ trang và trong bộ nhớ trình duyệt của bạn, nên bạn lưu trang này làm dấu trang hoặc gửi cho bạn bè đều được (chỉ chứa ID công khai). Không có gì rời khỏi máy bạn.</p>
+  </div>
+</section>
+
+<section class="sheet sheet--short" id="grants" aria-labelledby="h-grants">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-02</span>
+      <h2 id="h-grants">Lời mời cho gì</h2>
+      <p class="sheet__scale">Ba quyền, không đặc quyền<br>và một thứ tự nên theo</p>
+    </header>
+    <p>Mỗi lời mời xin đúng ba quyền: View Channel, Send Messages và Read Message History. Không có privileged intent nào. Hãy mời bot đầu tiên trước, vì nó là bot nhận lệnh <code>/companions</code>.</p>
+  </div>
+</section>
+
+<section class="sheet sheet--short" id="where" aria-labelledby="h-where">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-03</span>
+      <h2 id="h-where">Tìm Application ID ở đâu?</h2>
+      <p class="sheet__scale">Hai cách<br>một cách khỏi gõ gì</p>
+    </header>
+    <div class="helper-help">
+      <h3>Trong Developer Portal</h3>
+      <p>Vào <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, chọn ứng dụng của bot, mở <b>General Information</b>, rồi chép <b>Application ID</b>.</p>
+    </div>
+    <div class="helper-help">
+      <h3>Từ file .env, ngay trên máy bạn</h3>
+      <p>Trong thư mục dự án chạy lệnh dưới đây. Nó in ra mọi link mời và một link đánh dấu có sẵn ID, lấy thẳng từ <code>.env</code>. Nó tự đọc ID ra khỏi token ngay trên máy bạn, token không đi đâu cả.</p>
+      <div class="code"><pre><code>npm run invites</code></pre><button type="button" data-copy>Copy</button></div>
+    </div>
+    <p class="cmd-note">Cài xong rồi thì quay lại <a href="cai-dat.html">trang cài đặt</a>.</p>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Dự án</small><strong>companionsDISCORD</strong><span>Vài bot nhỏ giữ cho kênh chat đỡ buồn</span></div>
+      <div class="w2"><small>Số tờ</small><strong>C-03</strong></div>
+      <div class="w2"><small>Vẽ bởi</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Ngày</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Bản</small><strong>I</strong></div>
+      <div class="w6"><small>Tài liệu</small><span><a href="cai-dat.html">Cài đặt</a> &nbsp;&nbsp; <a href="invite.html">Mời bot</a> &nbsp;&nbsp; <a href="privacy.html">Quyền riêng tư</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">đã được Bean duyệt (Bean duyệt mọi thứ)</span>
+      <span>Làm bởi <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">mã nguồn</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/main.js"></script>
+<script src="assets/invite.js"></script>
+</body>
+</html>
