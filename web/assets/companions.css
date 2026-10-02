@@ -224,7 +224,7 @@
 /* cast */
 .cast {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
   list-style: none;
   margin: 0;
@@ -268,6 +268,12 @@
 .cast li:nth-child(3) .av { background: #5cd6ff; }
 .cast li:nth-child(4) .av { background: #86e08c; }
 .cast li:nth-child(5) .av { background: #ffe066; }
+.cast li:nth-child(6) .av { background: #c9a2ff; }
+.cast li:nth-child(7) .av { background: #ffb38a; }
+.cast li:nth-child(8) .av { background: #8ae6d4; }
+.cast li:nth-child(9) .av { background: #f2f2f2; }
+@media (min-width: 560px) { .cast { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .cast { grid-template-columns: repeat(3, 1fr); } }
 
 /* manners and plain lists */
 .manners {
