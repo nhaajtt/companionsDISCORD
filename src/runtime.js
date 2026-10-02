@@ -323,6 +323,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
 
   // Voice: the companions sit in a room 24/7. Each bot has its own voice "group" so several can sit in one server.
   const groupOf = (slot) => `companion-${slot}`;
+  const hostClient = slots[0].client;
   const voicePort = {
     candidates: (guildId, channelId) =>
       slots
@@ -333,9 +334,18 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
           return Boolean(channel?.isVoiceBased() && me && channel.permissionsFor(me)?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect]));
         })
         .map(({ slot }) => slot),
-    isIn: (slot, guildId, channelId) =>
-      getVoiceConnection(guildId, groupOf(slot))?.state.status === VoiceConnectionStatus.Ready &&
-      bySlot.get(slot)?.guilds.cache.get(guildId)?.members.me?.voice.channelId === channelId,
+    // The channel this bot is connected to (it may have been moved by a "join to create" channel), or null
+    where: (slot, guildId) => {
+      const state = getVoiceConnection(guildId, groupOf(slot))?.state.status;
+      if (!state || state === VoiceConnectionStatus.Destroyed || state === VoiceConnectionStatus.Disconnected) return null;
+      return bySlot.get(slot)?.guilds.cache.get(guildId)?.members.me?.voice.channelId ?? null;
+    },
+    exists: (guildId, channelId) => Boolean(hostClient.guilds.cache.get(guildId)?.channels.cache.get(channelId)),
+    sameCategory: (guildId, a, b) => {
+      const channels = hostClient.guilds.cache.get(guildId)?.channels.cache;
+      const first = channels?.get(a);
+      return Boolean(first && first.parentId === channels.get(b)?.parentId);
+    },
     async join(slot, guildId, channelId) {
       const guild = bySlot.get(slot)?.guilds.cache.get(guildId);
       if (!guild) return false;
@@ -366,7 +376,6 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   };
   const keeper = new VoiceKeeper({ store, port: voicePort, log });
 
-  const hostClient = slots[0].client;
   const humansIn = (guildId) => {
     return roomsOf(store.get(guildId)).reduce((n, room) => {
       const channel = hostClient.guilds.cache.get(guildId)?.channels.cache.get(room.channelId);

@@ -15,27 +15,30 @@ const MIN = 60_000;
 const tmp = () => mkdtempSync(path.join(tmpdir(), "voice-"));
 
 function fakePort(candidates = [0, 1, 2]) {
-  const inRoom = new Set();
+  const at = new Map(); // slot -> channel
   const port = {
     joins: [],
     leaves: [],
     failNext: 0,
     candidates: () => candidates,
-    isIn: (slot) => inRoom.has(slot),
-    async join(slot) {
+    where: (slot) => at.get(slot) ?? null,
+    exists: () => true,
+    sameCategory: () => false,
+    async join(slot, g, channelId) {
       port.joins.push(slot);
       if (port.failNext > 0) {
         port.failNext--;
         return false;
       }
-      inRoom.add(slot);
+      at.set(slot, channelId);
       return true;
     },
     async leave(slot) {
       port.leaves.push(slot);
-      inRoom.delete(slot);
+      at.delete(slot);
     },
-    drop: (slot) => inRoom.delete(slot),
+    drop: (slot) => at.delete(slot),
+    at,
   };
   return port;
 }
@@ -45,7 +48,7 @@ test("the keeper joins the wanted number of bots and brings them back when they 
   const store = createSettingsStore(path.join(tmp(), "s.json"));
   store.update("g", { voiceChannelId: "v", voiceBots: 2 });
   const port = fakePort();
-  const keeper = new VoiceKeeper({ store, port, now: () => t });
+  const keeper = new VoiceKeeper({ store, port, now: () => t, settleMs: 0 });
   await keeper.tick();
   assert.deepEqual(port.joins, [0, 1]);
   assert.equal(keeper.status("g").wanted, 2);
@@ -61,7 +64,7 @@ test("failed joins back off, and the wait grows", async () => {
   store.update("g", { voiceChannelId: "v" });
   const port = fakePort();
   port.failNext = 2;
-  const keeper = new VoiceKeeper({ store, port, now: () => t });
+  const keeper = new VoiceKeeper({ store, port, now: () => t, settleMs: 0 });
   await keeper.tick(); // fails, waits 5 s
   await keeper.tick();
   assert.equal(port.joins.length, 1, "does not retry at once");
@@ -80,7 +83,7 @@ test("lowering the number of bots makes the extra ones leave, and leave() clears
   const store = createSettingsStore(path.join(tmp(), "s.json"));
   store.update("g", { voiceChannelId: "v", voiceBots: 3 });
   const port = fakePort();
-  const keeper = new VoiceKeeper({ store, port });
+  const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
   await keeper.tick();
   store.update("g", { voiceBots: 1 });
   await keeper.tick();
@@ -94,7 +97,7 @@ test("lowering the number of bots makes the extra ones leave, and leave() clears
 test("bots are handed out room by room in order, and later rooms move up when one is removed", async () => {
   const store = createSettingsStore(path.join(tmp(), "s.json"));
   const port = fakePort([0, 1, 2, 3]);
-  const keeper = new VoiceKeeper({ store, port });
+  const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
   keeper.setRoom("g", "a", 2);
   keeper.setRoom("g", "b", 1);
   keeper.setRoom("g", "c", 1);
@@ -110,13 +113,15 @@ test("bots are handed out room by room in order, and later rooms move up when on
   assert.deepEqual(keeper.plan("g").map((r) => [r.channelId, r.slots]), [["c", [0]]]);
 });
 
-test("a bot that moves to another room is sent there", async () => {
+test("a bot that is sent to another room goes there", async () => {
   const store = createSettingsStore(path.join(tmp(), "s.json"));
   const joined = [];
   const sitting = new Map();
   const port = {
     candidates: () => [0, 1],
-    isIn: (slot, g, c) => sitting.get(slot) === c,
+    where: (slot) => sitting.get(slot) ?? null,
+    exists: () => true,
+    sameCategory: () => false,
     async join(slot, g, c) {
       joined.push([slot, c]);
       sitting.set(slot, c);
@@ -126,20 +131,61 @@ test("a bot that moves to another room is sent there", async () => {
       sitting.delete(slot);
     },
   };
-  const keeper = new VoiceKeeper({ store, port });
+  const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
   keeper.setRoom("g", "a", 1);
   keeper.setRoom("g", "b", 1);
   await keeper.tick();
   assert.deepEqual(joined, [[0, "a"], [1, "b"]]);
   await keeper.removeRoom("g", "a");
   await keeper.tick();
-  assert.deepEqual(joined.at(-1), [0, "b"], "the bot that sat in b is first now, so it takes the first room left");
+  assert.deepEqual(joined.at(-1), [0, "b"], "the first bot takes the first room that is left");
+});
+
+test("a join-to-create channel: bots share the room it made instead of making one each, and do not loop", async () => {
+  const store = createSettingsStore(path.join(tmp(), "s.json"));
+  const channels = new Set(["creator"]);
+  const sitting = new Map();
+  let created = 0;
+  const port = {
+    candidates: () => [0, 1, 2],
+    where: (slot) => sitting.get(slot) ?? null,
+    exists: (g, c) => channels.has(c),
+    sameCategory: () => true,
+    async join(slot, g, c) {
+      if (c === "creator") {
+        created++;
+        channels.add(`temp-${created}`);
+        sitting.set(slot, `temp-${created}`); // the creator bot moves the joiner into a new room
+      } else sitting.set(slot, c);
+      return true;
+    },
+    async leave(slot) {
+      sitting.delete(slot);
+    },
+  };
+  const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
+  keeper.setRoom("g", "creator", 2);
+  await keeper.tick();
+  assert.equal(created, 1, "one room is made, not one per bot");
+  assert.equal(sitting.get(0), "temp-1");
+  assert.equal(sitting.get(1), "temp-1");
+  await keeper.tick();
+  await keeper.tick();
+  assert.equal(created, 1, "no rejoining the creator channel again and again");
+  assert.deepEqual(keeper.status("g").rooms.map((r) => [r.wanted, r.present]), [[2, 2]]);
+
+  // the made room disappears: the next tick goes back through the creator channel
+  channels.delete("temp-1");
+  sitting.clear();
+  await keeper.tick();
+  assert.equal(created, 2);
+  assert.equal(sitting.get(1), "temp-2");
 });
 
 test("settings with the older single room still work", () => {
   const store = createSettingsStore(path.join(tmp(), "s.json"));
   store.update("g", { voiceChannelId: "old", voiceBots: 2 });
-  const keeper = new VoiceKeeper({ store, port: fakePort() });
+  const keeper = new VoiceKeeper({ store, port: fakePort(), settleMs: 0 });
   assert.deepEqual(keeper.plan("g").map((r) => [r.channelId, r.slots]), [["old", [0, 1]]]);
   keeper.setRoom("g", "new", 1);
   assert.deepEqual(store.get("g").voiceRooms, [{ channelId: "old", bots: 2 }, { channelId: "new", bots: 1 }]);
@@ -149,7 +195,7 @@ test("settings with the older single room still work", () => {
 test("no eligible bot means nobody is assigned", () => {
   const store = createSettingsStore(path.join(tmp(), "s.json"));
   store.update("g", { voiceChannelId: "v" });
-  assert.deepEqual(new VoiceKeeper({ store, port: fakePort([]) }).assigned("g"), []);
+  assert.deepEqual(new VoiceKeeper({ store, port: fakePort([]), settleMs: 0 }).assigned("g"), []);
 });
 
 function makeTools(overrides = {}) {
