@@ -110,7 +110,7 @@ export const companionsCommand = new SlashCommandBuilder()
       .addSubcommand((s) =>
         s
           .setName("join")
-          .setDescription("Add a voice room, or change its number of bots: free companions (lowest numbers first) sit there and stay")
+          .setDescription("Add a voice room or change its number of bots (free companions sit there and stay)")
           .addChannelOption((o) => o.setName("channel").setDescription("The voice channel (pick a room that is already added to change its number of bots)").addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice).setRequired(true))
           .addIntegerOption((o) => o.setName("bots").setDescription("How many companions sit there (default 1)").setMinValue(1).setMaxValue(10)),
       )
