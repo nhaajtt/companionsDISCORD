@@ -2,7 +2,7 @@
 
 ## 4.1
 
-- Up to 30 bots instead of 10. 21 new personalities (Rex, Maple, Rocket, Zip, Clue, Mochi, Waffle, Tofu, Ziggy, Echo, Misty, Byte, Pixel, Luna, Sizzle, Gizmo, Anchor, Jinx, Quill, Blip, Sparky), each with its own lines and 25 notes in both languages.
+- Up to 30 bots instead of 10. 21 new personalities (Rex, Maple, Rocket, Zip, Clue, Mochi, Waffle, Tofu, Ziggy, Echo, Misty, Byte, furyZ, Chamy, Sizzle, Gizmo, Anchor, Jinx, Quill, Blip, Sparky), each with its own lines and 25 notes in both languages.
 - Logging in a few bots at a time, and lighter caches per bot, so 30 bots stay small.
 - Each companion has a funny note under its name from the moment it starts.
 
