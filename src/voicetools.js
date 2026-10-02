@@ -7,6 +7,7 @@ import { isVoiceRoom } from "./voice.js";
 const MIN = 60_000;
 const GREET_COOLDOWN_MS = 30 * MIN; // greet the same person at most this often
 const GREET_DAILY_CAP = 20;
+const REGULAR_MINUTES = 300; // 5 hours in the room in one week makes someone a "voice regular"
 
 /**
  * @param {object} deps
@@ -72,7 +73,15 @@ export class VoiceTools {
     const minutes = Math.floor((this.#deps.now() - session.since) / MIN);
     if (minutes < 1) return;
     session.since += minutes * MIN;
-    this.#deps.hours.add(session.guildId, session.userId, this.#day(), minutes);
+    const day = this.#day();
+    this.#deps.hours.add(session.guildId, session.userId, day, minutes);
+
+    // Crossing 5 hours in a week is announced once (when the setting is on)
+    const total = this.#deps.hours.weekTotal?.(session.guildId, session.userId, day);
+    if (this.#deps.store.get(session.guildId).titles && total >= REGULAR_MINUTES && total - minutes < REGULAR_MINUTES) {
+      const text = fill(this.#lines(session.guildId).titleRegular, { user: `<@${session.userId}>`, hours: Math.floor(total / 60) });
+      Promise.resolve(this.#deps.say({ guildId: session.guildId, text })).catch(() => {});
+    }
   }
 
   /** Called every few seconds: banks whole minutes (a restart loses little) and announces Pomodoro steps. */

@@ -122,6 +122,7 @@ const bank = {
     topWeek: "Trivia leaderboard: this week",
     topAll: "Trivia leaderboard: all time",
     topEmpty: "Nobody has scored yet. Answer the next trivia round to get on the board.",
+    streakLine: "🔥 {user} is on a {n}-day trivia streak!",
     forgetDone: "Done. Your trivia scores were erased.",
     forgetNone: "There was nothing stored about you.",
   },

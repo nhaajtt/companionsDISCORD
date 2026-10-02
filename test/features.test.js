@@ -30,7 +30,7 @@ function tmp() {
 }
 
 /** Engine + fake bots + fake clock, with usage and scores recorded in memory. */
-function harness({ slots = [0, 1, 2], settings = {}, only = null, language = "en", seed = 3, startAt = NOON, custom = null, transform = null } = {}) {
+function harness({ slots = [0, 1, 2], settings = {}, only = null, language = "en", seed = 3, startAt = NOON, custom = null, transform = null, peekStreak = null } = {}) {
   let time = startAt;
   let counter = 0;
   const sent = [];
@@ -66,7 +66,7 @@ function harness({ slots = [0, 1, 2], settings = {}, only = null, language = "en
     rng: seeded(seed),
     now: () => time,
     usage: { record: (guildId, day, event) => usage.push({ guildId, day, ...event }) },
-    scores: { add: (guildId, userId, day, points) => scoreRows.push({ guildId, userId, day, points }) },
+    scores: { add: (guildId, userId, day, points) => scoreRows.push({ guildId, userId, day, points }), ...(peekStreak ? { peekStreak } : {}) },
   });
   const tickBy = async (ms, step = MIN) => {
     for (let waited = 0; waited < ms; waited += step) {
@@ -542,4 +542,16 @@ test("/companions now can ask for a specific kind of conversation", async () => 
   const h2 = harness();
   await h2.engine.startNow("guild", { kind: "poll" });
   assert.ok(h2.sent[0].poll);
+});
+
+test("trivia: a streak that reaches a milestone is mentioned in the reveal, others are not", async () => {
+  const streaks = { alice: { current: 7, isNew: true }, carol: { current: 4, isNew: true }, erin: { current: 3, isNew: false } };
+  const { h, t } = await startTrivia({ peekStreak: (guildId, userId) => streaks[userId] ?? { current: 1, isNew: true } });
+  const bank = getContent("en").trivia.find((x) => x.q === t.question);
+  for (const userId of ["alice", "carol", "erin"]) h.engine.noteTriviaAnswer({ guildId: "guild", token: t.token, userId, choice: bank.answer });
+  await h.untilSpeaks();
+  const text = h.sent[1].text;
+  assert.match(text, /<@alice> is on a 7-day trivia streak/);
+  assert.ok(!text.includes("4-day"), "day 4 is not a milestone");
+  assert.ok(!text.includes("<@erin> is on"), "a streak that did not grow today is not repeated");
 });

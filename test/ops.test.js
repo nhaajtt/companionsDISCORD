@@ -123,3 +123,24 @@ test("the weekly recap gathers last week's numbers and reads well in both langua
   const quiet = formatRecap(getTools("en"), collectRecap({ usage, scores, hours, guildId: "empty", day: "2026-10-05" }));
   assert.match(quiet, /quiet week/);
 });
+
+test("streaks count consecutive days, reset after a missed day and are peeked without changing anything", () => {
+  const scores = createScoreStore(path.join(tmp(), "s.json"));
+  assert.deepEqual(scores.streak("g", "u", "2026-10-01"), { current: 0, best: 0 });
+  assert.deepEqual(scores.peekStreak("g", "u", "2026-10-01"), { current: 1, isNew: true });
+  assert.deepEqual(scores.streak("g", "u", "2026-10-01"), { current: 0, best: 0 }, "peeking changes nothing");
+
+  scores.add("g", "u", "2026-10-01");
+  scores.add("g", "u", "2026-10-01"); // a second point the same day is not a new day
+  scores.add("g", "u", "2026-10-02");
+  scores.add("g", "u", "2026-10-03");
+  assert.deepEqual(scores.streak("g", "u", "2026-10-03"), { current: 3, best: 3 });
+  assert.deepEqual(scores.peekStreak("g", "u", "2026-10-03"), { current: 3, isNew: false });
+  assert.deepEqual(scores.peekStreak("g", "u", "2026-10-04"), { current: 4, isNew: true });
+  assert.equal(scores.streak("g", "u", "2026-10-04").current, 3, "still alive the day after");
+  assert.deepEqual(scores.streak("g", "u", "2026-10-05"), { current: 0, best: 3 }, "a missed day ends it, the best stays");
+
+  scores.add("g", "u", "2026-10-06");
+  assert.deepEqual(scores.streak("g", "u", "2026-10-06"), { current: 1, best: 3 });
+  assert.equal(scores.weekTotal("g", "u", "2026-10-02"), 4);
+});

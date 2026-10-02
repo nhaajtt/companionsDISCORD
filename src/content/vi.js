@@ -118,6 +118,7 @@ const bank = {
     topWeek: "Bảng xếp hạng đố vui: tuần này",
     topAll: "Bảng xếp hạng đố vui: mọi thời đại",
     topEmpty: "Chưa ai có điểm. Trả lời vòng đố vui tiếp theo để lên bảng nha.",
+    streakLine: "🔥 {user} đang có chuỗi đố vui {n} ngày liên tiếp!",
     forgetDone: "Xong. Điểm đố vui của bạn đã được xóa.",
     forgetNone: "Không có gì được lưu về bạn cả.",
   },

@@ -374,3 +374,24 @@ test("the status line shows a focus session first, then the voice room, then an 
   assert.notEqual(presenceText(lines, { slot: 1, now }), idle, "different bots show different lines");
   assert.notEqual(presenceText(lines, { slot: 0, now: now + 21 * 60_000 }), idle, "and the line changes over time");
 });
+
+test("a voice regular is announced once when someone crosses 5 hours in a week, and only when titles are on", async () => {
+  const on = makeTools({ titles: true });
+  on.vt.userJoined({ guildId: "g", userId: "u", channelId: "v", existing: true });
+  on.advance(299 * MIN);
+  await on.vt.tick();
+  assert.equal(on.said.length, 0, "not yet");
+  on.advance(2 * MIN);
+  await on.vt.tick();
+  assert.equal(on.said.length, 1);
+  assert.match(on.said[0].text, /<@u>.*5 hours/);
+  on.advance(60 * MIN);
+  await on.vt.tick();
+  assert.equal(on.said.length, 1, "announced only once");
+
+  const off = makeTools();
+  off.vt.userJoined({ guildId: "g", userId: "u", channelId: "v", existing: true });
+  off.advance(400 * MIN);
+  await off.vt.tick();
+  assert.equal(off.said.length, 0);
+});

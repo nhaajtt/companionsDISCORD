@@ -12,6 +12,7 @@ const BOT_MESSAGE_TTL_MS = 60 * MIN; // how long a bot message counts as "one a 
 const ACK_COOLDOWN_MS = 10 * MIN;
 const ACK_DAILY_CAP = 10;
 const LETTERS = "ABCD";
+const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
 
 const fill = (template, values) => String(template ?? "").replace(/\{(\w+)\}/g, (_, k) => values[k] ?? "");
 
@@ -269,6 +270,12 @@ export class CompanionEngine {
         ? fill(labels.triviaNoAnswers, { letter, option })
         : fill(labels.triviaNobody, { letter, option, total });
     if (winners.length) text += `\n${labels.winners} ${winners.slice(0, 5).map((id) => `<@${id}>`).join(" ")}`;
+    // A round that just made someone's streak reach 3, 7, 14, 30... days is mentioned
+    const day = this.today();
+    for (const userId of winners.slice(0, 5)) {
+      const { current, isNew } = this.#deps.scores?.peekStreak?.(guildId, userId, day) ?? {};
+      if (isNew && STREAK_MILESTONES.includes(current) && labels.streakLine) text += `\n${fill(labels.streakLine, { user: `<@${userId}>`, n: current })}`;
+    }
     return text;
   }
 

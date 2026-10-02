@@ -102,6 +102,12 @@ export const companionsCommand = new SlashCommandBuilder()
   )
   .addSubcommand((s) =>
     s
+      .setName("titles")
+      .setDescription("Announce a voice regular when someone spends 5 hours in the voice room in a week")
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s
       .setName("recap")
       .setDescription("Post a short recap of the week every Monday morning")
       .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
@@ -177,6 +183,7 @@ export const triviaCommand = new SlashCommandBuilder()
       .setDescription("The trivia leaderboard")
       .addStringOption((o) => o.setName("period").setDescription("Which ranking (default: this week)").addChoices({ name: "This week", value: "week" }, { name: "All time", value: "all" })),
   )
+  .addSubcommand((s) => s.setName("streak").setDescription("How many days in a row you have answered a trivia question right"))
   .addSubcommand((s) => s.setName("forget").setDescription("Erase your trivia scores from every server"));
 
 export const voiceCommand = new SlashCommandBuilder()
@@ -616,6 +623,12 @@ async function handleTrivia(interaction, { engine, scores, store }) {
   const sub = interaction.options.getSubcommand();
   const labels = getContent(store.get(guildId).language).labels;
 
+  if (sub === "streak") {
+    const { current, best } = scores.streak(guildId, interaction.user.id, engine.today());
+    const lines = getTools(store.get(guildId).language);
+    return interaction.reply({ content: current ? fill(lines.streakMine, { n: current, best }) : lines.streakNone, flags: MessageFlags.Ephemeral });
+  }
+
   if (sub === "forget") {
     const erased = scores.forget(interaction.user.id);
     return interaction.reply({ content: erased ? labels.forgetDone : labels.forgetNone, flags: MessageFlags.Ephemeral });
@@ -753,6 +766,12 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     }
     const status = keeper.status(guildId);
     return reply(status.rooms.length ? `${voiceSummary(status, slots)}\nGreetings: ${settings.voiceGreet ? "on" : "off"}.` : "The companions are not sitting in any voice channel. Use `/companions voice join`.");
+  }
+
+  if (sub === "titles") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { titles: enabled });
+    return reply(enabled ? "🎧 When someone reaches 5 hours in the voice room in a week, a bot says so once. No roles are changed." : "🔇 No more voice regular announcements.");
   }
 
   if (sub === "recap") {
