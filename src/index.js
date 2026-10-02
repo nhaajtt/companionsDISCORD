@@ -10,10 +10,10 @@ const tokens = (process.env.COMPANION_TOKENS ?? "")
   .filter(Boolean);
 
 if (tokens.length < 2) {
-  console.error("Set COMPANION_TOKENS to at least two bot tokens separated by commas (up to 8). See .env.example.");
+  console.error("Set COMPANION_TOKENS to at least two bot tokens separated by commas (up to 10). See .env.example.");
   process.exit(1);
 }
-if (tokens.length > 8) console.warn(`Only the first 8 of the ${tokens.length} tokens are used.`);
+if (tokens.length > 10) console.warn(`Only the first 10 of the ${tokens.length} tokens are used.`);
 
 const timezone = process.env.COMPANION_TIMEZONE || process.env.TIMEZONE || "Asia/Ho_Chi_Minh";
 if (!validTimeZone(timezone)) {
@@ -24,7 +24,7 @@ if (!validTimeZone(timezone)) {
 const store = createSettingsStore(path.join(process.env.COMPANION_DATA_DIR || "data", "companions.json"));
 let stop;
 try {
-  ({ stop } = await startCompanions({ tokens: tokens.slice(0, 8), store, timezone }));
+  ({ stop } = await startCompanions({ tokens: tokens.slice(0, 10), store, timezone }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);

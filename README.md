@@ -1,6 +1,6 @@
 # companionsDISCORD
 
-Two to eight small Discord bots that keep a channel lively. Every so often one of them asks a question, tells a joke or a riddle, shares a fun fact or starts a short chat with another bot. If nobody answers after a few minutes, another bot jumps in. If a person joins the conversation, the bots step back, and they thank anyone who replies to them.
+Two to ten small Discord bots that keep a channel lively. Every so often one of them asks a question, tells a joke or a riddle, shares a fun fact or starts a short chat with another bot. If nobody answers after a few minutes, another bot jumps in. If a person joins the conversation, the bots step back, and they thank anyone who replies to them.
 
 Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by [nhaajt](https://github.com/nhaajtt). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD), the self-hosted music bot, and the two can run side by side on the same Raspberry Pi.
 
@@ -19,7 +19,7 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 | Sage | Deadpan philosopher |
 | Bean | Chaotic gremlin with spicy takes |
 
-Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on. With fewer than five bots the first ones are used.
+Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on. With fewer than five bots the first ones are used; with more than five, the sixth bot shares Pip's personality, the seventh Grumble's, and so on.
 
 ## How a conversation goes
 
@@ -30,7 +30,7 @@ Personality is picked by the order of the tokens: the first token is Pip, the se
 
 ## Setup
 
-1. Create 2 to 8 applications in the [Discord Developer Portal](https://discord.com/developers/applications), each with a Bot, and copy each token. No privileged intent is needed.
+1. Create 2 to 10 applications in the [Discord Developer Portal](https://discord.com/developers/applications), each with a Bot, and copy each token. No privileged intent is needed.
 2. Invite every bot to your server with this link (replace `CLIENT_ID` with that bot's Application ID): `https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot%20applications.commands&permissions=101376` (View Channel, Send Messages, Read Message History).
 3. Install, either with the one-command installer on a Raspberry Pi / Debian:
    ```bash
@@ -58,7 +58,7 @@ Personality is picked by the order of the tokens: the first token is Pip, the se
 
 | Variable | Meaning |
 | --- | --- |
-| `COMPANION_TOKENS` | 2 to 8 bot tokens, comma-separated (required) |
+| `COMPANION_TOKENS` | 2 to 10 bot tokens, comma-separated (required) |
 | `COMPANION_TIMEZONE` | Time zone for quiet hours and the daily limit (default `Asia/Ho_Chi_Minh`) |
 | `COMPANION_DATA_DIR` | Where `companions.json` is stored (default `data`; the compose file sets it) |
 
@@ -87,12 +87,12 @@ Each is one Node.js process (the companions are small: they use no Lavalink and 
 
 ## Tiếng Việt
 
-Hai đến tám bot nhỏ giữ cho một kênh chat luôn có không khí: thỉnh thoảng một bot hỏi câu vui, kể chuyện cười hoặc câu đố, chia sẻ fun fact, hoặc nói chuyện với bot khác. Vài phút không ai trả lời thì bot khác nhảy vào; có người nhắn vào thì các bot lùi lại.
+Hai đến mười bot nhỏ giữ cho một kênh chat luôn có không khí: thỉnh thoảng một bot hỏi câu vui, kể chuyện cười hoặc câu đố, chia sẻ fun fact, hoặc nói chuyện với bot khác. Vài phút không ai trả lời thì bot khác nhảy vào; có người nhắn vào thì các bot lùi lại.
 
 - Các bot luôn là bot (giữ nhãn BOT, không giả làm người, dùng token bot bình thường).
 - Nội dung tiếng Việt và tiếng Anh nằm sẵn trong repo, không gọi dịch vụ ngoài. Không đọc nội dung tin nhắn.
 - Có giờ im lặng (mặc định 23:00 đến 08:00), trần số cuộc trò chuyện mỗi ngày, không chen vào khi mọi người đang chat.
-- Cài đặt: tạo 2 đến 8 ứng dụng trong Discord Developer Portal, chạy bộ cài một lệnh ở trên (hoặc `docker compose up -d --build` sau khi điền `.env`), rồi trong Discord gõ `/companions setup channel:#chat-chung language:Tiếng Việt`.
+- Cài đặt: tạo 2 đến 10 ứng dụng trong Discord Developer Portal, chạy bộ cài một lệnh ở trên (hoặc `docker compose up -d --build` sau khi điền `.env`), rồi trong Discord gõ `/companions setup channel:#chat-chung language:Tiếng Việt`.
 - Trên cùng một Pi 5 bạn có thể chạy song song với bot nhạc musiDISCORD, mỗi bot một thư mục (bảng ở trên).
 - Chưa chạy thử với Discord thật; hãy theo dõi vài ngày rồi chỉnh tần suất và nội dung.
 
