@@ -377,3 +377,16 @@ test("bots six to nine speak with their own personalities, not a copy of the fir
   const script = buildScript({ kind: "riddle", item: en.riddles[0], slots: [30, 0], content: en, rng: seeded(2) });
   assert.ok(en.personas[0].giveUp.includes(script[1].text));
 });
+
+test("any two of the 30 bots can run a conversation, each in its own voice", () => {
+  const en = getContent("en");
+  const vi = getContent("vi");
+  for (let a = 0; a < 30; a++) {
+    const b = (a + 7) % 30;
+    for (const [content, language] of [[en, "en"], [vi, "vi"]]) {
+      const riddle = buildScript({ kind: "riddle", item: content.riddles[0], slots: [a, b], content, rng: seeded(a + 1) });
+      assert.ok(riddle.length >= 2 && riddle.every((step) => step.text), `${language}: ${a} and ${b} can do a riddle`);
+      assert.ok(content.personas[b].giveUp.includes(riddle[1].text), `${language}: bot ${b + 1} uses its own give-up line`);
+    }
+  }
+});
