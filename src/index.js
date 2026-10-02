@@ -1,11 +1,13 @@
 // Entry point of the companion bots: `node src/index.js` (or `docker compose up -d`).
 import "dotenv/config";
 import path from "node:path";
+import { createAlerter } from "./alerts.js";
+import { backupData } from "./backup.js";
 import { createCustomStore } from "./custom.js";
 import { startCompanions } from "./runtime.js";
 import { createReminderStore } from "./reminders.js";
 import { createScoreStore } from "./scores.js";
-import { createSettingsStore, validTimeZone } from "./settings.js";
+import { createSettingsStore, localParts, validTimeZone } from "./settings.js";
 import { createStatusServer } from "./status.js";
 import { createUsageStore } from "./usage.js";
 
@@ -33,14 +35,31 @@ const scores = createScoreStore(path.join(dataDir, "scores.json"));
 const custom = createCustomStore(path.join(dataDir, "custom.json"));
 const hours = createScoreStore(path.join(dataDir, "voice.json"));
 const reminders = createReminderStore(path.join(dataDir, "reminders.json"));
+const alerter = createAlerter({ url: process.env.ALERT_WEBHOOK_URL });
+if (alerter.enabled) console.log("Alerts are on: problems are sent to ALERT_WEBHOOK_URL.");
+
+// A daily copy of the data files (the newest 7 days are kept)
+const backupNow = () => {
+  try {
+    const copied = backupData(dataDir, localParts(Date.now(), timezone).day);
+    if (copied.length) console.log(`Backed up ${copied.length} data file${copied.length === 1 ? "" : "s"} to ${dataDir}/backups.`);
+  } catch (error) {
+    console.error("Could not back up the data files:", error.message);
+  }
+};
+backupNow();
+setInterval(backupNow, 3_600_000).unref();
+
 let stop;
 let snapshot;
 try {
-  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, hours, reminders, timezone }));
+  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, 10), store, usage, scores, custom, hours, reminders, timezone, alerter }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);
 }
+
+alerter.notify("start", `Started with ${tokens.slice(0, 10).length} bot${tokens.length === 1 ? "" : "s"}.`);
 
 const statusPort = Number(process.env.STATUS_PORT);
 if (statusPort > 0) {
@@ -55,4 +74,7 @@ for (const signal of ["SIGTERM", "SIGINT"]) {
     process.exit(0);
   });
 }
-process.on("unhandledRejection", (error) => console.error("Unhandled rejection:", error));
+process.on("unhandledRejection", (error) => {
+  console.error("Unhandled rejection:", error);
+  alerter.notify("unhandled", `Unhandled error: ${error?.message ?? error}`);
+});

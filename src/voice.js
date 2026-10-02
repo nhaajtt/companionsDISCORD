@@ -130,7 +130,7 @@ export class VoiceKeeper {
           this.#learn(guildId, channelId, port.where(slot, guildId), settings);
         } else {
           const count = (fail?.count ?? 0) + 1;
-          this.#fails.set(key, { count, nextAt: now() + BACKOFF_MS[Math.min(count, BACKOFF_MS.length) - 1] });
+          this.#fails.set(key, { count, firstAt: fail?.firstAt ?? now(), nextAt: now() + BACKOFF_MS[Math.min(count, BACKOFF_MS.length) - 1] });
         }
       }
 
@@ -142,6 +142,17 @@ export class VoiceKeeper {
         }
       }
     }
+  }
+
+  /** Bots that have been failing to join their room for longer than `minMs`: [{ guildId, slot, since }]. */
+  stuck(minMs) {
+    const t = this.#deps.now();
+    return [...this.#fails]
+      .filter(([, fail]) => fail.firstAt !== undefined && t - fail.firstAt >= minMs)
+      .map(([key, fail]) => {
+        const [guildId, slot] = key.split(":");
+        return { guildId, slot: Number(slot), since: fail.firstAt };
+      });
   }
 
   /** Adds a room at the end of the list, or changes the number of bots of a room that is already in it. */

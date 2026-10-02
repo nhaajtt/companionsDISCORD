@@ -236,7 +236,7 @@ function triviaText({ label, question, options }) {
 }
 
 /** Starts every companion bot and the engine. `tokens` are bot tokens; the first one hosts the slash commands. */
-export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, log = console.log }) {
+export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, alerter = { notify: async () => false }, log = console.log }) {
   const slots = [];
 
   for (const [slot, token] of tokens.entries()) {
@@ -403,6 +403,19 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     }
   };
 
+  /** Tells the owner (webhook) when a bot has been offline, or a voice bot unable to rejoin, for more than 10 minutes. */
+  const readySince = new Map(slots.map(({ slot }) => [slot, Date.now()]));
+  const checkHealth = () => {
+    const t = Date.now();
+    for (const { slot, client } of slots) {
+      if (client.isReady()) readySince.set(slot, t);
+      else if (t - readySince.get(slot) > 10 * 60_000) alerter.notify(`offline:${slot}`, `Companion ${slot + 1} has been offline for more than 10 minutes.`);
+    }
+    for (const stuck of keeper.stuck(10 * 60_000)) {
+      alerter.notify(`voice:${stuck.guildId}:${stuck.slot}`, `Companion ${stuck.slot + 1} has not been able to join its voice room for ${Math.round((t - stuck.since) / 60_000)} minutes.`);
+    }
+  };
+
   /** What each companion shows under its name: the voice room it sits in, a focus session, or an idle line. */
   const lastPresence = new Map();
   const updatePresence = () => {
@@ -531,6 +544,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       await voiceTools.tick();
       await deliverReminders();
       updatePresence();
+      checkHealth();
     } catch (error) {
       console.error("Companion tools tick failed:", error);
     }

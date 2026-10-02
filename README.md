@@ -109,6 +109,7 @@ docker run -d --name companionsdiscord --restart unless-stopped   --env-file .en
 | `COMPANION_TOKENS` | 2 to 10 bot tokens, comma-separated (required) |
 | `COMPANION_TIMEZONE` | Time zone for quiet hours and the daily limit (default `Asia/Ho_Chi_Minh`) |
 | `COMPANION_DATA_DIR` | Where the data files are stored (default `data`; the compose file sets it) |
+| `ALERT_WEBHOOK_URL` | Optional Discord webhook. The bots post a short message there when one is offline or a voice bot cannot rejoin for more than 10 minutes, on an unhandled error, and when they start (each kind at most every 30 minutes; anything token-like is hidden) |
 | `STATUS_PORT` | Optional. Serve a read-only `/status.json` (totals only: uptime, bots online, servers, voice rooms, conversations of the last 7 days) on this port. `STATUS_HOST` defaults to `127.0.0.1`; put a tunnel in front of it to show it on a website |
 
 ## What is stored
@@ -122,6 +123,7 @@ All in `data/`, on your own machine:
 | `custom.json` | The questions, jokes, facts and polls your managers added |
 | `voice.json` | Minutes people spent in the voice room the companions sit in: user ids with minutes per week. `/voice forget` erases a person's entries |
 | `reminders.json` | Waiting reminders and event countdowns (the text typed and the author's user id). Each is deleted once delivered or cancelled |
+| `backups/` | A copy of the json files above, taken once a day, newest 7 days kept. So erasing someone with `/trivia forget` or `/voice forget` also leaves their entries in the older backups until those days roll off |
 | `scores.json` | The Discord user ids of people who got a trivia answer right, with their points per week. `/trivia forget` erases a person's entries. **User ids are stored in this file, `voice.json` and `reminders.json`:** nothing else | the Discord user ids of people who got a trivia answer right, with their points per week. `/trivia forget` erases a person's entries |
 
 No message is ever stored, and nothing leaves your machine.
