@@ -8,7 +8,7 @@
   "use strict";
 
   var MAX = 30;
-  var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow", "Byte", "Echo", "Maple", "Zip", "Mochi", "Rex", "Pixel", "Luna", "Sizzle", "Gizmo", "Clue", "Anchor", "Jinx", "Quill", "Ziggy", "Blip", "Tofu", "Sparky", "Misty", "Rocket", "Waffle"];
+  var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow", "Rex", "Maple", "Rocket", "Zip", "Clue", "Mochi", "Waffle", "Tofu", "Ziggy", "Echo", "Misty", "Byte", "Pixel", "Luna", "Sizzle", "Gizmo", "Anchor", "Jinx", "Quill", "Blip", "Sparky"];
   var PERMISSIONS = 562949954538496;
   var KEY = "companions-invite-ids";
 
