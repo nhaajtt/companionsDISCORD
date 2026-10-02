@@ -23,6 +23,14 @@ The companion bots started life inside the music bot's repo, because that was wh
 - **Greeting new members without a privileged intent.** Discord posts a system message when someone joins; the bots read that message type instead of asking for the members intent.
 - **More user ids, so more erase commands.** Voice minutes and reminders carry user ids, so each got a way to erase them and a line in the "What is stored" table.
 
+## Making it safe to leave alone
+
+- **A tick must never overlap itself.** With many servers and slow voice joins one round could outlast the 15 second timer and start a second one on top of it, joining the same bot twice. Each loop now skips a round while the last one still runs.
+- **Sticky bots.** Re-dealing the bots from scratch whenever a room changed pulled bots out of other rooms. Each room now remembers its own bots, and new demand only uses free ones.
+- **Learning from usage, carefully.** Adaptive tuning multiplies the default weights by how well each kind engages in that server, bounded to half and double, pulled toward the average while data is thin, and off until 20 conversations exist. Because it can be explained in one sentence, it can be reported in `/companions stats`.
+- **A scale test instead of a guess.** 300 simulated servers for 8 hours: the slowest tick took about 30 ms, memory grew a few tens of MB, every server stayed inside its daily cap.
+- **Secrets in tests.** A test that wanted a token-shaped string was blocked by GitHub push protection. It now builds the string from pieces.
+
 ## Still open
 
 - It has not run against a live Discord server yet. Timing and content will need tuning after a few days of watching.

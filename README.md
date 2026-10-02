@@ -15,6 +15,11 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 - **Your own content.** Managers can add questions, jokes, facts and polls with a command, no redeploy needed.
 - **They sit in a voice room 24/7.** One or more companions join a voice channel, stay when everyone leaves and rejoin by themselves if they are dropped or the program restarts. They never speak, play or listen: they are just there, so the room looks lived in.
 - **Useful around the room:** a greeting when someone joins the voice room, Pomodoro focus sessions announced in chat, and a voice-time leaderboard.
+- **They look alive.** Each companion shows a short status under its name ("Sitting in voice with 3", "Focus session: 12 min left", or a funny idle line).
+- **Seasons.** Halloween, Christmas, New Year, Tet and Valentine packs of questions, jokes, facts and polls are mixed in on the right days, in both languages.
+- **They learn what works.** Adaptive tuning favours the kinds of conversation that get your members talking, and `/companions stats` shows the best hour.
+- **A weekly recap, trivia streaks and voice regular titles** give a reason to come back.
+- **Safe to leave alone.** Optional webhook alerts, a daily backup of the data files, no overlapping work when many servers are busy, a test with 300 servers, and data export and delete per server.
 - **Welcome and reminders.** A funny welcome with an icebreaker for new members, `/remind` for personal reminders and `/event` countdowns.
 
 ## The cast
@@ -76,6 +81,11 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/companions voice leave [channel]` | Remove one room (its companions become free, the other rooms keep theirs) or, with no channel, every room |
 | `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the join greeting on or off |
 | `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
+| `/companions recap enabled` | Every Monday morning (10:00 and later, the bots' time zone) post a short recap of the week before: conversations, trivia champion, most time in voice |
+| `/companions titles enabled` | Announce a "voice regular" once when someone spends 5 hours in the voice room in a week (no roles are changed) |
+| `/companions toggle adaptive` | Adaptive tuning on or off: kinds of conversation that get people talking in your server are picked more often (up to 2x), the others less (down to half). Needs 20 conversations of history |
+| `/companions data export` | Get your server's settings and the content you added as a file |
+| `/companions data delete confirm:true` | Erase everything stored about your server. This also happens by itself a day after every companion left the server |
 | `/companions content add-question \| add-joke \| add-fact \| add-poll` | Add your own entries for this server (up to 100 of each kind; pings are stripped) |
 | `/companions content list kind`, `/companions content remove kind number` | See and remove what you added |
 
@@ -84,6 +94,7 @@ Everyone (not only managers) can use:
 | Command | What it does |
 | --- | --- |
 | `/trivia top [period]` | The trivia leaderboard, this week (default) or all time |
+| `/trivia streak` | How many days in a row you have answered a trivia question right (3, 7, 14, 30... days are cheered in the reveal) |
 | `/trivia forget` | Erase your own trivia scores from every server |
 | `/pomodoro start [work] [break] [rounds]` | A focus session while you sit in the companions' voice room; `stop` and `status` too |
 | `/voice top [period]`, `/voice forget` | Who spends the most time in the voice room, and erase your own voice time |
@@ -161,6 +172,7 @@ Hai đến mười bot nhỏ giữ cho một kênh chat luôn có không khí: t
 - Biết chơi cùng chứ không chỉ nói: câu hỏi trong ngày (`/companions qotd`), poll, và đố vui có nút bấm kèm bảng xếp hạng (`/trivia top`). Chủ server tự thêm câu hỏi, chuyện cười, fun fact và poll bằng `/companions content`; `/companions stats` cho biết bot có thật sự khiến mọi người nói chuyện không.
 
 - Ngồi trong phòng voice 24/7: `/companions voice join channel:#phong-voice bots:2`, rồi thêm phòng khác bằng chính lệnh đó: mỗi bot giữ phòng của mình: phòng mới hay phòng tăng số bot chỉ lấy bot đang rảnh (số nhỏ trước), không bao giờ lấy bot của phòng khác. Xóa một phòng thì bot của nó rảnh ra, các phòng khác không đổi (`/companions voice leave`). Bot ở lại kể cả khi mọi người ra hết, tự vào lại nếu bị đá hoặc khởi động lại, không nói và không nghe gì. Thêm: chào người vừa vào voice, `/pomodoro` (phiên tập trung), `/voice top` (giờ ngồi voice), chào thành viên mới kèm câu phá băng (`/companions welcome`), `/remind` và `/event`.
+- Thêm: bot hiện trạng thái dưới tên (đang ngồi voice với mấy người, phiên tập trung còn mấy phút), nội dung theo mùa (Halloween, Giáng sinh, Năm mới, Tết, Valentine), tự ưu tiên kiểu trò chuyện hiệu quả nhất (`/companions toggle what:adaptive`), bản tin tuần mỗi sáng thứ Hai (`/companions recap`), chuỗi ngày đố vui (`/trivia streak`), danh hiệu khách quen phòng voice (`/companions titles`), xuất và xóa dữ liệu server (`/companions data`), cảnh báo qua webhook và sao lưu hằng ngày.
 - Dữ liệu người dùng (ID Discord) nằm ở `scores.json`, `voice.json`, `reminders.json`; ai cũng tự xóa được bằng `/trivia forget` và `/voice forget`. Không lưu tin nhắn.
 - Chưa chạy thử với Discord thật; hãy theo dõi vài ngày rồi chỉnh tần suất và nội dung.
 
