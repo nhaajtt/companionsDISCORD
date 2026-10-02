@@ -1,7 +1,12 @@
 // Nội dung tiếng Việt cho các bot bạn đồng hành. Các bot luôn tự nhận là bot:
 // không nói mình ăn, ngủ, đi chơi hay có cơ thể.
 
-export default {
+import extraFacts from "./facts-vi.js";
+
+// Different lead-ins so a long run of facts does not sound like a stuck record
+const FACT_LEADS = ["Bạn có biết:", "Thông tin vô dụng nhưng có thật:", "Chuyện lạ có thật:", "Cho bạn nào chưa biết:", "Fun fact, khỏi cảm ơn:"];
+
+const bank = {
   language: "vi",
 
   questions: [
@@ -145,5 +150,13 @@ export default {
       ack: ["LOL câu trả lời hay đó!", "Tặng bạn một ngôi sao vàng. Tưởng tượng thôi, nhưng vẫn là sao.", "Hỗn loạn mà đúng. Combo hoàn hảo."],
       factReact: ["KHOAN. GÌ CƠ. Ok cái này điên thật.", "Tui sẽ kể cho cả nhà. Không ai quan tâm đâu. Đáng.", "Thiên nhiên điên quá. Mê."],
     },
+  ],
+};
+
+export default {
+  ...bank,
+  facts: [
+    ...bank.facts,
+    ...extraFacts.map((text, i) => ({ id: `vf-${i + 1}`, text: `${FACT_LEADS[i % FACT_LEADS.length]} ${text}` })),
   ],
 };

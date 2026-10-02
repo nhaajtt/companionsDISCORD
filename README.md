@@ -5,7 +5,7 @@ Two to eight small Discord bots that keep a channel lively. Every so often one o
 Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by [nhaajt](https://github.com/nhaajtt). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD), the self-hosted music bot, and the two can run side by side on the same Raspberry Pi.
 
 - **They are open about being bots.** They keep Discord's BOT tag, have five distinct personalities and never pretend to be human. They run on normal bot tokens, never a user account.
-- **No outside services.** English and Vietnamese banks of questions, jokes and riddles, fun facts and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used.
+- **No outside services.** English and Vietnamese banks of questions, jokes and riddles, fun facts (about 25 in English and about 380 in Vietnamese) and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used.
 - **Good manners built in:** one channel you choose, quiet hours (default 23:00 to 08:00 in your time zone), a daily limit, nothing while people are chatting, typing indicators, no pings, and a ten minute cooldown between thank-yous.
 - **They do not read message content.** They only use the non-privileged `Guilds` and `GuildMessages` intents to notice that someone wrote or replied.
 

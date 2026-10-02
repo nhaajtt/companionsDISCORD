@@ -329,3 +329,20 @@ test("Vietnamese content runs through the same engine", async () => {
   await h.untilSpeaks();
   assert.ok(getContent("vi").riddles.some((r) => r.setup === h.sent[0].text));
 });
+
+test("the large Vietnamese fact bank is real facts: unique, sentence-like, no arithmetic filler", () => {
+  const all = getContent("vi").facts;
+  const facts = all.filter((f) => f.id.startsWith("vf-"));
+  assert.ok(facts.length >= 300, `expected the extended bank, got ${facts.length}`);
+  assert.equal(new Set(all.map((f) => f.id)).size, all.length, "ids are unique across the whole bank");
+  assert.equal(new Set(facts.map((f) => f.id)).size, facts.length, "unique ids");
+  assert.equal(new Set(facts.map((f) => f.text.toLowerCase())).size, facts.length, "no repeated text");
+  for (const { text } of facts) {
+    assert.ok(text.length >= 30 && text.length < 300, `length: ${text}`);
+    assert.ok(/[.!?\p{Emoji}]$/u.test(text), `ends like a sentence: ${text}`);
+    assert.ok(!/\d{9,}/.test(text), `no long digit strings: ${text}`);
+    assert.ok(!/\b\d+ (là số|chia hết|mũ)\b/.test(text), `no arithmetic filler: ${text}`);
+  }
+  // the lead-ins vary
+  assert.ok(new Set(facts.slice(30).map((f) => f.text.split(":")[0])).size >= 4);
+});
