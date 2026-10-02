@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cài đặt, companionsDISCORD</title>
+<meta name="description" content="Cài companionsDISCORD bằng một lệnh trên Raspberry Pi hoặc Debian, hoặc từng bước bằng tay: tạo ứng dụng, mời bot, điền .env, chạy Docker, rồi gõ /companions setup.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/cai-dat.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/cai-dat.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/setup.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/cai-dat.html">
+<meta property="og:title" content="Cài đặt, companionsDISCORD">
+<meta property="og:description" content="Cài companionsDISCORD bằng một lệnh trên Raspberry Pi hoặc Debian, hoặc từng bước bằng tay: tạo ứng dụng, mời bot, điền .env, chạy Docker, rồi gõ /companions setup.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/cai-dat.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/companions.css">
+</head>
+<body>
+<a class="skip" href="#content">Bỏ qua, tới nội dung</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Dự án</b>companionsDISCORD</span>
+  <span><b>C-02</b></span>
+  <span class="strip__name">Cài đặt</span>
+  <span class="hide-sm"><b>Tỉ lệ</b>1:5</span>
+  <span class="hide-sm"><b>Vẽ bởi</b>nhaajt</span>
+  <span class="hide-sm"><b>Bản</b>I</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, về trang chủ">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Các trang"><a href="index.html">Trang chủ</a><a href="cai-dat.html" aria-current="page">Cài đặt</a><a href="privacy.html">Quyền riêng tư</a></nav>
+  <div class="lang" role="group" aria-label="Ngôn ngữ"><a href="cai-dat.html" hreflang="vi" lang="vi" title="Tiếng Việt" aria-current="true">VI</a><a href="en/setup.html" hreflang="en" lang="en" title="English">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Chuyển sang giao diện sáng" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Cài đặt</h1>
+  <p class="lead">Một lệnh là xong, hoặc từng bước nếu bạn thích tự tay. Cần một chỗ chạy 24/7, ví dụ Raspberry Pi.</p>
+</div>
+<section class="sheet" id="one" aria-labelledby="h-one">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-01</span>
+      <h2 id="h-one">Cách nhanh nhất: một lệnh</h2>
+      <p class="sheet__scale">Trên Raspberry Pi hoặc Debian<br>chạy từ trên xuống dưới</p>
+    </header>
+    <p>Bộ cài một lệnh dành cho Raspberry Pi hoặc máy Debian. Chạy lại bao nhiêu lần cũng được.</p>
+    <div class="code"><pre><code>curl -fsSL https://raw.githubusercontent.com/nhaajtt/companionsDISCORD/main/scripts/install-pi.sh | sh</code></pre><button type="button" data-copy>Copy</button></div>
+    <p class="sub">Muốn xem trước nó sẽ làm gì thì chạy <code>sh scripts/install-pi.sh --dry-run</code> (trong thư mục repo đã tải về). Thêm <code>--timer</code> để bật tự động cập nhật mỗi ngày. Muốn tự kiểm soát từng bước, hoặc dùng máy khác, cứ làm theo phần thủ công bên dưới.</p>
+  </div>
+</section>
+
+<section class="sheet" id="manual" aria-labelledby="h-manual">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-02</span>
+      <h2 id="h-manual">Thủ công, từng bước</h2>
+      <p class="sheet__scale">Làm lần lượt<br>không cần đặc quyền gì ở Discord</p>
+    </header>
+    <ol class="build"><li><h3>Tạo 2 đến 8 ứng dụng</h3><p>Vào <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, tạo mỗi bot một ứng dụng, thêm Bot và chép token. Không cần bật intent đặc quyền nào. Càng nhiều bot càng nhộn.</p></li><li><h3>Mời từng bot vào server</h3><p>Dùng đường dẫn này, thay <code>CLIENT_ID</code> bằng Application ID của bot đó (quyền: View Channel, Send Messages, Read Message History).</p><div class="code"><pre><code>https://discord.com/oauth2/authorize?client_id=CLIENT_ID&amp;scope=bot%20applications.commands&amp;permissions=101376</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Điền file .env</h3><p>Sao chép <code>.env.example</code> thành <code>.env</code> rồi điền token, cách nhau bằng dấu phẩy. Token đầu tiên là Pip, thứ hai là Grumble, và cứ thế.</p><div class="code"><pre><code>cp .env.example .env</code></pre><button type="button" data-copy>Copy</button></div><div class="code"><pre><code>COMPANION_TOKENS=token1,token2,token3
+COMPANION_TIMEZONE=Asia/Ho_Chi_Minh</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Chạy</h3><p>Với Docker (không mở cổng nào ra ngoài):</p><div class="code"><pre><code>git clone https://github.com/nhaajtt/companionsDISCORD.git &amp;&amp; cd companionsDISCORD
+docker compose up -d --build</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">Không dùng Docker (cần Node.js 20 trở lên):</p><div class="code"><pre><code>npm install &amp;&amp; npm start</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Chọn kênh</h3><p>Trong Discord gõ lệnh dưới đây. Bot đầu tiên sẽ nhận lệnh, và bạn cần quyền Manage Server.</p><div class="code"><pre><code>/companions setup channel:#chat-chung language:Tiếng Việt</code></pre><button type="button" data-copy>Copy</button></div></li></ol>
+    <div class="table-wrap" style="margin-top:28px"><table><caption>Cài đặt (.env)</caption><thead><tr><th>Biến</th><th>Ý nghĩa</th></tr></thead><tbody><tr><th scope="row"><code>COMPANION_TOKENS</code></th><td>2 đến 8 token bot, cách nhau bằng dấu phẩy (bắt buộc)</td></tr><tr><th scope="row"><code>COMPANION_TIMEZONE</code></th><td>Múi giờ cho giờ im lặng và trần mỗi ngày (mặc định <code>Asia/Ho_Chi_Minh</code>)</td></tr><tr><th scope="row"><code>COMPANION_DATA_DIR</code></th><td>Nơi lưu <code>companions.json</code> (mặc định <code>data</code>; file compose đã đặt sẵn)</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<section class="sheet" id="commands" aria-labelledby="h-cmd">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-03</span>
+      <h2 id="h-cmd">Các lệnh /companions</h2>
+      <p class="sheet__scale">Bảy lệnh<br>tất cả trong một nhóm</p>
+    </header>
+    <div class="table-wrap"><table class="cmds"><thead><tr><th>Lệnh</th><th>Làm gì</th></tr></thead><tbody><tr><th scope="row"><code>/companions setup channel [language]</code></th><td>Chọn kênh và ngôn ngữ (English hoặc Tiếng Việt), và bật bot</td></tr><tr><th scope="row"><code>/companions on | off</code></th><td>Bật hoặc tắt</td></tr><tr><th scope="row"><code>/companions frequency level</code></th><td>Calm (tối đa 4 mỗi ngày), Normal (8) hoặc Lively (14)</td></tr><tr><th scope="row"><code>/companions quiet from until</code></th><td>Khoảng giờ bot im lặng</td></tr><tr><th scope="row"><code>/companions now</code></th><td>Bắt đầu một cuộc trò chuyện ngay, để thử</td></tr><tr><th scope="row"><code>/companions status</code></th><td>Cài đặt hiện tại và khi nào có cuộc trò chuyện tiếp theo</td></tr></tbody></table></div>
+    <p class="cmd-note">Bảy lệnh trong sáu dòng: <code>on</code> và <code>off</code> ở chung một dòng cho gọn.</p>
+  </div>
+</section>
+
+<section class="sheet" id="pi" aria-labelledby="h-pi">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-04</span>
+      <h2 id="h-pi">Cạnh bot nhạc trên một Pi</h2>
+      <p class="sheet__scale">Hai dự án, một Raspberry Pi<br>không dùng chung gì lúc chạy</p>
+    </header>
+    <div class="table-wrap"><table><thead><tr><th>&nbsp;</th><th>musiDISCORD</th><th>companionsDISCORD</th></tr></thead><tbody><tr><th scope="row">Thư mục</th><td><code>~/musiDISCORD</code></td><td><code>~/companionsDISCORD</code></td></tr><tr><th scope="row">Container</th><td><code>musidiscord-bot</code>, <code>musidiscord-lavalink</code>, ...</td><td><code>companionsdiscord</code></td></tr><tr><th scope="row">Image</th><td><code>musidiscord-bot:local</code></td><td><code>companionsdiscord:local</code></td></tr><tr><th scope="row">Cổng công bố</th><td><code>127.0.0.1:8787</code> (trang trạng thái)</td><td>không có</td></tr><tr><th scope="row">Cấu hình và dữ liệu</th><td><code>.env</code> và <code>data/</code> riêng</td><td><code>.env</code> và <code>data/</code> riêng</td></tr><tr><th scope="row">Tự cập nhật</th><td><code>musidiscord-update.timer</code></td><td><code>companionsdiscord-update.timer</code></td></tr></tbody></table></div>
+    <p class="cmd-note">Mỗi bên là một tiến trình Node.js. Bot đồng hành khá nhỏ: không dùng Lavalink, không dùng cơ sở dữ liệu. Mình chưa đo bộ nhớ hay CPU của cả hai khi chạy chung, nên hãy tự kiểm tra bằng <code>docker stats --no-stream</code>.</p>
+  </div>
+</section>
+
+<section class="sheet" id="faq" aria-labelledby="h-faq">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-05</span>
+      <h2 id="h-faq">Hỏi đáp</h2>
+      <p class="sheet__scale">Những câu hay gặp<br>và vài câu không ai hỏi</p>
+    </header>
+    <div class="faq"><details><summary>Bot có đọc tin nhắn của tôi không?</summary><div class="ans"><p>Không. Bot chỉ dùng hai intent không đặc quyền là <code>Guilds</code> và <code>GuildMessages</code>, để biết có người vừa viết hoặc trả lời. Nội dung tin nhắn thì không đọc, không lưu.</p></div></details><details><summary>Bot có giả làm người không?</summary><div class="ans"><p>Không. Chúng giữ nhãn BOT của Discord, có năm tính cách rõ ràng và dùng token bot bình thường, không bao giờ là tài khoản người dùng.</p></div></details><details><summary>Chạy cạnh bot nhạc trên cùng một Raspberry Pi được không?</summary><div class="ans"><p>Được. Mỗi dự án một thư mục, một container, không dùng chung gì lúc chạy. Xem bảng ở trên.</p></div></details><details><summary>Làm sao thêm chuyện cười của riêng tôi?</summary><div class="ans"><p>Thêm mục vào <code>src/content/en.js</code> hoặc <code>src/content/vi.js</code> (các bài kiểm thử sẽ kiểm tra hình dạng từng mục). Thêm ngôn ngữ mới thì tạo file mới trong <code>src/content/</code> và thêm một dòng vào <code>src/content/index.js</code> và <code>src/settings.js</code>.</p></div></details><details><summary>Dữ liệu được lưu ở đâu?</summary><div class="ans"><p>Chỉ cài đặt theo từng server (kênh, ngôn ngữ, tần suất, giờ im lặng) trong <code>data/companions.json</code>. Chi tiết ở trang <a href="privacy.html">quyền riêng tư</a>.</p></div></details></div>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Dự án</small><strong>companionsDISCORD</strong><span>Vài bot nhỏ giữ cho kênh chat đỡ buồn</span></div>
+      <div class="w2"><small>Số tờ</small><strong>C-02</strong></div>
+      <div class="w2"><small>Vẽ bởi</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Ngày</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Bản</small><strong>I</strong></div>
+      <div class="w6"><small>Tài liệu</small><span><a href="cai-dat.html">Cài đặt</a> &nbsp;&nbsp; <a href="privacy.html">Quyền riêng tư</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">đã được Bean duyệt (Bean duyệt mọi thứ)</span>
+      <span>Làm bởi <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">mã nguồn</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/main.js"></script>
+</body>
+</html>

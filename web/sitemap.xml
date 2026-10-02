@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://companionsdiscord.vercel.app/</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/"/>
+  </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/en/</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/"/>
+  </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/cai-dat.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/cai-dat.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/setup.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/cai-dat.html"/>
+  </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/en/setup.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/cai-dat.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/setup.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/cai-dat.html"/>
+  </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/en/privacy.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/privacy.html"/>
+  </url>
+</urlset>

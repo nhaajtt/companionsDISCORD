@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>companionsDISCORD: năm bot nhỏ giữ cho kênh Discord không chết</title>
+<meta name="description" content="Hai đến tám bot Discord nhỏ hỏi câu vui, kể chuyện cười, chia sẻ fun fact và lùi lại khi có người nhắn. Tự host, không đọc tin nhắn, không dịch vụ ngoài.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/">
+<meta property="og:title" content="companionsDISCORD: năm bot nhỏ giữ cho kênh Discord không chết">
+<meta property="og:description" content="Hai đến tám bot Discord nhỏ hỏi câu vui, kể chuyện cười, chia sẻ fun fact và lùi lại khi có người nhắn. Tự host, không đọc tin nhắn, không dịch vụ ngoài.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/companions.css">
+</head>
+<body>
+<a class="skip" href="#content">Bỏ qua, tới nội dung</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Dự án</b>companionsDISCORD</span>
+  <span><b>C-01</b></span>
+  <span class="strip__name">Trang chủ</span>
+  <span class="hide-sm"><b>Tỉ lệ</b>1:5</span>
+  <span class="hide-sm"><b>Vẽ bởi</b>nhaajt</span>
+  <span class="hide-sm"><b>Bản</b>I</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, về trang chủ">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Các trang"><a href="index.html" aria-current="page">Trang chủ</a><a href="cai-dat.html">Cài đặt</a><a href="privacy.html">Quyền riêng tư</a></nav>
+  <div class="lang" role="group" aria-label="Ngôn ngữ"><a href="index.html" hreflang="vi" lang="vi" title="Tiếng Việt" aria-current="true">VI</a><a href="en/index.html" hreflang="en" lang="en" title="English">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Chuyển sang giao diện sáng" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<section class="hero" aria-labelledby="h-hero">
+  <div class="fold fold--1"></div><div class="fold fold--2"></div>
+  <div class="wrap hero__grid">
+    <div>
+      <h1 id="h-hero">Năm con bot nhỏ. <em>Không kênh nào chết.</em></h1>
+      <p class="lead" style="margin-top:22px">Năm bot nhỏ giữ cho một kênh Discord vắng vẻ luôn có tiếng người (à, tiếng bot): hỏi câu vui, kể chuyện cười, chia sẻ fun fact, và thỉnh thoảng cãi nhau về dứa trên pizza.</p>
+      <p class="lead">Không ai trả lời thì bot khác nhảy vào. Có người nhắn thì các bot lùi lại và còn nói cảm ơn.</p>
+      <ul class="hero__tags"><li>2 đến 8 bot</li><li>luôn giữ nhãn BOT</li><li>không đọc nội dung tin nhắn</li><li>không gọi dịch vụ ngoài</li></ul>
+      <div class="hero__cta">
+        <a class="btn btn--solid" href="cai-dat.html">Cài đặt</a>
+        <a class="link" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">Xem trên GitHub</a>
+      </div>
+    </div>
+    <div>
+      <div class="chat" id="chat">
+        <div class="chat__bar"># chat-chung <span>Hôm nay</span><span class="live">bản demo, không có mạng</span></div>
+        <div class="chat__log" role="img" aria-label="Một cuộc trò chuyện mẫu giữa năm bot Pip, Grumble, Nova, Sage và Bean, và một người.">
+          <div class="msg" data-who="pip" data-type="1800"><span class="av" aria-hidden="true">P</span><div><div class="msg__head"><b>Pip</b><span class="tag">BOT</span><time>14:02</time></div><p>Hỏi nhanh cả kênh: dứa trên pizza, được hay không? (Pip chọn được. Pip chọn được mọi thứ.)</p></div></div>
+<div class="gap">5 phút sau...</div>
+<div class="msg" data-who="grumble"><span class="av" aria-hidden="true">G</span><div><div class="msg__head"><b>Grumble</b><span class="tag">BOT</span><time>14:07</time></div><p>Không ai trả lời hả? Thôi để tôi. Dứa trên pizza là tội ác, nhưng tôi vẫn ăn.</p></div></div>
+<div class="msg" data-who="bean"><span class="av" aria-hidden="true">B</span><div><div class="msg__head"><b>Bean</b><span class="tag">BOT</span><time>14:08</time></div><p>ý kiến gây bão: vỏ bánh mới là pizza, topping chỉ để trang trí</p></div></div>
+<div class="msg" data-who="nova"><span class="av" aria-hidden="true">N</span><div><div class="msg__head"><b>Nova</b><span class="tag">BOT</span><time>14:09</time></div><p>Đến giờ chuyện cười. Vì sao lập trình viên phá sản?</p></div></div>
+<div class="msg" data-who="nova" data-type="2200" data-pause="2400"><span class="av" aria-hidden="true">N</span><div><div class="msg__head"><b>Nova</b><span class="tag">BOT</span><time>14:10</time></div><p>Vì anh ấy xài hết cache. (Đọc là &quot;cash&quot;. Giải thích chuyện cười là cách giết nó.)</p></div></div>
+<div class="msg" data-who="sage"><span class="av" aria-hidden="true">S</span><div><div class="msg__head"><b>Sage</b><span class="tag">BOT</span><time>14:10</time></div><p>Tôi thấy nhói trong ví.</p></div></div>
+<div class="msg" data-who="human" data-pause="2200"><span class="av" aria-hidden="true">M</span><div><div class="msg__head"><b>mika</b><time>14:12</time></div><div class="ref">trả lời Pip</div><p>dứa chứ còn gì nữa</p></div></div>
+<div class="msg" data-who="pip" data-pause="1800"><span class="av" aria-hidden="true">P</span><div><div class="msg__head"><b>Pip</b><span class="tag">BOT</span><time>14:13</time></div><p>Mika!! Đáp án chuẩn luôn! Cảm ơn vì đã tồn tại.</p></div></div>
+        </div>
+        <div class="chat__input">Kênh này chỉ để xem. Bot tự nói chuyện với nhau.</div>
+      </div>
+      <p class="sub" style="margin-top:14px;font-size:12px;color:var(--ink-dim);text-align:center">Bản diễn thử chạy ngay trong trình duyệt của bạn. Không có mạng, không có bot thật, chỉ có JavaScript đang đóng kịch.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="cast" aria-labelledby="h-cast">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-01</span>
+      <h2 id="h-cast">Dàn diễn viên</h2>
+      <p class="sheet__scale">Năm tính cách<br>thứ tự token quyết định ai là ai</p>
+    </header>
+    <ul class="cast"><li class="reveal"><span class="av" aria-hidden="true">P</span><h3>Pip<span class="tag">BOT</span></h3><p class="role">Bot cổ vũ nhiệt tình. Cái gì cũng là điều tuyệt nhất từ trước đến nay</p><q>Tuyệt vời!! Nói lại lần nữa đi!</q></li><li class="reveal"><span class="av" aria-hidden="true">G</span><h3>Grumble<span class="tag">BOT</span></h3><p class="role">Gã cáu kỉnh mỉa mai, âm thầm quan tâm</p><q>Tôi không thèm quan tâm. Mà bạn ăn chưa?</q></li><li class="reveal"><span class="av" aria-hidden="true">N</span><h3>Nova<span class="tag">BOT</span></h3><p class="role">Mọt vũ trụ và đố vui</p><q>Fun fact: mật ong không bao giờ hỏng.</q></li><li class="reveal"><span class="av" aria-hidden="true">S</span><h3>Sage<span class="tag">BOT</span></h3><p class="role">Triết gia mặt lạnh</p><q>Câu hỏi hay. Câu trả lời thì không.</q></li><li class="reveal"><span class="av" aria-hidden="true">B</span><h3>Bean<span class="tag">BOT</span></h3><p class="role">Gremlin hỗn loạn với những ý kiến cay nồng</p><q>xúc xích ăn kèm kem. tôi nói rồi đó.</q></li></ul>
+    <p class="sub">Tính cách chọn theo thứ tự token: token đầu là Pip, token thứ hai là Grumble, cứ thế. Có ít hơn năm bot thì dùng những bạn đầu danh sách.</p>
+  </div>
+</section>
+
+<section class="sheet" id="flow" aria-labelledby="h-flow">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-02</span>
+      <h2 id="h-flow">Một cuộc trò chuyện diễn ra thế nào</h2>
+      <p class="sheet__scale">Bốn bước<br>thường mất vài phút</p>
+    </header>
+    <ol class="build"><li class="reveal"><h3>Một bot mở màn</h3><p>Câu hỏi, chuyện cười hay câu đố, fun fact, hoặc một câu nói đùa với bạn bè.</p></li><li class="reveal"><h3>Có người trả lời thì bot lùi lại</h3><p>Bot nhường chỗ cho người thật (đoạn chốt của chuyện cười vẫn được nói), và ai trả lời bot sẽ được cảm ơn sau một nhịp nghỉ tự nhiên.</p></li><li class="reveal"><h3>Vài phút không ai trả lời</h3><p>Bot khác trả lời hoặc nhún vai, bot thứ ba có thể phản ứng, người kể chuyện cười nói câu chốt.</p></li><li class="reveal"><h3>Rồi im lặng một lúc lâu</h3><p>Thường là 1,5 đến 4 giờ. Chat ít thôi cho đỡ phiền.</p></li></ol>
+  </div>
+</section>
+
+<section class="sheet" id="manners" aria-labelledby="h-man">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-03</span>
+      <h2 id="h-man">Phép lịch sự</h2>
+      <p class="sheet__scale">Dễ thương là có giới hạn<br>và các giới hạn này đều chỉnh được</p>
+    </header>
+    <ul class="manners"><li class="reveal"><b>Một kênh duy nhất</b><span>Chỉ nói trong kênh bạn chọn, không đi lung tung.</span></li><li class="reveal"><b>Giờ im lặng</b><span>Mặc định 23:00 đến 08:00 theo múi giờ của bạn. Bot cũng cần ngủ (hoặc giả vờ).</span></li><li class="reveal"><b>Trần mỗi ngày</b><span>Calm tối đa 4 cuộc, Normal 8, Lively 14. Bot không bao giờ spam.</span></li><li class="reveal"><b>Không chen khi người đang chat</b><span>Mọi người đang nói chuyện thì bot ngồi im.</span></li><li class="reveal"><b>Có dấu hiệu đang gõ</b><span>Bot hiện &quot;đang gõ&quot; như người, vì lịch sự.</span></li><li class="reveal"><b>Không ping ai</b><span>Không @everyone, không @ai cả. Cảm ơn thì nhẹ nhàng thôi, cách nhau ít nhất mười phút.</span></li><li class="reveal"><b>Không đọc nội dung tin nhắn</b><span>Chỉ cần biết có người viết hoặc trả lời, không cần biết viết gì.</span></li></ul>
+  </div>
+</section>
+
+<section class="sheet" id="honest" aria-labelledby="h-hon">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-04</span>
+      <h2 id="h-hon">Nói thật</h2>
+      <p class="sheet__scale">Bản thử nghiệm<br>chưa qua kiểm chứng ngoài đời</p>
+    </header>
+    <div class="honest reveal"><span class="stamp">chưa chạy thật</span><p>Logic trò chuyện đã được kiểm thử tự động bằng đồng hồ giả và bot giả (<code>npm test</code>). Nhưng nó <strong>chưa</strong> chạy trên một server Discord thật, nên hãy cho nó chạy vài ngày rồi chỉnh lại nhịp và nội dung. Hãy dùng ở server của bạn, nói cho mọi người biết đây là bot, và để tần suất vừa phải.</p></div>
+  </div>
+</section>
+
+<section class="sheet" id="friends" aria-labelledby="h-fr">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-05</span>
+      <h2 id="h-fr">Hàng xóm</h2>
+      <p class="sheet__scale">Mã nguồn mở<br>và một người anh em biết hát</p>
+    </header>
+    <div class="cards"><a class="card reveal" href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer"><h3>musiDISCORD</h3><p>Bot nhạc tự host, anh em của dự án này. Hai bên chạy cạnh nhau trên cùng một Raspberry Pi mà không chung gì lúc chạy.</p><span class="more">Xem trang web bot nhạc</span></a><a class="card reveal" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer"><h3>Mã nguồn trên GitHub</h3><p>Đọc code, thêm câu chuyện cười, báo lỗi. Muốn thêm trò hay thì sửa <code>src/content/vi.js</code>.</p><span class="more">Mở repo</span></a></div>
+    <p class="hero__cta"><a class="btn btn--solid" href="cai-dat.html">Đi tới cài đặt</a></p>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Dự án</small><strong>companionsDISCORD</strong><span>Vài bot nhỏ giữ cho kênh chat đỡ buồn</span></div>
+      <div class="w2"><small>Số tờ</small><strong>C-01</strong></div>
+      <div class="w2"><small>Vẽ bởi</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Ngày</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Bản</small><strong>I</strong></div>
+      <div class="w6"><small>Tài liệu</small><span><a href="cai-dat.html">Cài đặt</a> &nbsp;&nbsp; <a href="privacy.html">Quyền riêng tư</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">đã được Bean duyệt (Bean duyệt mọi thứ)</span>
+      <span>Làm bởi <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">mã nguồn</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/main.js"></script>
+</body>
+</html>

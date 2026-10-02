@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy, companionsDISCORD</title>
+<meta name="description" content="companionsDISCORD stores only per-server settings in data/companions.json on the owner's machine, reads no message content and sends nothing to outside services.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/en/privacy.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/privacy.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/privacy.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/privacy.html">
+<meta property="og:title" content="Privacy, companionsDISCORD">
+<meta property="og:description" content="companionsDISCORD stores only per-server settings in data/companions.json on the owner's machine, reads no message content and sends nothing to outside services.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/en/privacy.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/pages.css">
+<link rel="stylesheet" href="../assets/companions.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Project</b>companionsDISCORD</span>
+  <span><b>P-01</b></span>
+  <span class="strip__name">Privacy</span>
+  <span class="hide-sm"><b>Scale</b>1:5</span>
+  <span class="hide-sm"><b>Drawn</b>nhaajt</span>
+  <span class="hide-sm"><b>Rev</b>I</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, back to home">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="setup.html">Setup</a><a href="privacy.html" aria-current="page">Privacy</a></nav>
+  <div class="lang" role="group" aria-label="Language"><a href="../privacy.html" hreflang="vi" lang="vi" title="Tiếng Việt">VI</a><a href="privacy.html" hreflang="en" lang="en" title="English" aria-current="true">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Switch to light theme" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="legal"><div class="wrap">
+    <h1>Privacy</h1>
+    <p class="lead">Short, because the bots have almost nothing to hide: a few settings, no message reading, no outside services.</p>
+    <div class="legal__meta"><span>Last updated: 2026-10-02</span><span class="stamp" style="font-size:18px">rev I</span></div>
+    <div class="legal__body"><section class="clause"><h2>What the bots store</h2><ul><li>Per-server settings: the channel, language, frequency and quiet hours.</li><li>They live in <code>data/companions.json</code>, on the machine that runs the bots.</li><li>That is all: no messages, no user data.</li></ul></section><section class="clause"><h2>What the bots do not do</h2><ul><li>They do not read message content. They only use the non-privileged <code>Guilds</code> and <code>GuildMessages</code> intents, to notice that someone wrote or replied.</li><li>They send nothing to outside services. The banks of questions, jokes and fun facts are written into the repo.</li><li>They do not pretend to be human: the bots keep Discord's BOT tag.</li></ul></section><section class="clause"><h2>Self-hosted means you are responsible</h2><p>This project runs on your own machine. The data lives there, you manage it, and you are responsible for your own server. Tell your members what these bots are, and keep the frequency modest.</p></section><section class="clause"><h2>Third parties</h2><p>Discord processes messages and commands under Discord's own policies. This website is static, has no tracking, and only remembers your light or dark theme choice in your own browser.</p></section><section class="clause"><h2>Deleting it</h2><p>Delete <code>data/companions.json</code> on the machine that runs the bots, or remove the bots from your server. That is the whole procedure.</p></section><section class="clause"><h2>Contact</h2><p>Questions or bugs? Open an issue in the repo:</p><p class="contact">GitHub: <a href="https://github.com/nhaajtt/companionsDISCORD/issues" target="_blank" rel="noopener noreferrer">companionsDISCORD</a> &nbsp;&bull;&nbsp; <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajtt</a> &nbsp;&bull;&nbsp; Instagram: <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">@nhaajt_hehee</a></p></section></div>
+</div></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Project</small><strong>companionsDISCORD</strong><span>A few small bots that keep a channel from going quiet</span></div>
+      <div class="w2"><small>Sheet no.</small><strong>P-01</strong></div>
+      <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Rev</small><strong>I</strong></div>
+      <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">approved by Bean (Bean approves everything)</span>
+      <span>Made by <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">source code</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/main.js"></script>
+</body>
+</html>

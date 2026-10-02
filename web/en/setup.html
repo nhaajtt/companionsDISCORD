@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setup, companionsDISCORD</title>
+<meta name="description" content="Install companionsDISCORD with one command on a Raspberry Pi or Debian, or by hand: create the applications, invite the bots, fill in .env, run Docker, then use /companions setup.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/en/setup.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/cai-dat.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/setup.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/cai-dat.html">
+<meta property="og:title" content="Setup, companionsDISCORD">
+<meta property="og:description" content="Install companionsDISCORD with one command on a Raspberry Pi or Debian, or by hand: create the applications, invite the bots, fill in .env, run Docker, then use /companions setup.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/en/setup.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/pages.css">
+<link rel="stylesheet" href="../assets/companions.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Project</b>companionsDISCORD</span>
+  <span><b>C-02</b></span>
+  <span class="strip__name">Setup</span>
+  <span class="hide-sm"><b>Scale</b>1:5</span>
+  <span class="hide-sm"><b>Drawn</b>nhaajt</span>
+  <span class="hide-sm"><b>Rev</b>I</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, back to home">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="setup.html" aria-current="page">Setup</a><a href="privacy.html">Privacy</a></nav>
+  <div class="lang" role="group" aria-label="Language"><a href="../cai-dat.html" hreflang="vi" lang="vi" title="Tiếng Việt">VI</a><a href="setup.html" hreflang="en" lang="en" title="English" aria-current="true">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Switch to light theme" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Setup</h1>
+  <p class="lead">One command, or step by step if you like doing things yourself. You need somewhere to run 24/7, such as a Raspberry Pi.</p>
+</div>
+<section class="sheet" id="one" aria-labelledby="h-one">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-01</span>
+      <h2 id="h-one">The quick way: one command</h2>
+      <p class="sheet__scale">On a Raspberry Pi or Debian<br>run it top to bottom</p>
+    </header>
+    <p>The one-command installer is for a Raspberry Pi or a Debian machine. It is safe to run again.</p>
+    <div class="code"><pre><code>curl -fsSL https://raw.githubusercontent.com/nhaajtt/companionsDISCORD/main/scripts/install-pi.sh | sh</code></pre><button type="button" data-copy>Copy</button></div>
+    <p class="sub">To preview what it would do, run <code>sh scripts/install-pi.sh --dry-run</code> (from a clone of the repo). Add <code>--timer</code> to install the daily auto-update. If you want to control each step, or you are on another machine, follow the manual steps below.</p>
+  </div>
+</section>
+
+<section class="sheet" id="manual" aria-labelledby="h-manual">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-02</span>
+      <h2 id="h-manual">The manual way, step by step</h2>
+      <p class="sheet__scale">Work through in order<br>no privileged intents needed</p>
+    </header>
+    <ol class="build"><li><h3>Create 2 to 8 applications</h3><p>Open the <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer">Discord Developer Portal</a>, create one application per bot, add a Bot to each and copy its token. No privileged intent is needed. The more bots, the livelier.</p></li><li><h3>Invite every bot to your server</h3><p>Use this link, replacing <code>CLIENT_ID</code> with that bot's Application ID (permissions: View Channel, Send Messages, Read Message History).</p><div class="code"><pre><code>https://discord.com/oauth2/authorize?client_id=CLIENT_ID&amp;scope=bot%20applications.commands&amp;permissions=101376</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Fill in the .env file</h3><p>Copy <code>.env.example</code> to <code>.env</code> and put the tokens in, comma-separated. The first token is Pip, the second is Grumble, and so on.</p><div class="code"><pre><code>cp .env.example .env</code></pre><button type="button" data-copy>Copy</button></div><div class="code"><pre><code>COMPANION_TOKENS=token1,token2,token3
+COMPANION_TIMEZONE=Asia/Ho_Chi_Minh</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Run it</h3><p>With Docker (it publishes no ports):</p><div class="code"><pre><code>git clone https://github.com/nhaajtt/companionsDISCORD.git &amp;&amp; cd companionsDISCORD
+docker compose up -d --build</code></pre><button type="button" data-copy>Copy</button></div><p class="sub">Without Docker (needs Node.js 20 or newer):</p><div class="code"><pre><code>npm install &amp;&amp; npm start</code></pre><button type="button" data-copy>Copy</button></div></li><li><h3>Pick the channel</h3><p>In Discord, run the command below. The first bot hosts the command, and you need the Manage Server permission.</p><div class="code"><pre><code>/companions setup channel:#general language:English</code></pre><button type="button" data-copy>Copy</button></div></li></ol>
+    <div class="table-wrap" style="margin-top:28px"><table><caption>Settings (.env)</caption><thead><tr><th>Variable</th><th>Meaning</th></tr></thead><tbody><tr><th scope="row"><code>COMPANION_TOKENS</code></th><td>2 to 8 bot tokens, comma-separated (required)</td></tr><tr><th scope="row"><code>COMPANION_TIMEZONE</code></th><td>Time zone for quiet hours and the daily limit (default <code>Asia/Ho_Chi_Minh</code>)</td></tr><tr><th scope="row"><code>COMPANION_DATA_DIR</code></th><td>Where <code>companions.json</code> is stored (default <code>data</code>; the compose file sets it)</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<section class="sheet" id="commands" aria-labelledby="h-cmd">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-03</span>
+      <h2 id="h-cmd">The /companions commands</h2>
+      <p class="sheet__scale">Six rows<br>all in one command group</p>
+    </header>
+    <div class="table-wrap"><table class="cmds"><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody><tr><th scope="row"><code>/companions setup channel [language]</code></th><td>Choose the channel and language (English or Vietnamese), and turn them on</td></tr><tr><th scope="row"><code>/companions on | off</code></th><td>Turn them on or off</td></tr><tr><th scope="row"><code>/companions frequency level</code></th><td>Calm (up to 4 a day), Normal (8) or Lively (14)</td></tr><tr><th scope="row"><code>/companions quiet from until</code></th><td>Hours they stay silent</td></tr><tr><th scope="row"><code>/companions now</code></th><td>Start a conversation right away, to test it</td></tr><tr><th scope="row"><code>/companions status</code></th><td>Current settings and when the next chat is due</td></tr></tbody></table></div>
+    <p class="cmd-note">Seven commands, six rows: <code>on</code> and <code>off</code> share a line to save space.</p>
+  </div>
+</section>
+
+<section class="sheet" id="pi" aria-labelledby="h-pi">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-04</span>
+      <h2 id="h-pi">Running next to musiDISCORD on one Pi</h2>
+      <p class="sheet__scale">Two projects, one Raspberry Pi<br>nothing shared at runtime</p>
+    </header>
+    <div class="table-wrap"><table><thead><tr><th>&nbsp;</th><th>musiDISCORD</th><th>companionsDISCORD</th></tr></thead><tbody><tr><th scope="row">Folder</th><td><code>~/musiDISCORD</code></td><td><code>~/companionsDISCORD</code></td></tr><tr><th scope="row">Containers</th><td><code>musidiscord-bot</code>, <code>musidiscord-lavalink</code>, ...</td><td><code>companionsdiscord</code></td></tr><tr><th scope="row">Image</th><td><code>musidiscord-bot:local</code></td><td><code>companionsdiscord:local</code></td></tr><tr><th scope="row">Published ports</th><td><code>127.0.0.1:8787</code> (status page)</td><td>none</td></tr><tr><th scope="row">Config and data</th><td>its own <code>.env</code> and <code>data/</code></td><td>its own <code>.env</code> and <code>data/</code></td></tr><tr><th scope="row">Auto-update</th><td><code>musidiscord-update.timer</code></td><td><code>companionsdiscord-update.timer</code></td></tr></tbody></table></div>
+    <p class="cmd-note">Each is one Node.js process (the companions are small: they use no Lavalink and no database). I have not measured memory or CPU for the pair, so check with <code>docker stats --no-stream</code>.</p>
+  </div>
+</section>
+
+<section class="sheet" id="faq" aria-labelledby="h-faq">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-05</span>
+      <h2 id="h-faq">FAQ</h2>
+      <p class="sheet__scale">Questions people ask<br>and a few nobody does</p>
+    </header>
+    <div class="faq"><details><summary>Do the bots read my messages?</summary><div class="ans"><p>No. They only use the non-privileged <code>Guilds</code> and <code>GuildMessages</code> intents, to notice that someone wrote or replied. They never read or store the content.</p></div></details><details><summary>Do they pretend to be human?</summary><div class="ans"><p>No. They keep Discord's BOT tag, have five distinct personalities and run on normal bot tokens, never a user account.</p></div></details><details><summary>Can they run next to the music bot on one Raspberry Pi?</summary><div class="ans"><p>Yes. Separate folders, separate containers, and nothing shared at runtime. See the table above.</p></div></details><details><summary>How do I add my own jokes?</summary><div class="ans"><p>Add entries to <code>src/content/en.js</code> or <code>src/content/vi.js</code> (the tests check the shape of every entry). Adding a language means a new file in <code>src/content/</code> and a line in <code>src/content/index.js</code> and <code>src/settings.js</code>.</p></div></details><details><summary>Where is my data kept?</summary><div class="ans"><p>Only per-server settings (channel, language, frequency, quiet hours), in <code>data/companions.json</code>. The details are on the <a href="privacy.html">privacy page</a>.</p></div></details></div>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Project</small><strong>companionsDISCORD</strong><span>A few small bots that keep a channel from going quiet</span></div>
+      <div class="w2"><small>Sheet no.</small><strong>C-02</strong></div>
+      <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Rev</small><strong>I</strong></div>
+      <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">approved by Bean (Bean approves everything)</span>
+      <span>Made by <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">source code</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>companionsDISCORD: five tiny bots that keep a Discord channel lively</title>
+<meta name="description" content="Two to eight small Discord bots that ask questions, tell jokes, share fun facts and step back when people talk. Self-hosted, no message reading, no outside services.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/en/">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/">
+<meta property="og:title" content="companionsDISCORD: five tiny bots that keep a Discord channel lively">
+<meta property="og:description" content="Two to eight small Discord bots that ask questions, tell jokes, share fun facts and step back when people talk. Self-hosted, no message reading, no outside services.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/en/">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/pages.css">
+<link rel="stylesheet" href="../assets/companions.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Project</b>companionsDISCORD</span>
+  <span><b>C-01</b></span>
+  <span class="strip__name">Home</span>
+  <span class="hide-sm"><b>Scale</b>1:5</span>
+  <span class="hide-sm"><b>Drawn</b>nhaajt</span>
+  <span class="hide-sm"><b>Rev</b>I</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, back to home">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Pages"><a href="index.html" aria-current="page">Home</a><a href="setup.html">Setup</a><a href="privacy.html">Privacy</a></nav>
+  <div class="lang" role="group" aria-label="Language"><a href="../index.html" hreflang="vi" lang="vi" title="Tiếng Việt">VI</a><a href="index.html" hreflang="en" lang="en" title="English" aria-current="true">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Switch to light theme" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<section class="hero" aria-labelledby="h-hero">
+  <div class="fold fold--1"></div><div class="fold fold--2"></div>
+  <div class="wrap hero__grid">
+    <div>
+      <h1 id="h-hero">Five tiny bots. <em>Zero dead channels.</em></h1>
+      <p class="lead" style="margin-top:22px">Five small bots that keep a quiet Discord channel from going quiet: questions, jokes, fun facts, and the occasional argument about pineapple on pizza.</p>
+      <p class="lead">If nobody answers, another bot jumps in. If a person joins, the bots step back and even say thank you.</p>
+      <ul class="hero__tags"><li>2 to 8 bots</li><li>always wear the BOT tag</li><li>never read message content</li><li>no outside services</li></ul>
+      <div class="hero__cta">
+        <a class="btn btn--solid" href="setup.html">Set them up</a>
+        <a class="link" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      </div>
+    </div>
+    <div>
+      <div class="chat" id="chat">
+        <div class="chat__bar"># general <span>Today</span><span class="live">demo, no network</span></div>
+        <div class="chat__log" role="img" aria-label="A sample conversation between the five bots Pip, Grumble, Nova, Sage and Bean, and one human.">
+          <div class="msg" data-who="pip" data-type="1800"><span class="av" aria-hidden="true">P</span><div><div class="msg__head"><b>Pip</b><span class="tag">BOT</span><time>2:02 PM</time></div><p>Quick question for the channel: pineapple on pizza, yes or no? (I say yes. I say yes to everything.)</p></div></div>
+<div class="gap">5 minutes later...</div>
+<div class="msg" data-who="grumble"><span class="av" aria-hidden="true">G</span><div><div class="msg__head"><b>Grumble</b><span class="tag">BOT</span><time>2:07 PM</time></div><p>Nobody? Fine, I'll say it. Pineapple on pizza is a crime, and I would still eat it.</p></div></div>
+<div class="msg" data-who="bean"><span class="av" aria-hidden="true">B</span><div><div class="msg__head"><b>Bean</b><span class="tag">BOT</span><time>2:08 PM</time></div><p>hot take: the crust is the actual pizza and the toppings are just decoration</p></div></div>
+<div class="msg" data-who="nova"><span class="av" aria-hidden="true">N</span><div><div class="msg__head"><b>Nova</b><span class="tag">BOT</span><time>2:09 PM</time></div><p>Joke time. Why did the developer go broke?</p></div></div>
+<div class="msg" data-who="nova" data-type="2200" data-pause="2400"><span class="av" aria-hidden="true">N</span><div><div class="msg__head"><b>Nova</b><span class="tag">BOT</span><time>2:10 PM</time></div><p>Because he used up all his cache. (Say it out loud. Explaining a joke is how you kill it.)</p></div></div>
+<div class="msg" data-who="sage"><span class="av" aria-hidden="true">S</span><div><div class="msg__head"><b>Sage</b><span class="tag">BOT</span><time>2:10 PM</time></div><p>I felt that in my wallet.</p></div></div>
+<div class="msg" data-who="human" data-pause="2200"><span class="av" aria-hidden="true">M</span><div><div class="msg__head"><b>mika</b><time>2:12 PM</time></div><div class="ref">replying to Pip</div><p>pineapple, obviously</p></div></div>
+<div class="msg" data-who="pip" data-pause="1800"><span class="av" aria-hidden="true">P</span><div><div class="msg__head"><b>Pip</b><span class="tag">BOT</span><time>2:13 PM</time></div><p>Mika!! Correct answer! Thank you for existing.</p></div></div>
+        </div>
+        <div class="chat__input">This channel is view-only. The bots talk among themselves.</div>
+      </div>
+      <p class="sub" style="margin-top:14px;font-size:12px;color:var(--ink-dim);text-align:center">The demo runs in your browser. No network, no real bots, just JavaScript doing improv.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="cast" aria-labelledby="h-cast">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-01</span>
+      <h2 id="h-cast">The cast</h2>
+      <p class="sheet__scale">Five personalities<br>token order decides who is who</p>
+    </header>
+    <ul class="cast"><li class="reveal"><span class="av" aria-hidden="true">P</span><h3>Pip<span class="tag">BOT</span></h3><p class="role">Cheerful hype bot. Everything is the best thing ever</p><q>Amazing!! Say it again!</q></li><li class="reveal"><span class="av" aria-hidden="true">G</span><h3>Grumble<span class="tag">BOT</span></h3><p class="role">Sarcastic grump who secretly cares</p><q>I don't care. Have you eaten, though?</q></li><li class="reveal"><span class="av" aria-hidden="true">N</span><h3>Nova<span class="tag">BOT</span></h3><p class="role">Space and trivia nerd</p><q>Fun fact: honey never spoils.</q></li><li class="reveal"><span class="av" aria-hidden="true">S</span><h3>Sage<span class="tag">BOT</span></h3><p class="role">Deadpan philosopher</p><q>Good question. The answer is worse.</q></li><li class="reveal"><span class="av" aria-hidden="true">B</span><h3>Bean<span class="tag">BOT</span></h3><p class="role">Chaotic gremlin with spicy takes</p><q>hot dogs with ice cream. i said what i said.</q></li></ul>
+    <p class="sub">Personality is picked by the order of the tokens: the first token is Pip, the second is Grumble, and so on. With fewer than five bots the first ones are used.</p>
+  </div>
+</section>
+
+<section class="sheet" id="flow" aria-labelledby="h-flow">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-02</span>
+      <h2 id="h-flow">How a conversation goes</h2>
+      <p class="sheet__scale">Four steps<br>usually over in a few minutes</p>
+    </header>
+    <ol class="build"><li class="reveal"><h3>One bot starts</h3><p>A question, a joke or riddle, a fun fact, or a line of banter.</p></li><li class="reveal"><h3>A person answers, the bots step back</h3><p>They stay out of the way (a joke's punchline is still delivered), and whoever replied to a bot gets a short thank-you after a natural pause.</p></li><li class="reveal"><h3>Nobody answers for several minutes</h3><p>Another bot answers or shrugs, a third may react, and the teller of a joke gives the punchline.</p></li><li class="reveal"><h3>Then it goes quiet for a good while</h3><p>Normally 1.5 to 4 hours. Chatty, not needy.</p></li></ol>
+  </div>
+</section>
+
+<section class="sheet" id="manners" aria-labelledby="h-man">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-03</span>
+      <h2 id="h-man">Good manners</h2>
+      <p class="sheet__scale">Cute has limits<br>and all of them are adjustable</p>
+    </header>
+    <ul class="manners"><li class="reveal"><b>One channel</b><span>They talk only in the channel you pick. No wandering.</span></li><li class="reveal"><b>Quiet hours</b><span>23:00 to 08:00 by default, in your time zone. Even bots need their beauty sleep.</span></li><li class="reveal"><b>A daily limit</b><span>Calm up to 4 conversations a day, Normal 8, Lively 14. They will not spam you.</span></li><li class="reveal"><b>Nothing while people chat</b><span>If humans are talking, the bots sit on their hands.</span></li><li class="reveal"><b>Typing indicators</b><span>They show &quot;is typing&quot; like anyone polite would.</span></li><li class="reveal"><b>No pings</b><span>No @everyone, no @anybody. Thank-yous are gentle, with a ten minute cooldown between them.</span></li><li class="reveal"><b>No message content</b><span>They only need to know that someone wrote or replied, never what was written.</span></li></ul>
+  </div>
+</section>
+
+<section class="sheet" id="honest" aria-labelledby="h-hon">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-04</span>
+      <h2 id="h-hon">The honest bit</h2>
+      <p class="sheet__scale">Tested on paper<br>not yet field-tested</p>
+    </header>
+    <div class="honest reveal"><span class="stamp">not yet live</span><p>The conversation logic is covered by automated tests with a fake clock and fake bots (<code>npm test</code>). It has <strong>not</strong> been run on a live Discord server yet, so expect to tune the timing and the content after watching it for a few days. Use it in servers you run, tell your members what these bots are, and keep the frequency modest.</p></div>
+  </div>
+</section>
+
+<section class="sheet" id="friends" aria-labelledby="h-fr">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">S-05</span>
+      <h2 id="h-fr">Neighbours</h2>
+      <p class="sheet__scale">Open source<br>and a sibling that sings</p>
+    </header>
+    <div class="cards"><a class="card reveal" href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer"><h3>musiDISCORD</h3><p>The self-hosted music bot, this project's sibling. The two can run side by side on one Raspberry Pi and share nothing at runtime.</p><span class="more">Visit the music bot site</span></a><a class="card reveal" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer"><h3>Source on GitHub</h3><p>Read the code, add jokes, report bugs. Want more material? Edit <code>src/content/en.js</code>.</p><span class="more">Open the repo</span></a></div>
+    <p class="hero__cta"><a class="btn btn--solid" href="setup.html">Go to setup</a></p>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Project</small><strong>companionsDISCORD</strong><span>A few small bots that keep a channel from going quiet</span></div>
+      <div class="w2"><small>Sheet no.</small><strong>C-01</strong></div>
+      <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Rev</small><strong>I</strong></div>
+      <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">approved by Bean (Bean approves everything)</span>
+      <span>Made by <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">source code</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/main.js"></script>
+</body>
+</html>
