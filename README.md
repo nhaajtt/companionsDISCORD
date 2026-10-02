@@ -1,5 +1,7 @@
 # companionsDISCORD
 
+[![CI](https://github.com/nhaajtt/companionsDISCORD/actions/workflows/ci.yml/badge.svg)](https://github.com/nhaajtt/companionsDISCORD/actions/workflows/ci.yml)
+
 Two to ten small Discord bots that keep a channel lively. Every so often one of them asks a question, tells a joke or a riddle, shares a fun fact or starts a short chat with another bot. If nobody answers after a few minutes, another bot jumps in. If a person joins the conversation, the bots step back, and they thank anyone who replies to them.
 
 Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by [nhaajt](https://github.com/nhaajtt). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD), the self-hosted music bot, and the two can run side by side on the same Raspberry Pi.
@@ -91,6 +93,14 @@ Everyone (not only managers) can use:
 ## How it is built
 
 The behaviour lives in plain modules that never touch Discord (injected ports, fake clock in tests); one file adapts them to Discord. See [docs/architecture.md](docs/architecture.md) for the diagram and the design decisions.
+
+## Run the prebuilt image
+
+Tagged releases publish a multi-architecture image (amd64 and arm64, so it runs on a Raspberry Pi 5) to GitHub Container Registry. Put your `.env` in a folder and run:
+
+```bash
+docker run -d --name companionsdiscord --restart unless-stopped   --env-file .env -e COMPANION_DATA_DIR=/app/data -v "$PWD/data:/app/data"   ghcr.io/nhaajtt/companionsdiscord:latest
+```
 
 ## Settings (`.env`)
 

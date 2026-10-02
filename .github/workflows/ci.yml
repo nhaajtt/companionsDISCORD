@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Syntax check
+        run: for f in $(git ls-files 'src/*.js' 'src/**/*.js' 'scripts/*.js'); do node --check "$f"; done
+      - name: Slash command definitions are valid
+        run: node -e "import('./src/runtime.js').then(m => { for (const c of [m.companionsCommand, m.triviaCommand, m.voiceCommand, m.pomodoroCommand, m.remindCommand, m.eventCommand]) c.toJSON(); console.log('commands ok'); })"
+
+  image:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: The image builds
+        run: docker build -t companionsdiscord:ci .
