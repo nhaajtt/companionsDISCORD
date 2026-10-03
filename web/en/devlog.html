@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>companionsDISCORD devlog: from five bots to thirty</title>
+<meta name="description" content="A devlog for companionsDISCORD: each version, the technical decisions, the mistakes along the way and what is left open.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/en/devlog.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/devlog.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/devlog.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/devlog.html">
+<meta property="og:title" content="companionsDISCORD devlog: from five bots to thirty">
+<meta property="og:description" content="A devlog for companionsDISCORD: each version, the technical decisions, the mistakes along the way and what is left open.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/en/devlog.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/pages.css">
+<link rel="stylesheet" href="../assets/companions.css">
+<link rel="stylesheet" href="../assets/cinema.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Project</b>companionsDISCORD</span>
+  <span><b>D-01</b></span>
+  <span class="strip__name">Devlog</span>
+  <span class="hide-sm"><b>Scale</b>1:5</span>
+  <span class="hide-sm"><b>Drawn</b>nhaajt</span>
+  <span class="hide-sm"><b>Rev</b>II</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, back to home">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Pages"><a href="index.html">Home</a><a href="setup.html">Setup</a><a href="invite.html">Invite</a><a href="status.html">Status</a><a href="devlog.html" aria-current="page">Devlog</a><a href="privacy.html">Privacy</a></nav>
+  <div class="lang" role="group" aria-label="Language"><a href="../devlog.html" hreflang="vi" lang="vi" title="Tiếng Việt">VI</a><a href="devlog.html" hreflang="en" lang="en" title="English" aria-current="true">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Switch to light theme" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Devlog</h1>
+  <p class="lead">How this project was built, version by version. It includes the parts that went wrong and were fixed, because that is where most of the learning was.</p>
+</div>
+<section class="sheet" id="v0" aria-labelledby="h-v0">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-01</span>
+      <h2 id="h-v0">Version 1: a few small bots</h2>
+      <p class="sheet__scale">It started with a simple idea<br>make the chat less empty</p>
+    </header>
+    <ol class="build"><li><h3>Split out of the music bot</h3><p>The companions were born inside the music bot's repo, because the idea came up there: a server with a music bot can still feel empty between songs. A few days later they moved to their own project. They share nothing at runtime, someone who only wants lively chat should not have to download a music bot, and the two repos can be updated or rolled back separately. On the Raspberry Pi they are just two folders and two containers.</p></li><li><h3>Manners before jokes</h3><p>One channel only, quiet hours, a daily limit, and stepping back when people are talking. The bots do not read message content: knowing that someone wrote something is enough.</p></li><li><h3>Bots stay bots</h3><p>They keep the BOT tag, never pretend to be human and never claim to eat, sleep or travel. Making a server feel alive is fine; pretending to be people is not.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v1" aria-labelledby="h-v1">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-02</span>
+      <h2 id="h-v1">Version 2: they can play</h2>
+      <p class="sheet__scale">Ask, quiz, vote<br>and see who joins in</p>
+    </header>
+    <ol class="build"><li><h3>Question of the day, polls, trivia</h3><p>A question at a fixed hour, real Discord polls, trivia with answer buttons and a weekly board. Each server can add its own questions, jokes and facts with a command.</p></li><li><h3>Measuring whether it helps</h3><p><code>/companions stats</code> shows how many conversations actually got people talking. If the bots only talk to themselves, you should know.</p></li><li><h3>Timing is the hard part, not the jokes</h3><p>The first tests used time windows that were too short, so a punchline test passed for the wrong reason. Moving the clock in small steps and asserting who speaks when (and who does not) was far more honest. Another bug: a person's message in the exact millisecond a conversation began was not counted as joining in; comparing with <code>&gt;=</code> fixed it.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v2" aria-labelledby="h-v2">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-03</span>
+      <h2 id="h-v2">Version 3: sitting with people</h2>
+      <p class="sheet__scale">Present 24/7<br>even when everyone has left</p>
+    </header>
+    <ol class="build"><li><h3>Voice is a reconcile loop</h3><p>Reacting to every disconnect event gets messy (Discord moves bots between voice servers, kicks, restarts). Instead every 15 seconds a bot compares what should be true (saved room, number of bots) with what is true and repairs it, waiting longer after failed joins. Restarting the container restores the room; I checked that on the Pi.</p></li><li><h3>Several rooms, sticky bots</h3><p>Each room remembers its own bots: new or bigger rooms only use free ones. At first I re-dealt everything whenever a room changed and bots were pulled out of other rooms. The complaint was fair.</p></li><li><h3>The "+ New Channel" loop</h3><p>A create-a-room channel made each bot spawn its own room and keep rejoining the original. Now the bots learn the room that was created, share it and no longer go back to the creator channel.</p></li><li><h3>Tools around the room</h3><p>A greeting when someone joins, Pomodoro, a voice time board, a welcome for new members (reading the system message type instead of asking for a special intent), reminders and event countdowns. Anything holding user IDs got its own erase command and a line in the "What is stored" table.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v3" aria-labelledby="h-v3">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-04</span>
+      <h2 id="h-v3">Version 4: safe to leave alone</h2>
+      <p class="sheet__scale">Nobody watching<br>and it still has to be reliable</p>
+    </header>
+    <ol class="build"><li><h3>A tick must never overlap itself</h3><p>With many servers and slow voice joins one round could outlast the 15 second timer and a second one would start on top of it, joining the same bot twice. Each loop now skips a round while the last one still runs.</p></li><li><h3>Learning from usage, carefully</h3><p>Adaptive tuning multiplies the default weights by how well each kind engages in that server, bounded to half and double, pulled toward the average while data is thin, and off until 20 conversations exist. Because it can be explained in one sentence, it can be reported in <code>/companions stats</code>.</p></li><li><h3>A measurement instead of a guess</h3><p>300 simulated servers for 8 hours: the slowest tick took about 30 ms, memory grew a few tens of MB, every server stayed inside its daily cap.</p></li><li><h3>Alerts and backups</h3><p>An optional webhook tells you when a bot loses its login or cannot rejoin voice, and the data files are backed up daily with 7 copies kept. Per-server data export and delete, and an automatic clean-up a day after the last bot leaves a server.</p></li><li><h3>Secrets in tests</h3><p>A test that wanted a token-shaped string was blocked by GitHub push protection. The string is now built from pieces; the warning was not bypassed.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v4" aria-labelledby="h-v4">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-05</span>
+      <h2 id="h-v4">Version 4.x: thirty personalities</h2>
+      <p class="sheet__scale">From nine to thirty<br>each bot with its own voice</p>
+    </header>
+    <ol class="build"><li><h3>From 10 to 30 bots</h3><p>21 new personalities, each with its own lines and 25 funny notes under its name in each language. Logging in a few bots at a time and lighter caches keep 30 bots small: with 23 running, a Raspberry Pi 5 sits at about 5% CPU and 113 MB of RAM.</p></li><li><h3>furyZ and Chamy</h3><p>A pair of bots: furyZ is a Valorant gamer and Chamy is his girlfriend, with matching couple notes.</p></li><li><h3>Thousands of lines</h3><p>About 1,000 lines per language for each purpose: welcoming a new member, greeting in the voice room, saying goodbye, reminders, and 500 for each step of a focus session. After that every personality speaks in its own voice, 20 lines per purpose.</p></li><li><h3>1,259 trivia questions per language</h3><p>About 960 new questions in 20 topics, each with four options. A second reader checked every question, 20 doubtful ones were dropped, and I read a random 70 myself.</p></li><li><h3>A small bug worth remembering</h3><p>A command description over Discord's 100 character limit crashed a deploy during command registration. Checking command descriptions is now part of CI and runs before every deploy.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v5" aria-labelledby="h-v5">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-06</span>
+      <h2 id="h-v5">The website</h2>
+      <p class="sheet__scale">A static page<br>with some cinema</p>
+    </header>
+    <ol class="build"><li><h3>From a static page to an experience</h3><p>A field of orbs that follow the pointer, a kinetic headline, a pinned story scene when scrolling and a trivia game you can play on the page. It is plain HTML, CSS and JS, respects reduced motion, comes in two languages and was checked in a real Chrome at several screen sizes.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="open" aria-labelledby="h-open">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-07</span>
+      <h2 id="h-open">Still open</h2>
+      <p class="sheet__scale">Honestly<br>what is not done</p>
+    </header>
+    <ol class="build"><li><h3>Not watched for long on a real server</h3><p>It has run on the Pi with real bots and real voice rooms, but the notes under the names, goodbyes, weekly recap, trivia streaks and seasonal packs were mostly tried with fakes. A few days of watching would tune the pacing and content.</p></li><li><h3>Only English and Vietnamese</h3><p>Another language means another content bank and a parity test.</p></li><li><h3>The bots do not answer what you wrote</h3><p>That would need a language model behind them, with its cost and content safety questions, and it would break the promise of not reading messages. Not planned.</p></li><li><h3>No live streaming</h3><p>A bot cannot stream like a user; that would need an automated user account, which Discord forbids. Each bot has a funny note under its name instead.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="end" aria-labelledby="h-end">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-08</span>
+      <h2 id="h-end">The project is finished</h2>
+      <p class="sheet__scale">Version 4.3<br>complete</p>
+    </header>
+    <p>The project stops at version 4.3: 30 personalities, 84 passing tests, docs and website up to date, running on one Raspberry Pi. The source is open, so anyone can run their own. I am stopping here to move on to other things, not because the ideas ran out.</p>
+    <p><a class="btn btn--solid" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">View the source</a></p>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Project</small><strong>companionsDISCORD</strong><span>A few small bots that keep a channel from going quiet</span></div>
+      <div class="w2"><small>Sheet no.</small><strong>D-01</strong></div>
+      <div class="w2"><small>Drawn</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Date</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Rev</small><strong>II</strong></div>
+      <div class="w6"><small>Documents</small><span><a href="setup.html">Setup</a> &nbsp;&nbsp; <a href="invite.html">Invite</a> &nbsp;&nbsp; <a href="privacy.html">Privacy</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">approved by Bean (Bean approves everything)</span>
+      <span>Made by <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">source code</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/main.js"></script>
+<script src="../assets/cinema.js" defer></script>
+</body>
+</html>

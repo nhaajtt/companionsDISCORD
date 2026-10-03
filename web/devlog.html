@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nhật ký làm companionsDISCORD: từ năm bot đến ba mươi bot</title>
+<meta name="description" content="Nhật ký làm dự án companionsDISCORD: từng phiên bản, quyết định kỹ thuật, lỗi đã gặp và những gì còn bỏ ngỏ.">
+<link rel="canonical" href="https://companionsdiscord.vercel.app/devlog.html">
+<link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/devlog.html">
+<link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/devlog.html">
+<link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/devlog.html">
+<meta property="og:title" content="Nhật ký làm companionsDISCORD: từ năm bot đến ba mươi bot">
+<meta property="og:description" content="Nhật ký làm dự án companionsDISCORD: từng phiên bản, quyết định kỹ thuật, lỗi đã gặp và những gì còn bỏ ngỏ.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://companionsdiscord.vercel.app/devlog.html">
+<meta name="theme-color" content="#2a1948">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232a1948'/%3E%3Ccircle cx='11' cy='13' r='4' fill='%23ff8fb1'/%3E%3Ccircle cx='21' cy='13' r='4' fill='%235cd6ff'/%3E%3Cpath d='M8 23h16' stroke='%23ffbd4a' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Patrick+Hand&display=swap">
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try {
+    d.dataset.theme = localStorage.getItem("companions-theme") === "light" ? "light" : "dark";
+  } catch (e) {
+    d.dataset.theme = "dark";
+  }
+})();
+</script>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pages.css">
+<link rel="stylesheet" href="assets/companions.css">
+<link rel="stylesheet" href="assets/cinema.css">
+</head>
+<body>
+<a class="skip" href="#content">Bỏ qua, tới nội dung</a>
+
+<div class="paper"></div>
+<div class="frame"><div class="zones"></div></div>
+
+<div class="strip" aria-hidden="true">
+  <span class="hide-sm"><b>Dự án</b>companionsDISCORD</span>
+  <span><b>D-01</b></span>
+  <span class="strip__name">Nhật ký</span>
+  <span class="hide-sm"><b>Tỉ lệ</b>1:5</span>
+  <span class="hide-sm"><b>Vẽ bởi</b>nhaajt</span>
+  <span class="hide-sm"><b>Bản</b>II</span>
+</div>
+
+<header class="top">
+  <a class="logo" href="index.html" aria-label="companionsDISCORD, về trang chủ">
+    <svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="9" cy="11" r="5"/><circle cx="19" cy="11" r="5"/><path d="M4 22h20"/></svg>
+    companionsDISCORD
+  </a>
+  <nav class="nav" aria-label="Các trang"><a href="index.html">Trang chủ</a><a href="cai-dat.html">Cài đặt</a><a href="invite.html">Mời bot</a><a href="status.html">Trạng thái</a><a href="devlog.html" aria-current="page">Nhật ký</a><a href="privacy.html">Quyền riêng tư</a></nav>
+  <div class="lang" role="group" aria-label="Ngôn ngữ"><a href="devlog.html" hreflang="vi" lang="vi" title="Tiếng Việt" aria-current="true">VI</a><a href="en/devlog.html" hreflang="en" lang="en" title="English">EN</a></div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Chuyển sang giao diện sáng" aria-pressed="false">
+    <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+  </button>
+  <a class="btn btn--solid btn--sm" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">GitHub</a>
+</header>
+
+<main id="content">
+<div class="page"><div class="wrap">
+  <h1>Nhật ký</h1>
+  <p class="lead">Dự án này được làm thế nào, theo từng bản. Có cả những chỗ làm sai rồi sửa, vì đó mới là phần học được nhiều nhất.</p>
+</div>
+<section class="sheet" id="v0" aria-labelledby="h-v0">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-01</span>
+      <h2 id="h-v0">Bản 1: mấy bot nhỏ</h2>
+      <p class="sheet__scale">Bắt đầu từ một ý đơn giản<br>kênh chat đỡ buồn</p>
+    </header>
+    <ol class="build"><li><h3>Tách khỏi bot nhạc</h3><p>Mấy bot này sinh ra trong repo của bot nhạc musiDISCORD, vì ý tưởng nảy ra ở đó: server có bot nhạc vẫn trống trải giữa các bài. Vài ngày sau chúng được tách ra dự án riêng vì không dùng chung gì lúc chạy, ai chỉ cần chat vui không phải tải cả bot nhạc, và hai repo cập nhật hoặc lùi bản độc lập. Trên Raspberry Pi chúng chỉ là hai thư mục, hai container.</p></li><li><h3>Phép lịch sự đi trước tiếng cười</h3><p>Một kênh duy nhất, giờ im lặng, giới hạn mỗi ngày, và bot tự lùi khi có người đang nói chuyện. Bot không đọc nội dung tin nhắn: chỉ cần biết có người vừa viết là đủ.</p></li><li><h3>Bot luôn là bot</h3><p>Giữ nhãn BOT, không giả làm người, không nói mình ăn, ngủ hay đi chơi. Làm cho server có không khí thì được, còn lừa người ta rằng đó là người thì không.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v1" aria-labelledby="h-v1">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-02</span>
+      <h2 id="h-v1">Bản 2: biết chơi</h2>
+      <p class="sheet__scale">Hỏi, đố, bình chọn<br>và biết ai đang chơi</p>
+    </header>
+    <ol class="build"><li><h3>Câu hỏi trong ngày, poll, đố vui</h3><p>Câu hỏi vào giờ cố định, poll thật của Discord, đố vui có nút bấm đáp án và bảng xếp hạng tuần. Mỗi server có thể thêm câu hỏi, chuyện cười, fun fact riêng bằng lệnh.</p></li><li><h3>Đo xem có ích không</h3><p><code>/companions stats</code> cho biết bao nhiêu cuộc trò chuyện thật sự khiến người ta nói theo. Nếu bot chỉ nói một mình thì cũng nên biết.</p></li><li><h3>Giờ là phần khó, không phải câu đùa</h3><p>Bản test đầu dùng khoảng thời gian quá ngắn nên test punchline đạt vì lý do sai. Chuyển sang đẩy đồng hồ từng bước nhỏ rồi kiểm tra ai nói lúc nào (và ai không nói) trung thực hơn nhiều. Một lỗi khác: tin nhắn của người dùng đúng mili giây cuộc trò chuyện bắt đầu không được tính là có người tham gia, sửa bằng so sánh <code>&gt;=</code>.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v2" aria-labelledby="h-v2">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-03</span>
+      <h2 id="h-v2">Bản 3: ngồi cùng mọi người</h2>
+      <p class="sheet__scale">Có mặt 24/7<br>dù ai cũng đã thoát</p>
+    </header>
+    <ol class="build"><li><h3>Voice là vòng lặp đối chiếu</h3><p>Phản ứng với từng sự kiện ngắt kết nối thì rối (Discord chuyển bot giữa các máy chủ voice, đá ra, khởi động lại). Thay vào đó mỗi 15 giây bot so sánh điều nên đúng (phòng đã lưu, số bot) với điều đang đúng rồi sửa, chờ lâu dần sau mỗi lần vào hỏng. Khởi động lại container thì phòng tự được khôi phục, mình đã thử trên Pi.</p></li><li><h3>Nhiều phòng, bot giữ chỗ</h3><p>Mỗi phòng nhớ bot của mình: phòng mới hoặc phòng lớn thêm chỉ lấy bot đang rảnh, không lấy của phòng khác. Lúc đầu mình chia lại từ đầu mỗi khi đổi phòng và bot bị kéo ra khỏi phòng cũ, người dùng phàn nàn đúng.</p></li><li><h3>Phòng "+ New Channel"</h3><p>Kênh tạo phòng riêng khiến mỗi bot vào là tạo một phòng mới và bot cứ vào lại kênh gốc mãi. Giờ bot học phòng được tạo ra, ở chung trong đó và không quay lại kênh gốc.</p></li><li><h3>Tiện ích quanh phòng</h3><p>Chào khi ai đó vào phòng, Pomodoro, bảng giờ voice, lời chào người mới vào server (đọc loại tin nhắn hệ thống thay vì xin quyền đặc biệt), nhắc việc và đếm ngược sự kiện. Mỗi thứ chứa ID người dùng đều có lệnh xóa riêng và một dòng trong bảng "Lưu gì".</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v3" aria-labelledby="h-v3">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-04</span>
+      <h2 id="h-v3">Bản 4: để yên cũng chạy</h2>
+      <p class="sheet__scale">Bot không ai trông<br>vẫn phải đáng tin</p>
+    </header>
+    <ol class="build"><li><h3>Mỗi vòng không được đè lên chính nó</h3><p>Với nhiều server và việc vào voice chậm, một vòng có thể dài hơn 15 giây rồi vòng thứ hai chạy chồng lên, đưa một bot vào hai lần. Giờ mỗi vòng bỏ qua khi vòng trước chưa xong.</p></li><li><h3>Học từ cách dùng, có kiểm soát</h3><p>Tinh chỉnh thích nghi nhân trọng số mặc định với mức độ gây trò chuyện của từng loại, giới hạn từ một nửa đến gấp đôi, kéo về trung bình khi dữ liệu còn ít và chỉ bật sau 20 cuộc trò chuyện. Giải thích được trong một câu nên báo cáo được trong <code>/companions stats</code>.</p></li><li><h3>Đo thay vì đoán</h3><p>Mô phỏng 300 server trong 8 giờ: vòng chậm nhất khoảng 30 ms, bộ nhớ tăng vài chục MB, mọi server vẫn trong giới hạn hằng ngày.</p></li><li><h3>Báo động và sao lưu</h3><p>Webhook tùy chọn báo khi bot mất đăng nhập hoặc không vào lại được voice, và mỗi ngày dữ liệu được sao lưu, giữ 7 bản. Xuất và xóa dữ liệu theo server, tự dọn một ngày sau khi hết bot trong server.</p></li><li><h3>Bí mật trong test</h3><p>Một test cần chuỗi trông như token đã bị GitHub chặn khi push. Giờ chuỗi đó được ghép từ nhiều mảnh, không bỏ qua cảnh báo.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v4" aria-labelledby="h-v4">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-05</span>
+      <h2 id="h-v4">Bản 4.x: ba mươi tính cách</h2>
+      <p class="sheet__scale">Từ chín lên ba mươi<br>và mỗi bot một giọng</p>
+    </header>
+    <ol class="build"><li><h3>Từ 10 lên 30 bot</h3><p>21 tính cách mới, mỗi cái có lời thoại và 25 ghi chú vui dưới tên cho mỗi ngôn ngữ. Đăng nhập từng nhóm năm bot và bộ nhớ đệm nhẹ hơn để 30 bot vẫn nhỏ: trên Raspberry Pi 5 chỉ dùng khoảng 5% CPU và 113 MB RAM với 23 bot đang chạy.</p></li><li><h3>furyZ và Chamy</h3><p>Hai bot đi thành cặp: furyZ là game thủ Valorant, Chamy là bạn gái của anh ấy, với ghi chú theo cặp.</p></li><li><h3>Hàng nghìn lời thoại</h3><p>Khoảng 1.000 câu mỗi ngôn ngữ cho mỗi mục đích: chào người mới, chào vào phòng voice, tạm biệt, nhắc việc, và 500 câu cho mỗi bước của phiên tập trung. Sau đó mỗi tính cách nói bằng giọng riêng của mình, 20 câu cho mỗi mục đích.</p></li><li><h3>1.259 câu đố vui mỗi ngôn ngữ</h3><p>Khoảng 960 câu mới ở 20 chủ đề, mỗi câu 4 đáp án. Từng câu được một người đọc thứ hai kiểm tra, loại 20 câu bị nghi ngờ, rồi mình tự đọc ngẫu nhiên 70 câu.</p></li><li><h3>Lỗi nhỏ nhưng đáng nhớ</h3><p>Một lời tự giới thiệu dài hơn giới hạn 100 ký tự của Discord làm bản triển khai bị crash khi đăng ký lệnh. Kiểm tra mô tả lệnh giờ nằm trong CI và chạy trước mỗi lần deploy.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v5" aria-labelledby="h-v5">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-06</span>
+      <h2 id="h-v5">Trang web</h2>
+      <p class="sheet__scale">Một trang tĩnh<br>có chút điện ảnh</p>
+    </header>
+    <ol class="build"><li><h3>Từ trang tĩnh đến trải nghiệm</h3><p>Đám quả cầu theo con trỏ, tiêu đề chữ chạy, cảnh kể chuyện ghim khi cuộn và một trò đố vui chơi được ngay trên trang. Tất cả là HTML, CSS và JS thuần, tôn trọng chế độ giảm chuyển động, có hai ngôn ngữ và được kiểm tra bằng Chrome thật ở nhiều cỡ màn hình.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="open" aria-labelledby="h-open">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-07</span>
+      <h2 id="h-open">Còn bỏ ngỏ</h2>
+      <p class="sheet__scale">Nói thật<br>những gì chưa làm</p>
+    </header>
+    <ol class="build"><li><h3>Chưa theo dõi lâu trên server thật</h3><p>Mọi thứ đã chạy trên Pi với bot thật và phòng voice thật, nhưng ghi chú dưới tên, lời tạm biệt, bản tóm tắt tuần, chuỗi đố vui và các gói theo mùa phần lớn mới được thử bằng test giả. Cần vài ngày quan sát để chỉnh nhịp và nội dung.</p></li><li><h3>Chỉ có tiếng Anh và tiếng Việt</h3><p>Thêm ngôn ngữ nghĩa là thêm cả ngân hàng nội dung và một test độ khớp.</p></li><li><h3>Bot không trả lời nội dung bạn viết</h3><p>Muốn vậy cần một mô hình ngôn ngữ phía sau, kèm chi phí và an toàn nội dung, và cũng phá lời hứa "không đọc tin nhắn". Chưa có kế hoạch.</p></li><li><h3>Bot không phát trực tiếp</h3><p>Bot không thể stream như người dùng; làm vậy cần tài khoản người dùng tự động, điều Discord cấm. Thay vào đó mỗi bot có ghi chú vui dưới tên.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="end" aria-labelledby="h-end">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-08</span>
+      <h2 id="h-end">Dự án đã khép lại</h2>
+      <p class="sheet__scale">Bản 4.3<br>hoàn chỉnh</p>
+    </header>
+    <p>Dự án dừng ở bản 4.3: 30 tính cách, 84 test đạt, tài liệu và website đã cập nhật, chạy trên một Raspberry Pi. Mã nguồn mở, ai cũng có thể chạy bản của mình. Mình dừng ở đây để chuyển sang việc khác, không phải vì hết ý tưởng.</p>
+    <p><a class="btn btn--solid" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">Xem mã nguồn</a></p>
+  </div>
+</section></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="foot__word" aria-hidden="true">companions</p>
+    <div class="tblock">
+      <div class="w4"><small>Dự án</small><strong>companionsDISCORD</strong><span>Vài bot nhỏ giữ cho kênh chat đỡ buồn</span></div>
+      <div class="w2"><small>Số tờ</small><strong>D-01</strong></div>
+      <div class="w2"><small>Vẽ bởi</small><strong>nhaajt</strong></div>
+      <div class="w2"><small>Ngày</small><strong>2026-10-02</strong></div>
+      <div class="w2"><small>Bản</small><strong>II</strong></div>
+      <div class="w6"><small>Tài liệu</small><span><a href="cai-dat.html">Cài đặt</a> &nbsp;&nbsp; <a href="invite.html">Mời bot</a> &nbsp;&nbsp; <a href="status.html">Trạng thái</a> &nbsp;&nbsp; <a href="devlog.html">Nhật ký</a> &nbsp;&nbsp; <a href="privacy.html">Quyền riêng tư</a></span></div>
+    </div>
+    <div class="foot__note">
+      <span class="note">đã được Bean duyệt (Bean duyệt mọi thứ)</span>
+      <span>Làm bởi <a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">nhaajt</a> (<a href="https://github.com/nhaajtt" target="_blank" rel="noopener noreferrer">GitHub</a> &middot; <a href="https://www.instagram.com/nhaajt_hehee/" target="_blank" rel="noopener noreferrer">Instagram</a> &middot; <a href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">mã nguồn</a> &middot; <a href="https://musidiscord.vercel.app" target="_blank" rel="noopener noreferrer">musiDISCORD</a>)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/main.js"></script>
+<script src="assets/cinema.js" defer></script>
+</body>
+</html>

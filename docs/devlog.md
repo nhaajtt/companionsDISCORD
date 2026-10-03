@@ -31,8 +31,19 @@ The companion bots started life inside the music bot's repo, because that was wh
 - **A scale test instead of a guess.** 300 simulated servers for 8 hours: the slowest tick took about 30 ms, memory grew a few tens of MB, every server stayed inside its daily cap.
 - **Secrets in tests.** A test that wanted a token-shaped string was blocked by GitHub push protection. It now builds the string from pieces.
 
+## From nine to thirty
+
+- **Thirty small bots stay small.** Logging in five at a time and trimming the caches (no message, reaction or presence cache) keeps 23 running bots at about 113 MB and 5% of a Raspberry Pi 5 CPU.
+- **Content is data, and data gets checked.** About 1,000 lines per language per purpose and about 960 more trivia questions were written in batches, then run through scripts (placeholders, length, duplicates, repeated openings, diacritics) and a second reader before they went in. The second reader dropped 20 trivia questions as doubtful.
+- **A deploy that crashed on one sentence.** A command description over Discord's 100 character limit made registration fail. The check now lives in CI and runs before every deploy.
+- **No selfbots, so no streaming.** A bot cannot stream like a user, and an automated user account is against Discord's rules, so each bot shows a funny note under its name instead.
+
+## Where it ended up
+
+Version 4.3: 30 personalities, 84 tests, a bilingual site with a devlog page, running on a Raspberry Pi 5 next to the music bot. The project is finished; the source stays open for anyone who wants to run their own.
+
 ## Still open
 
-- It has not run against a live Discord server yet. Timing and content will need tuning after a few days of watching.
+- Most of the newer behaviour (notes under names, goodbyes, weekly recap, streaks, seasonal packs) was only exercised with fakes. A few days on a live server would tune the pacing and content.
 - Only English and Vietnamese content exist.
-- Replying with something that reacts to what a person actually wrote would need a language model behind it, with its cost and content safety questions. Not planned yet.
+- Replying with something that reacts to what a person actually wrote would need a language model behind it, with its cost and content safety questions. Not planned.

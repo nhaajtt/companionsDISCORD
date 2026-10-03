@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.4
+
+- A devlog page on the website in both languages, and a longer devlog in the docs.
+- Wording and counts brought in line with 30 bots; project marked finished.
+
 ## 4.3
 
 - Each personality speaks its own lines when it welcomes a new member, greets or says goodbye to someone in the voice room, and delivers a reminder: 20 lines per purpose per language for each of the 30 personalities. The bot that speaks is one of those sitting in the room.

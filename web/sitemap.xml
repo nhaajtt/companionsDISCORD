@@ -60,4 +60,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/status.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/status.html"/>
   </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/devlog.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/devlog.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/devlog.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/devlog.html"/>
+  </url>
+  <url>
+    <loc>https://companionsdiscord.vercel.app/en/devlog.html</loc>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/devlog.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/devlog.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/devlog.html"/>
+  </url>
 </urlset>
