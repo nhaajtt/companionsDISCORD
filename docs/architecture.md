@@ -39,7 +39,7 @@ flowchart LR
 
 **Open about being bots.** Every account is a normal bot application with the BOT tag. Nothing impersonates a person.
 
-**No message content.** Only non-privileged intents (`Guilds`, `GuildMessages`, `GuildVoiceStates`). The bots notice that someone wrote, never what. The "new member" welcome uses Discord's own join system message, so it needs no members intent either.
+**No message content.** Only non-privileged intents (`Guilds`, `GuildMessages`, `GuildVoiceStates`). The bots notice that someone wrote, never what. The one exception is the optional Gemini mode (`src/ai.js`): with `GEMINI_API_KEY` set and `/companions ai replies` on, Discord hands a bot the text of a message that mentions it (no privileged intent needed), and that single message is sent to Gemini; the daily riddle sends no member data. Limits: a cooldown per member, a daily cap and a per-minute cap, and a one-minute pause after a quota error. The "new member" welcome uses Discord's own join system message, so it needs no members intent either.
 
 **Personality by token order.** The Nth token is the Nth persona (30 personas, and a 31st bot wraps to the first), so a deployment is configured by one comma-separated list.
 

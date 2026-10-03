@@ -1,6 +1,7 @@
 // Entry point of the companion bots: `node src/index.js` (or `docker compose up -d`).
 import "dotenv/config";
 import path from "node:path";
+import { createAi } from "./ai.js";
 import { createAlerter } from "./alerts.js";
 import { backupData } from "./backup.js";
 import { createCustomStore } from "./custom.js";
@@ -39,6 +40,10 @@ const reminders = createReminderStore(path.join(dataDir, "reminders.json"));
 const alerter = createAlerter({ url: process.env.ALERT_WEBHOOK_URL });
 if (alerter.enabled) console.log("Alerts are on: problems are sent to ALERT_WEBHOOK_URL.");
 
+// Optional Gemini features (answers when mentioned, a daily riddle). Off unless a key is set.
+const ai = createAi({ apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || undefined, dailyLimit: Number(process.env.AI_DAILY_LIMIT) || undefined, log: console.log });
+if (ai) console.log(`AI features are available (model ${ai.model}); each server still has to turn them on.`);
+
 // A daily copy of the data files (the newest 7 days are kept)
 const backupNow = () => {
   try {
@@ -54,7 +59,7 @@ setInterval(backupNow, 3_600_000).unref();
 let stop;
 let snapshot;
 try {
-  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, MAX_BOTS), store, usage, scores, custom, hours, reminders, timezone, alerter }));
+  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, MAX_BOTS), store, usage, scores, custom, hours, reminders, timezone, alerter, ai }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);

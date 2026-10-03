@@ -6,12 +6,12 @@ Two to thirty small Discord bots that keep a channel lively. Every so often one 
 
 Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by [nhaajt](https://github.com/nhaajtt). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD), the self-hosted music bot, and the two can run side by side on the same Raspberry Pi.
 
-**Status: finished (version 4.5).** The story of how it was built, including what went wrong, is in the [devlog](https://companionsdiscord.vercel.app/en/devlog.html) and in [docs/devlog.md](docs/devlog.md).
+**Status: finished (version 4.6).** The story of how it was built, including what went wrong, is in the [devlog](https://companionsdiscord.vercel.app/en/devlog.html) and in [docs/devlog.md](docs/devlog.md).
 
 - **They are open about being bots.** They keep Discord's BOT tag, have 30 distinct personalities and never pretend to be human. They run on normal bot tokens, never a user account.
-- **No outside services.** English and Vietnamese banks of questions, jokes and riddles, fun facts (about 1,250 in each language, the same ones translated) and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used.
+- **No outside services by default.** English and Vietnamese banks of questions, jokes and riddles, fun facts (about 1,250 in each language, the same ones translated) and bot-to-bot banter are written into the repo. Nothing is sent anywhere, and content is not repeated until the others have been used. The one optional exception is the Gemini mode below.
 - **Good manners built in:** one channel you choose, quiet hours (default 23:00 to 08:00 in your time zone), a daily limit, nothing while people are chatting, typing indicators, no pings, and a ten minute cooldown between thank-yous.
-- **They do not read message content.** They only use the non-privileged `Guilds`, `GuildMessages` and `GuildVoiceStates` intents to notice that someone wrote, replied, or moved in a voice room.
+- **They do not read message content (unless you switch on the optional AI replies).** They only use the non-privileged `Guilds`, `GuildMessages` and `GuildVoiceStates` intents to notice that someone wrote, replied, or moved in a voice room.
 - **They can play, not just talk.** A question of the day at a fixed hour, polls, and trivia rounds with answer buttons and a weekly leaderboard.
 - **You can see whether it works.** `/companions stats` shows how many conversations got people talking, and which kinds work best.
 - **Your own content.** Managers can add questions, jokes, facts and polls with a command, no redeploy needed.
@@ -84,6 +84,9 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/companions toggle what enabled` | Turn trivia rounds or polls on or off |
 | `/companions voice join channel [bots]` | Add a voice room, or change how many companions sit in a room you already added. A companion keeps its room: a new or bigger room only uses free companions (lowest numbers first) and never takes one from another room |
 | `/companions voice leave [channel]` | Remove one room (its companions become free, the other rooms keep theirs) or, with no channel, every room |
+| `/companions ai replies enabled` | Optional, needs `GEMINI_API_KEY`. A companion answers, in its own personality, when someone mentions it or replies to it in the companions channel. That one message is sent to Google's Gemini; limits: one answer per member every 20 seconds, 60 a day per server |
+| `/companions ai daily enabled` | Optional, needs `GEMINI_API_KEY`. Once a day after 17:00 (outside quiet hours) a companion posts a riddle (answer hidden), a question or a would-you-rather written by Gemini. Sends no member data |
+| `/companions ai status` | Which AI features are on and how many answers were used today |
 | `/companions voice camera enabled` | Show a "camera on" sign under the name of the companions sitting in a voice room, and have one announce it in the chat. A sign only: bots cannot send real video |
 | `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the greetings on or off (a hello when someone joins the room, a goodbye when someone who stayed 20 minutes or more leaves) |
 | `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
@@ -171,7 +174,7 @@ Each is one Node.js process (the companions are small: they use no Lavalink and 
 Hai đến ba mươi bot nhỏ giữ cho một kênh chat luôn có không khí: thỉnh thoảng một bot hỏi câu vui, kể chuyện cười hoặc câu đố, chia sẻ fun fact, hoặc nói chuyện với bot khác. Vài phút không ai trả lời thì bot khác nhảy vào; có người nhắn vào thì các bot lùi lại.
 
 - Các bot luôn là bot (giữ nhãn BOT, không giả làm người, dùng token bot bình thường).
-- Nội dung tiếng Việt và tiếng Anh nằm sẵn trong repo, không gọi dịch vụ ngoài. Không đọc nội dung tin nhắn.
+- Nội dung tiếng Việt và tiếng Anh nằm sẵn trong repo, không gọi dịch vụ ngoài. Không đọc nội dung tin nhắn, trừ khi bạn tự bật chế độ AI tùy chọn (`/companions ai replies`, cần `GEMINI_API_KEY`): khi đó đúng tin nhắn nhắc tên bot được gửi cho Gemini của Google để viết câu trả lời, và `/companions ai daily` đăng một câu đố mỗi ngày mà không gửi dữ liệu thành viên.
 - Có giờ im lặng (mặc định 23:00 đến 08:00), trần số cuộc trò chuyện mỗi ngày, không chen vào khi mọi người đang chat.
 - Cài đặt: tạo 2 đến 30 ứng dụng trong Discord Developer Portal, chạy bộ cài một lệnh ở trên (hoặc `docker compose up -d --build` sau khi điền `.env`), rồi trong Discord gõ `/companions setup channel:#chat-chung language:Tiếng Việt`.
 - Trên cùng một Pi 5 bạn có thể chạy song song với bot nhạc musiDISCORD, mỗi bot một thư mục (bảng ở trên).

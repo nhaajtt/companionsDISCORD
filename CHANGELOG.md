@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.6
+
+- Optional Gemini features, off by default and only when `GEMINI_API_KEY` is set: `/companions ai replies` (a companion answers, in its own personality and still as a bot, when someone mentions it or replies to it in the companions channel) and `/companions ai daily` (a riddle with a hidden answer, a question or a would-you-rather written once a day). A cooldown per member, a daily cap and a per-minute cap keep it polite, the model output is cleaned (no mentions, no links), and nothing about the member is sent except the message text. README, docs, privacy page and website say plainly that this mode sends that one message to Google.
+
 ## 4.5
 
 - `/companions voice camera enabled`: the companions sitting in a voice room show a "camera on" sign under their name and one of them announces it in the chat. It is only a sign, bots cannot send real video. English and Vietnamese lines, a test, and the website's voice section updated.

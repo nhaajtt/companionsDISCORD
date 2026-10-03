@@ -25,6 +25,9 @@ export const DEFAULTS = {
   voiceGreet: false, // say hi in the chat channel when someone joins that room
   adaptive: true, // pick the kinds of conversation that get people talking in this server a bit more often
   camera: false, // the companions in a voice room show a "camera on" sign (a note under their name, no real video)
+  aiReplies: false, // a companion answers (with Gemini) when someone mentions it or replies to it in the companions channel
+  aiDaily: false, // once a day a companion posts a riddle, a question or a would-you-rather written by Gemini
+  lastAiDay: "", // the day of the last AI post
   titles: false, // announce a "voice regular" when someone spends 5 hours in the voice room in a week
   recap: false, // post a short recap of the week every Monday morning
   lastRecap: "", // the Monday of the last recap that was posted

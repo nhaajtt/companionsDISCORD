@@ -23,7 +23,7 @@ import { weekStart } from "./scores.js";
 import { adaptiveWeights } from "./usage.js";
 import { POMODORO_LIMITS, fill } from "./pomodoro.js";
 import { ReminderError, parseDuration } from "./reminders.js";
-import { LANGUAGES, PRESETS, createSettingsStore, localParts, validTimeZone } from "./settings.js";
+import { LANGUAGES, PRESETS, createSettingsStore, isQuietHour, localParts, validTimeZone } from "./settings.js";
 import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { VoiceTools, presenceText } from "./voicetools.js";
 import { getContent } from "./content/index.js";
@@ -167,6 +167,24 @@ export const companionsCommand = new SlashCommandBuilder()
   )
   .addSubcommandGroup((g) =>
     g
+      .setName("ai")
+      .setDescription("Optional Gemini features (the host needs to have set a key)")
+      .addSubcommand((s) =>
+        s
+          .setName("replies")
+          .setDescription("A companion answers when someone mentions it or replies to it in the companions channel")
+          .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+      )
+      .addSubcommand((s) =>
+        s
+          .setName("daily")
+          .setDescription("Once a day a companion posts a riddle, a question or a would-you-rather")
+          .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+      )
+      .addSubcommand((s) => s.setName("status").setDescription("Which AI features are on, and how many answers were used today")),
+  )
+  .addSubcommandGroup((g) =>
+    g
       .setName("content")
       .setDescription("Add your own questions, jokes, facts and polls")
       .addSubcommand((s) => s.setName("add-question").setDescription("Add a question the bots can ask").addStringOption((o) => o.setName("text").setDescription("The question").setRequired(true).setMaxLength(300)))
@@ -272,7 +290,7 @@ function triviaText({ label, question, options }) {
 }
 
 /** Starts every companion bot and the engine. `tokens` are bot tokens; the first one hosts the slash commands. */
-export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, alerter = { notify: async () => false }, log = console.log }) {
+export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, ai = null, alerter = { notify: async () => false }, log = console.log }) {
   const slots = [];
 
   const logIn = async (slot, token) => {
@@ -521,6 +539,66 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     }
   };
 
+  /** Answers one member's message with Gemini, in the personality of the bot that was mentioned. */
+  const limitNotified = new Map(); // guildId -> day on which the "limit reached" line was already said
+  const answerMention = async (slot, message) => {
+    const guildId = message.guildId;
+    const settings = store.get(guildId);
+    if (!settings.aiReplies || !settings.enabled || message.channelId !== settings.channelId) return;
+    const verdict = ai.allow({ guildId, userId: message.author.id });
+    const lines = getTools(settings.language);
+    const send = (text) => bots.send({ slot, guildId, channelId: settings.channelId, text, replyTo: message.id });
+    if (verdict === "cooldown" || verdict === "busy") return;
+    if (verdict === "limit") {
+      const day = localParts(Date.now(), timezone).day;
+      if (limitNotified.get(guildId) === day) return;
+      limitNotified.set(guildId, day);
+      await send(lines.aiLimit[Math.floor(Math.random() * lines.aiLimit.length)]);
+      return;
+    }
+    const text = message.content.replace(/<@[!&]?\d+>|<#\d+>/g, "").replace(/\s+/g, " ").trim() || (settings.language === "vi" ? "Xin chào!" : "Hello!");
+    let context = "";
+    if (message.reference?.messageId) {
+      // a reply to one of the bot's own messages: its own text is readable and gives the answer some context
+      const earlier = await message.fetchReference().catch(() => null);
+      if (earlier?.author?.id === message.client.user.id) context = earlier.content;
+    }
+    const personas = getContent(settings.language).personas;
+    const answer = await ai.reply({ guildId, userId: message.author.id, persona: personas[slot % personas.length], language: settings.language, text, context });
+    await send(answer ?? lines.aiFallback[Math.floor(Math.random() * lines.aiFallback.length)]);
+  };
+
+  /** After 17:00 (outside quiet hours), once a day, posts a riddle, question or would-you-rather written by Gemini. */
+  const AI_DAILY_HOUR = 17;
+  const aiRetryAt = new Map();
+  let aiDailyRunning = false;
+  const maybeAiDaily = async () => {
+    if (!ai || aiDailyRunning) return;
+    aiDailyRunning = true;
+    try {
+      const { hour, day } = localParts(Date.now(), timezone);
+      for (const [guildId, settings] of store.all()) {
+        if (!settings.aiDaily || !settings.enabled || !settings.channelId || settings.lastAiDay === day || hour < AI_DAILY_HOUR) continue;
+        if (isQuietHour(hour, settings.quietStart, settings.quietEnd) || Date.now() < (aiRetryAt.get(guildId) ?? 0)) continue;
+        const available = bots.available(guildId, settings.channelId);
+        if (!available.length) continue;
+        const slot = available[Math.floor(Math.random() * available.length)].slot;
+        const personas = getContent(settings.language).personas;
+        const post = await ai.daily({ guildId, persona: personas[slot % personas.length], language: settings.language });
+        if (!post) {
+          aiRetryAt.set(guildId, Date.now() + 30 * 60_000);
+          continue;
+        }
+        const lines = getTools(settings.language);
+        const title = { riddle: lines.aiTitleRiddle, question: lines.aiTitleQuestion, wyr: lines.aiTitleWyr }[post.kind];
+        store.update(guildId, { lastAiDay: day });
+        await say({ guildId, slot, text: `${title}\n${post.text}${post.answer ? `\n||${post.answer}||` : ""}` });
+      }
+    } finally {
+      aiDailyRunning = false;
+    }
+  };
+
   /** Erases everything stored about a server, in every store. Returns whether anything was there. */
   const forgetGuild = (guildId) => {
     const results = [store.remove(guildId), usage.forgetGuild(guildId), scores.forgetGuild(guildId), hours.forgetGuild(guildId), custom.forgetGuild(guildId), reminders.forgetGuild(guildId) > 0];
@@ -571,7 +649,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     reminders.flush();
   };
 
-  for (const { client } of slots) {
+  for (const { slot: mySlot, client } of slots) {
     // Every bot hears every message; the engine ignores duplicates. Bots (including the companions) are never "people".
     client.on(Events.MessageCreate, (message) => {
       // A new member joined: the server's "join" system message (no privileged intent needed). Only the first bot handles it.
@@ -596,6 +674,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         messageId: message.id,
         replyToMessageId: message.reference?.messageId ?? null,
       });
+      // The only place a message is read: when AI replies are on and someone mentions (or replies to) this very bot.
+      // Discord hands a bot the text of a message only in that case, so no privileged intent is needed.
+      if (ai && message.mentions.users.has(client.user.id)) answerMention(mySlot, message).catch((error) => console.error("AI reply failed:", error.message));
     });
 
     // Trivia buttons: Discord delivers a button press only to the bot that sent the message
@@ -638,7 +719,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.InteractionCreate, (interaction) => {
     const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
-    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence }).catch(async (error) => {
+    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
       const payload = { content: "Something went wrong with that command.", flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) await interaction.followUp(payload).catch(() => {});
@@ -668,6 +749,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       updatePresence();
       checkHealth();
       await maybeRecap();
+      maybeAiDaily().catch((error) => console.error("AI daily post failed:", error.message));
     } catch (error) {
       console.error("Companion tools tick failed:", error);
     } finally {
@@ -828,7 +910,7 @@ async function handleRemind(interaction, { reminders }) {
   }
 }
 
-async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild, say, updatePresence }) {
+async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild, say, updatePresence, ai }) {
   const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
   const guildId = interaction.guildId;
   const group = interaction.options.getSubcommandGroup(false);
@@ -851,6 +933,29 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     await keeper.removeRoom(guildId);
     const erased = forgetGuild(guildId);
     return interaction.editReply(erased ? "🗑️ Everything stored about this server was erased. The bots will stay silent until you run `/companions setup` again." : "There was nothing stored about this server.");
+  }
+
+  if (group === "ai") {
+    if (sub === "status") {
+      if (!ai) return reply("🤖 The AI features are not available: the host has not set a Gemini key. Everything else works as before.");
+      return reply(`🤖 AI replies: ${settings.aiReplies ? "on" : "off"}. Daily post: ${settings.aiDaily ? "on" : "off"}. Answers used today: ${ai.usedToday(guildId)} of ${ai.dailyLimit}.`);
+    }
+    if (!ai) return reply("🤖 The AI features are not available: the host has not set a Gemini key (GEMINI_API_KEY). Nothing was changed.");
+    const enabled = interaction.options.getBoolean("enabled", true);
+    if (sub === "replies") {
+      store.update(guildId, { aiReplies: enabled });
+      return reply(
+        enabled
+          ? `🤖 AI replies are on. When someone mentions a companion or replies to one in the companions channel, that one message is sent to Google's Gemini and the companion answers in its own personality. Nothing else is read or sent. Limits: one answer per member every ${ai.cooldownMs / 1000} seconds and ${ai.dailyLimit} a day for the server. The companions still say they are bots.`
+          : "🔇 AI replies are off. The companions no longer read anything.",
+      );
+    }
+    store.update(guildId, { aiDaily: enabled });
+    return reply(
+      enabled
+        ? "🧩 The daily post is on. Once a day after 17:00 (outside quiet hours) a companion posts a riddle, a question or a would-you-rather written by Gemini. No message from a member is sent anywhere."
+        : "🔇 The daily post is off.",
+    );
   }
 
   if (group === "voice") {

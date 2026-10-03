@@ -52,6 +52,19 @@ const TOOLS = {
       "Reading fun facts to nobody",
       "Chilling like a professional bot",
     ],
+    aiFallback: [
+      "My thinking cap has a Wi-Fi problem. Ask me again in a minute!",
+      "Brain.exe stopped responding. Try me again in a moment.",
+      "I opened my mouth and the clever part did not load. Please retry shortly.",
+    ],
+    aiLimit: [
+      "I have used all my clever answers for today. Come back tomorrow, I will have more!",
+      "Daily wit quota reached. The jokes resume tomorrow.",
+      "That is all the AI chatter I am allowed today. See you tomorrow!",
+    ],
+    aiTitleRiddle: "🧩 **Riddle of the day** (click the black bar to see the answer)",
+    aiTitleQuestion: "💬 **Today's chat starter**",
+    aiTitleWyr: "🤔 **Would you rather?**",
     presenceCamera: [
       "📹 Camera on (it is a sign, I am a bot)",
       "📹 Camera on, face not included",
@@ -136,6 +149,19 @@ const TOOLS = {
       "Đọc fun fact cho không ai nghe",
       "Thư giãn kiểu bot chuyên nghiệp",
     ],
+    aiFallback: [
+      "Mũ suy nghĩ của mình đang bị lỗi Wi-Fi. Hỏi lại sau một phút nha!",
+      "Não bot đang không phản hồi. Thử lại sau chút xíu nhé.",
+      "Mình há miệng mà phần thông minh chưa tải xong. Thử lại sau nha.",
+    ],
+    aiLimit: [
+      "Hôm nay mình hết câu trả lời thông minh rồi. Mai quay lại nhé, mình sẽ có thêm!",
+      "Hết hạn mức duyên dáng trong ngày. Ngày mai tiếp tục nha.",
+      "Hôm nay mình chỉ được nói chuyện AI đến đây thôi. Hẹn mai nhé!",
+    ],
+    aiTitleRiddle: "🧩 **Câu đố trong ngày** (bấm vào thanh đen để xem đáp án)",
+    aiTitleQuestion: "💬 **Câu mở chuyện hôm nay**",
+    aiTitleWyr: "🤔 **Bạn chọn gì?**",
     presenceCamera: [
       "📹 Bật camera (chỉ là biển hiệu, mình là bot)",
       "📹 Bật camera, không kèm khuôn mặt",
