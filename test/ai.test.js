@@ -123,3 +123,8 @@ test("the daily prompt asks for JSON, names the persona and passes earlier posts
   assert.match(prompt, /JSON only/);
   assert.match(prompt, /Old riddle one/);
 });
+
+test("an answer cut off by the token limit is dropped instead of posted half-finished", async () => {
+  const { ai } = makeAi(() => ({ ok: true, status: 200, json: async () => ({ candidates: [{ finishReason: "MAX_TOKENS", content: { parts: [{ text: "Giữa một vũ trụ đầy biến" }] } }] }) }));
+  assert.equal(await ai.reply({ guildId: "g", userId: "u", persona, language: "vi", text: "hi" }), null);
+});
