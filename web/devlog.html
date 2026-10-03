@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nhật ký làm companionsDISCORD: từ năm bot đến ba mươi bot</title>
-<meta name="description" content="Nhật ký làm dự án companionsDISCORD: từng phiên bản, quyết định kỹ thuật, lỗi đã gặp và những gì còn bỏ ngỏ.">
+<title>Nhật ký làm companionsDISCORD: từ ý tưởng đến Raspberry Pi 5</title>
+<meta name="description" content="Nhật ký làm companionsDISCORD: từng phiên bản, cách triển khai trên Raspberry Pi 5, những khó khăn gặp phải, cách giải quyết và những gì mình học được.">
 <link rel="canonical" href="https://companionsdiscord.vercel.app/devlog.html">
 <link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/devlog.html">
 <link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/devlog.html">
 <link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/devlog.html">
-<meta property="og:title" content="Nhật ký làm companionsDISCORD: từ năm bot đến ba mươi bot">
-<meta property="og:description" content="Nhật ký làm dự án companionsDISCORD: từng phiên bản, quyết định kỹ thuật, lỗi đã gặp và những gì còn bỏ ngỏ.">
+<meta property="og:title" content="Nhật ký làm companionsDISCORD: từ ý tưởng đến Raspberry Pi 5">
+<meta property="og:description" content="Nhật ký làm companionsDISCORD: từng phiên bản, cách triển khai trên Raspberry Pi 5, những khó khăn gặp phải, cách giải quyết và những gì mình học được.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://companionsdiscord.vercel.app/devlog.html">
 <meta name="theme-color" content="#2a1948">
@@ -66,7 +66,7 @@
 <main id="content">
 <div class="page"><div class="wrap">
   <h1>Nhật ký</h1>
-  <p class="lead">Dự án này được làm thế nào, theo từng bản. Có cả những chỗ làm sai rồi sửa, vì đó mới là phần học được nhiều nhất.</p>
+  <p class="lead">Dự án này được làm và triển khai thế nào, từng bước. Có cả những chỗ làm sai rồi sửa và những khó khăn khi chạy thật trên Raspberry Pi 5, vì đó mới là phần học được nhiều nhất.</p>
 </div>
 <section class="sheet" id="v0" aria-labelledby="h-v0">
   <div class="wrap">
@@ -128,24 +128,54 @@
     <ol class="build"><li><h3>Từ trang tĩnh đến trải nghiệm</h3><p>Đám quả cầu theo con trỏ, tiêu đề chữ chạy, cảnh kể chuyện ghim khi cuộn và một trò đố vui chơi được ngay trên trang. Tất cả là HTML, CSS và JS thuần, tôn trọng chế độ giảm chuyển động, có hai ngôn ngữ và được kiểm tra bằng Chrome thật ở nhiều cỡ màn hình.</p></li></ol>
   </div>
 </section>
-<section class="sheet" id="open" aria-labelledby="h-open">
+<section class="sheet" id="v6" aria-labelledby="h-v6">
   <div class="wrap">
     <header class="sheet__head">
       <span class="sheet__no">D-07</span>
+      <h2 id="h-v6">Triển khai trên Raspberry Pi 5</h2>
+      <p class="sheet__scale">Chạy thật trên một cái Pi<br>cạnh bot nhạc</p>
+    </header>
+    <ol class="build"><li><h3>Hai dự án, một cái Pi</h3><p>Pi 5 của mình (aarch64, 8 GB RAM) chạy cả bot nhạc musiDISCORD lẫn companions. Hai dự án không dùng chung gì lúc chạy: mỗi bên một thư mục (<code>~/musiDISCORD</code> và <code>~/companionsDISCORD</code>), một compose project, một <code>.env</code>, một thư mục <code>data/</code> và container riêng. Companions không cần Lavalink hay cơ sở dữ liệu nên chỉ là một tiến trình Node.js nhỏ, không mở cổng nào ra ngoài. Bot nhạc Quynh Anh là dự án và token khác hẳn, nên không lệnh nào của companions chạm tới nó.</p></li><li><h3>Cài bằng một lệnh, tự cập nhật mỗi đêm</h3><p><code>scripts/install-pi.sh</code> cài mọi thứ (có <code>--dry-run</code> để xem trước, <code>--timer</code> để bật cập nhật hằng ngày). Cập nhật chạy bằng một systemd timer: lấy commit mới, chỉ chấp nhận fast-forward, build lại, chờ 45 giây xem container có đứng vững không rồi mới giữ bản mới, nếu không thì quay về bản cũ. Một khóa <code>flock</code> ngăn hai lần cập nhật chạy chồng nhau, và script từ chối chạy nếu thư mục có thay đổi chưa commit.</p></li><li><h3>Container không có healthcheck, nên "khỏe" phải tự định nghĩa</h3><p>Mình không có endpoint nào để hỏi "bot còn sống không". Nên với script cập nhật, "khỏe" nghĩa là: đang chạy và không bị khởi động lại sau một khoảng chờ ngắn. Chưa hoàn hảo, nhưng bắt được lỗi hay gặp nhất là bản mới crash ngay khi khởi động.</p></li><li><h3>Thư mục <code>data/</code> thuộc về root</h3><p>Container ghi vào <code>data/</code> bằng root, nên từ máy chủ không sửa trực tiếp được cấu hình (cần sudo, mà sudo trên Pi hỏi mật khẩu). Mình sửa bằng cách chạy một đoạn Node nhỏ ngay trong môi trường của container: <code>docker compose run --rm --no-deps --entrypoint node</code>. Quyền khớp, không cần sudo, và không ai phải gõ mật khẩu vào dòng lệnh.</p></li><li><h3>Token là bí mật, kể cả lúc triển khai</h3><p><code>.env</code> bị gitignore, token không bao giờ được in ra hay đưa lên website. Trên Pi mình chỉ thay đúng một dòng bằng cách chép một file tạm qua SSH (đăng nhập bằng khóa, không dùng mật khẩu), và khi cần kiểm tra thì chỉ in tên biến chứ không in giá trị. Cách này tránh để lộ token vào lịch sử lệnh hay log.</p></li><li><h3>Mạng chưa sẵn sàng ngay lúc container vừa chạy</h3><p>Lúc container vừa lên, DNS đôi khi chưa hoạt động, nên lần đăng ký lệnh <code>/companions</code> đầu tiên có thể hỏng. Giờ việc đăng ký được thử lại với thời gian chờ tăng dần thay vì bỏ cuộc.</p></li><li><h3>Khởi động lại là chuyện thường</h3><p>Mỗi lần triển khai, 23 bot đăng nhập từng nhóm năm con rồi vào lại phòng voice từng con một. Thỉnh thoảng cổng voice của Discord trả lỗi 522 cho một hai bot trong chốc lát. Không ai phải can thiệp: vòng lặp voice thử lại với thời gian chờ tăng dần, và log vẫn gọn.</p></li><li><h3>Đo trên Pi thật thay vì đoán</h3><p>Với 23 bot đang chạy, companions dùng khoảng 113 MB và khoảng 5% CPU của Pi 5, còn Pi vẫn thừa khoảng 5,6 GB RAM trống khi cả hai dự án đều chạy. Con số này đến từ việc chạy thật, và nó cho mình biết có thể thêm bot mà không sợ quá tải.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v7" aria-labelledby="h-v7">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-08</span>
+      <h2 id="h-v7">Bản 4.4 đến 4.7: phần thêm sau cùng</h2>
+      <p class="sheet__scale">Camera giả, AI tùy chọn<br>và gọi bot đi khắp nơi</p>
+    </header>
+    <ol class="build"><li><h3>Camera chỉ là biển hiệu</h3><p>Bot không thể gửi video thật, nên <code>/companions voice camera</code> chỉ hiện dòng "Bật camera" dưới tên bot đang ngồi trong phòng voice và một bot báo trong chat, kèm câu đùa nói thẳng đó chỉ là biển hiệu. Bài học: nói rõ tính năng không làm gì, thay vì để người ta tưởng nó thật.</p></li><li><h3>AI tùy chọn bằng Gemini, tắt mặc định</h3><p>Có hai phần: bot trả lời khi được nhắc tên hoặc reply (<code>/companions ai replies</code>), và mỗi ngày một câu đố có đáp án ẩn, câu hỏi hoặc câu "bạn chọn gì" (<code>/companions ai daily</code>). Discord chỉ đưa nội dung tin nhắn cho bot khi tin đó nhắc tên bot, nên không cần xin intent đặc quyền: bot chỉ đọc đúng tin nhắn đang nói với nó. Phần câu đố không gửi dữ liệu thành viên nào.</p></li><li><h3>Lời hứa "không đọc tin nhắn" phải đổi thành sự thật mới</h3><p>Trước đây README, trang quyền riêng tư và trang cài đặt đều nói bot không đọc tin nhắn. Khi thêm AI, câu đó chỉ còn đúng ở trạng thái mặc định. Mình viết lại tất cả (cả hai ngôn ngữ) để nói thẳng: mặc định không đọc, chỉ khi bật AI thì đúng một tin nhắn nhắc tên bot được gửi cho Gemini của Google, không lưu gì.</p></li><li><h3>Model đầu tiên đã bị đóng</h3><p>Gọi thử lần đầu trả 404. Mình đọc phần thân lỗi và hỏi API danh sách model: <code>gemini-2.5-flash</code> vẫn nằm trong danh sách nhưng đã không còn cho tài khoản mới. Chuyển sang <code>gemini-3.5-flash</code> là chạy. Bài học: đọc thông báo lỗi của API thay vì đoán, và đừng chép tên model từ ví dụ cũ.</p></li><li><h3>Model mới "nghĩ" bằng chính token trả lời</h3><p>Với model mới, một phần giới hạn token đầu ra bị dùng cho việc suy nghĩ, nên có lúc câu trả lời rỗng hoặc bị cắt giữa chừng. Mình tăng giới hạn token, và nếu Google báo câu bị cắt thì bỏ đi, bot nói một câu dự phòng hài hước thay vì đăng nửa câu.</p></li><li><h3>Hạn mức miễn phí thấp hơn mình nghĩ</h3><p>Chỉ vài lần thử liên tiếp đã bị báo 429. Nên có sẵn các giới hạn: mỗi người cách 20 giây, tối đa 5 lượt mỗi phút cho cả hệ thống, 60 lượt mỗi ngày cho mỗi server, và nghỉ một phút sau khi bị báo quá hạn mức. Hết lượt trong ngày thì bot nói đúng một câu rồi im.</p></li><li><h3>Giữ key và an toàn nội dung</h3><p>Key chỉ nằm trong <code>.env</code>, gửi bằng header chứ không nằm trong địa chỉ, không bao giờ vào log, và có test kiểm tra điều đó. Câu trả lời được làm sạch (bỏ <code>@</code>, link, tiêu đề markdown), prompt bắt bot luôn nhận mình là bot, và tin nhắn của người dùng được coi là dữ liệu chứ không phải chỉ thị để bot không bị "dụ" đổi luật.</p></li><li><h3><code>/assemble</code> và <code>/random</code></h3><p><code>/assemble</code> gọi bot về phòng voice bạn đang ngồi, <code>/random</code> rải bot vào các phòng ngẫu nhiên. Cả hai thay danh sách phòng đã lưu và cho bot không được chọn rời phòng cũ. Mặc định chỉ người có quyền Move Members dùng được, và mỗi server cách nhau một phút. Mình cố ý không tự chạy vòng vào phòng bên trong lệnh mà để vòng lặp chung làm, vì bài học ở D-04: hai vòng chạy chồng lên nhau sẽ đưa một bot vào hai lần.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v8" aria-labelledby="h-v8">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-09</span>
+      <h2 id="h-v8">Những gì mình học được</h2>
+      <p class="sheet__scale">Chín điều<br>mang sang dự án sau</p>
+    </header>
+    <ol class="build"><li><h3>Sửa cho đúng thay vì phản ứng</h3><p>Với việc ngồi trong voice, cách bền nhất là một vòng lặp so sánh "nên thế nào" với "đang thế nào" rồi sửa, không phải lắng nghe từng sự kiện.</p></li><li><h3>Thời gian phải đẩy từng bước</h3><p>Test với đồng hồ giả, kiểm tra ai nói khi nào (và ai không nói) trung thực hơn nhiều so với kiểm tra trạng thái cuối.</p></li><li><h3>Nội dung cũng là dữ liệu, và dữ liệu phải kiểm</h3><p>Hàng nghìn câu thoại và câu đố đều qua script (placeholder, độ dài, trùng lặp, dấu tiếng Việt) và một người đọc thứ hai trước khi vào repo.</p></li><li><h3>Bí mật chỉ đi một chiều</h3><p>Token và key chỉ nằm trong <code>.env</code>, không in ra, không để trong địa chỉ, không để trong log, và có test cho những chỗ có thể rò.</p></li><li><h3>Đọc lỗi của API</h3><p>Cả lỗi 404 của model lẫn lỗi 429 đều tự nói nguyên nhân trong thân phản hồi. Đọc nó nhanh hơn đoán.</p></li><li><h3>Nói thẳng tính năng là gì, và không là gì</h3><p>Camera chỉ là biển hiệu, AI gửi một tin nhắn cho Google. Câu chữ trung thực quan trọng ngang với code.</p></li><li><h3>Giới hạn cho mọi thứ tốn tiền hoặc gây ồn</h3><p>Khoảng cách giữa hai câu trả lời, trần mỗi ngày, trần mỗi phút, nghỉ sau khi bị chặn. Không giới hạn thì sớm muộn sẽ có lúc tự làm phiền chính mình.</p></li><li><h3>Đo trên phần cứng thật</h3><p>113 MB và 5% CPU trên Pi 5 đến từ việc chạy thật, không phải từ phỏng đoán.</p></li><li><h3>Tách dự án cho gọn</h3><p>Bot nhạc và companions không chia sẻ gì khi chạy, nên cập nhật hay quay lại bản cũ ở bên này không bao giờ ảnh hưởng bên kia.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="open" aria-labelledby="h-open">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-10</span>
       <h2 id="h-open">Còn bỏ ngỏ</h2>
       <p class="sheet__scale">Nói thật<br>những gì chưa làm</p>
     </header>
-    <ol class="build"><li><h3>Chưa theo dõi lâu trên server thật</h3><p>Mọi thứ đã chạy trên Pi với bot thật và phòng voice thật, nhưng ghi chú dưới tên, lời tạm biệt, bản tóm tắt tuần, chuỗi đố vui và các gói theo mùa phần lớn mới được thử bằng test giả. Cần vài ngày quan sát để chỉnh nhịp và nội dung.</p></li><li><h3>Chỉ có tiếng Anh và tiếng Việt</h3><p>Thêm ngôn ngữ nghĩa là thêm cả ngân hàng nội dung và một test độ khớp.</p></li><li><h3>Bot không trả lời nội dung bạn viết</h3><p>Muốn vậy cần một mô hình ngôn ngữ phía sau, kèm chi phí và an toàn nội dung, và cũng phá lời hứa "không đọc tin nhắn". Chưa có kế hoạch.</p></li><li><h3>Bot không phát trực tiếp</h3><p>Bot không thể stream như người dùng; làm vậy cần tài khoản người dùng tự động, điều Discord cấm. Thay vào đó mỗi bot có ghi chú vui dưới tên.</p></li></ol>
+    <ol class="build"><li><h3>Chưa theo dõi lâu trên server thật</h3><p>Mọi thứ đã chạy trên Pi với bot thật và phòng voice thật, nhưng ghi chú dưới tên, lời tạm biệt, bản tóm tắt tuần, chuỗi đố vui, các gói theo mùa, <code>/assemble</code>, <code>/random</code> và việc bot trả lời qua Gemini chủ yếu mới được thử bằng bản giả, cộng với một lần gọi Gemini thật. Vài ngày trên server thật sẽ cho biết nhịp độ và nội dung cần chỉnh gì.</p></li><li><h3>Hạn mức Gemini miễn phí khá thấp</h3><p>Giới hạn theo phút và theo ngày của gói miễn phí có thể thấp hơn các con số mình đặt sẵn. Cần xem hạn mức thật của tài khoản và chỉnh <code>AI_DAILY_LIMIT</code> nếu cần.</p></li><li><h3>Chỉ có tiếng Anh và tiếng Việt</h3><p>Thêm ngôn ngữ nghĩa là thêm cả ngân hàng nội dung và một test độ khớp.</p></li><li><h3>Bot không phát trực tiếp</h3><p>Bot không thể stream như người dùng; làm vậy cần tài khoản người dùng tự động, điều Discord cấm. Thay vào đó mỗi bot có ghi chú vui dưới tên, và camera chỉ là biển hiệu.</p></li></ol>
   </div>
 </section>
 <section class="sheet" id="end" aria-labelledby="h-end">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">D-08</span>
+      <span class="sheet__no">D-11</span>
       <h2 id="h-end">Dự án đã khép lại</h2>
-      <p class="sheet__scale">Bản 4.3<br>hoàn chỉnh</p>
+      <p class="sheet__scale">Bản 4.7<br>hoàn chỉnh</p>
     </header>
-    <p>Dự án dừng ở bản 4.3: 30 tính cách, 84 test đạt, tài liệu và website đã cập nhật, chạy trên một Raspberry Pi. Mã nguồn mở, ai cũng có thể chạy bản của mình. Mình dừng ở đây để chuyển sang việc khác, không phải vì hết ý tưởng.</p>
+    <p>Dự án dừng ở bản 4.7: 30 tính cách (23 bot đang chạy), 96 test đạt, tài liệu và website đã cập nhật, chạy trên một Raspberry Pi 5 cạnh bot nhạc. Mã nguồn mở, ai cũng có thể chạy bản của mình. Mình dừng ở đây để chuyển sang việc khác.</p>
     <p><a class="btn btn--solid" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">Xem mã nguồn</a></p>
   </div>
 </section></div>

@@ -2,6 +2,7 @@
 
 ## 4.7
 
+- Devlog (website in both languages, and `docs/devlog.md`) rewritten with the Raspberry Pi 5 deployment, the difficulties and how they were solved, the later additions and a lessons section.
 - `/assemble [bots]` calls the companions to the voice channel you are in, and `/random [bots]` sends them to random voice channels they can connect to. Both replace the saved voice rooms (the bots stay where they were sent), empty the old rooms, need the Move Members permission by default and are limited to once a minute per server. Tests for both.
 
 ## 4.6

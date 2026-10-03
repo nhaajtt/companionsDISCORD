@@ -38,12 +38,46 @@ The companion bots started life inside the music bot's repo, because that was wh
 - **A deploy that crashed on one sentence.** A command description over Discord's 100 character limit made registration fail. The check now lives in CI and runs before every deploy.
 - **No selfbots, so no streaming.** A bot cannot stream like a user, and an automated user account is against Discord's rules, so each bot shows a funny note under its name instead.
 
+## Running it on a Raspberry Pi 5
+
+- **Two projects, one Pi.** The Pi 5 (aarch64, 8 GB RAM) runs both the music bot and the companions. They share nothing at runtime: each has its own folder, compose project, `.env`, `data/` folder and container. The companions need no Lavalink and no database, so they are one small Node.js process that publishes no port. The music bot (Quynh Anh) is a different project with a different token, so no companions command can touch it.
+- **One command to install, a nightly self-update.** `scripts/install-pi.sh` sets everything up (`--dry-run` previews, `--timer` turns on the daily update). The update runs from a systemd timer: fetch, fast-forward only, rebuild, wait 45 seconds to see whether the container stays up, keep the new version only if it does, otherwise roll back. A `flock` lock stops two updates from overlapping, and the script refuses to run when the folder has uncommitted changes.
+- **The container has no healthcheck, so "healthy" had to be defined.** For the update script it means: running, and not restarting after a short wait. Not perfect, but it catches the most common failure, a new version that crashes at startup.
+- **`data/` belongs to root.** The container writes it as root, so the host cannot edit the config directly (sudo on the Pi asks for a password). I run a small Node snippet inside the container's own environment instead: `docker compose run --rm --no-deps --entrypoint node`. The permissions match and nobody types a password into a command line.
+- **Tokens are secrets, deployment included.** `.env` is gitignored and a token is never printed or put on the website. On the Pi only the one line is replaced, by copying a temporary file over SSH (key login), and checks print variable names, not values.
+- **The network is not ready the moment the container starts.** DNS sometimes is not working right after startup, so the first registration of `/companions` could fail. Registration is retried with a growing wait.
+- **Restarts are normal.** On each deploy the 23 bots log in five at a time and rejoin their voice rooms one by one. Now and then Discord's voice gateway answers 522 for a bot or two for a moment; the voice loop retries with a growing wait and nobody has to step in.
+- **Measured on the real Pi.** With 23 bots running, the companions use about 113 MB and about 5% of the CPU, and the Pi still has about 5.6 GB of RAM free with both projects running.
+
+## Versions 4.4 to 4.7: the last additions
+
+- **The camera is only a sign.** A bot cannot send real video, so `/companions voice camera` shows "Camera on" under the name of the bots in a voice room and one bot announces it, saying plainly that it is only a sign.
+- **Optional AI with Gemini, off by default.** A bot answers when someone mentions it or replies to it, and once a day one posts a riddle, a question or a would-you-rather. Discord gives a bot the text of a message only when it mentions the bot, so no privileged intent is needed. The "we do not read messages" sentence in the README, privacy page and setup page became "not by default": with AI on, exactly one message that mentions a bot is sent to Google's Gemini, and nothing is stored.
+- **The first model was closed.** The first real call returned 404. Reading the error body and listing the models showed that `gemini-2.5-flash` was no longer available to new accounts; `gemini-3.5-flash` works.
+- **Newer models think with the answer's own tokens.** An answer could come back empty or cut off, so the token limit was raised and a cut-off answer is dropped: the bot says a funny fallback line instead of half a sentence.
+- **The free quota is lower than assumed.** A few quick tries produced a 429, so there is a cooldown per member (20 seconds), 5 answers a minute, 60 a day per server and a one-minute pause after a quota error.
+- **Keeping the key and the content safe.** The key lives only in `.env`, travels in a header, never reaches a log (a test checks it), answers are cleaned (no mentions, links or headings), the prompt makes the bot say it is a bot, and a member's message is treated as data, not as instructions.
+- **`/assemble` and `/random`.** They call the bots to the voice room you are in, or scatter them over random rooms. Both replace the saved rooms and make the bots that were not chosen leave. They need the Move Members permission by default and are limited to once a minute per server. The joining is left to the normal loop on purpose, so two loops never overlap.
+
+## What I learned, in short
+
+- Repair what is wrong instead of reacting to every event.
+- Move the clock in small steps in tests and assert who speaks when.
+- Content is data: check it by script and with a second reader.
+- Secrets travel one way: never printed, never in an address, never in a log, with a test where a leak is possible.
+- Read the API's error; both the 404 and the 429 explained themselves.
+- Say what a feature is and is not (a camera sign, one message sent to Google).
+- Put limits on everything that costs money or makes noise.
+- Measure on the real hardware.
+- Keep projects apart so that updating or rolling back one never touches the other.
+
 ## Where it ended up
 
-Version 4.3: 30 personalities, 84 tests, a bilingual site with a devlog page, running on a Raspberry Pi 5 next to the music bot. The project is finished; the source stays open for anyone who wants to run their own.
+Version 4.7: 30 personalities (23 bots running), 96 tests, a bilingual site with a devlog page, running on a Raspberry Pi 5 next to the music bot. The project is finished; the source stays open for anyone who wants to run their own.
 
 ## Still open
 
-- Most of the newer behaviour (notes under names, goodbyes, weekly recap, streaks, seasonal packs) was only exercised with fakes. A few days on a live server would tune the pacing and content.
+- Most of the newer behaviour (notes under names, goodbyes, weekly recap, streaks, seasonal packs, `/assemble`, `/random` and the Gemini answers) was only exercised with fakes, plus one real Gemini call. A few days on a live server would tune the pacing and content.
+- The free Gemini quota may be lower than the limits preset in the code; check the account's real quota and lower `AI_DAILY_LIMIT` if needed.
 - Only English and Vietnamese content exist.
-- Replying with something that reacts to what a person actually wrote would need a language model behind it, with its cost and content safety questions. Not planned.
+- A bot cannot stream like a user, so the camera is only a sign.

@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>companionsDISCORD devlog: from five bots to thirty</title>
-<meta name="description" content="A devlog for companionsDISCORD: each version, the technical decisions, the mistakes along the way and what is left open.">
+<title>companionsDISCORD devlog: from an idea to a Raspberry Pi 5</title>
+<meta name="description" content="A devlog for companionsDISCORD: each version, how it was deployed on a Raspberry Pi 5, the difficulties, how they were solved and what I learned.">
 <link rel="canonical" href="https://companionsdiscord.vercel.app/en/devlog.html">
 <link rel="alternate" hreflang="vi" href="https://companionsdiscord.vercel.app/devlog.html">
 <link rel="alternate" hreflang="en" href="https://companionsdiscord.vercel.app/en/devlog.html">
 <link rel="alternate" hreflang="x-default" href="https://companionsdiscord.vercel.app/devlog.html">
-<meta property="og:title" content="companionsDISCORD devlog: from five bots to thirty">
-<meta property="og:description" content="A devlog for companionsDISCORD: each version, the technical decisions, the mistakes along the way and what is left open.">
+<meta property="og:title" content="companionsDISCORD devlog: from an idea to a Raspberry Pi 5">
+<meta property="og:description" content="A devlog for companionsDISCORD: each version, how it was deployed on a Raspberry Pi 5, the difficulties, how they were solved and what I learned.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://companionsdiscord.vercel.app/en/devlog.html">
 <meta name="theme-color" content="#2a1948">
@@ -66,7 +66,7 @@
 <main id="content">
 <div class="page"><div class="wrap">
   <h1>Devlog</h1>
-  <p class="lead">How this project was built, version by version. It includes the parts that went wrong and were fixed, because that is where most of the learning was.</p>
+  <p class="lead">How this project was built and deployed, step by step. It includes the parts that went wrong and were fixed and the difficulties of running it for real on a Raspberry Pi 5, because that is where most of the learning was.</p>
 </div>
 <section class="sheet" id="v0" aria-labelledby="h-v0">
   <div class="wrap">
@@ -128,24 +128,54 @@
     <ol class="build"><li><h3>From a static page to an experience</h3><p>A field of orbs that follow the pointer, a kinetic headline, a pinned story scene when scrolling and a trivia game you can play on the page. It is plain HTML, CSS and JS, respects reduced motion, comes in two languages and was checked in a real Chrome at several screen sizes.</p></li></ol>
   </div>
 </section>
-<section class="sheet" id="open" aria-labelledby="h-open">
+<section class="sheet" id="v6" aria-labelledby="h-v6">
   <div class="wrap">
     <header class="sheet__head">
       <span class="sheet__no">D-07</span>
+      <h2 id="h-v6">Running it on a Raspberry Pi 5</h2>
+      <p class="sheet__scale">Live on a real Pi<br>next to the music bot</p>
+    </header>
+    <ol class="build"><li><h3>Two projects, one Pi</h3><p>My Pi 5 (aarch64, 8 GB RAM) runs both the music bot musiDISCORD and the companions. The two share nothing at runtime: each has its own folder (<code>~/musiDISCORD</code> and <code>~/companionsDISCORD</code>), compose project, <code>.env</code>, <code>data/</code> folder and container. The companions need no Lavalink and no database, so they are one small Node.js process that publishes no port. The music bot, Quynh Anh, is a different project with a different token, so no companions command can touch it.</p></li><li><h3>One command to install, a nightly self-update</h3><p><code>scripts/install-pi.sh</code> sets everything up (<code>--dry-run</code> previews it, <code>--timer</code> turns on the daily update). Updating runs from a systemd timer: fetch new commits, accept fast-forward only, rebuild, wait 45 seconds to see whether the container stays up, and keep the new version only if it does, otherwise roll back. A <code>flock</code> lock stops two updates from overlapping, and the script refuses to run when the folder has uncommitted changes.</p></li><li><h3>The container has no healthcheck, so "healthy" had to be defined</h3><p>There is no endpoint to ask "is the bot alive". For the update script, healthy therefore means: running, and not restarting after a short wait. It is not perfect, but it catches the most common failure, a new version that crashes right at startup.</p></li><li><h3><code>data/</code> belongs to root</h3><p>The container writes <code>data/</code> as root, so the host cannot edit the config directly (it needs sudo, and sudo on the Pi asks for a password). I edit it by running a small Node snippet inside the container's own environment: <code>docker compose run --rm --no-deps --entrypoint node</code>. The permissions match, no sudo is needed and nobody types a password into a command line.</p></li><li><h3>Tokens are secrets, deployment included</h3><p><code>.env</code> is gitignored and a token is never printed or put on the website. On the Pi I replace only the one line, by copying a temporary file over SSH (key login, no password), and when I need to check something I print variable names, not values. That keeps tokens out of shell history and logs.</p></li><li><h3>The network is not ready the moment the container starts</h3><p>Right after the container starts, DNS sometimes is not working, so the first registration of the <code>/companions</code> command could fail. Registration is now retried with a growing wait instead of giving up.</p></li><li><h3>Restarts are normal</h3><p>On each deploy the 23 bots log in five at a time and rejoin their voice rooms one by one. Now and then Discord's voice gateway answers 522 for a bot or two for a moment. Nobody has to step in: the voice loop retries with a growing wait, and the log stays short.</p></li><li><h3>Measured on the real Pi instead of guessed</h3><p>With 23 bots running, the companions use about 113 MB and about 5% of the Pi 5's CPU, and the Pi still has about 5.6 GB of RAM free with both projects running. The numbers come from running it, and they tell me I can add bots without worrying about load.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v7" aria-labelledby="h-v7">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-08</span>
+      <h2 id="h-v7">Versions 4.4 to 4.7: the last additions</h2>
+      <p class="sheet__scale">A pretend camera, optional AI<br>and calling bots around</p>
+    </header>
+    <ol class="build"><li><h3>The camera is only a sign</h3><p>A bot cannot send real video, so <code>/companions voice camera</code> only shows "Camera on" under the name of the bots sitting in a voice room, and one bot announces it in the chat with a joke that says plainly it is only a sign. The lesson: say what a feature does not do, instead of letting people think it is real.</p></li><li><h3>Optional AI with Gemini, off by default</h3><p>There are two parts: a bot answers when someone mentions it or replies to it (<code>/companions ai replies</code>), and once a day one posts a riddle with a hidden answer, a question or a would-you-rather (<code>/companions ai daily</code>). Discord gives a bot the text of a message only when that message mentions the bot, so no privileged intent is needed: a bot reads only the message that is talking to it. The riddle part sends no member data at all.</p></li><li><h3>The "no message content" promise had to become a new, true sentence</h3><p>The README, the privacy page and the setup page all used to say the bots do not read messages. Once AI existed, that was only true by default. I rewrote all of it, in both languages, to say it plainly: not read by default, and only when AI is switched on is exactly one message that mentions a bot sent to Google's Gemini, and nothing is stored.</p></li><li><h3>The first model was closed</h3><p>The first real call returned 404. I read the error body and asked the API for its list of models: <code>gemini-2.5-flash</code> was still listed but no longer available to new accounts. Switching to <code>gemini-3.5-flash</code> worked. The lesson: read the API's error instead of guessing, and do not copy model names from old examples.</p></li><li><h3>Newer models "think" with the answer's own tokens</h3><p>With newer models part of the output token limit goes to thinking, so an answer could come back empty or cut off mid-sentence. I raised the token limit, and when Google says an answer was cut off it is dropped: the bot says a funny fallback line instead of posting half a sentence.</p></li><li><h3>The free quota is lower than I assumed</h3><p>A handful of quick tries was enough to get a 429. So the limits are built in: one answer per member every 20 seconds, 5 a minute for the whole system, 60 a day per server, and a one-minute pause after a quota error. When the day's limit is used up the bot says one line and then stays quiet.</p></li><li><h3>Keeping the key and the content safe</h3><p>The key lives only in <code>.env</code>, is sent in a header and not in the address, never reaches a log, and a test checks that. Answers are cleaned (no <code>@</code>, links or markdown headings), the prompt makes the bot always say it is a bot, and a member's message is treated as data, not as instructions, so it cannot talk the bot into changing its rules.</p></li><li><h3><code>/assemble</code> and <code>/random</code></h3><p><code>/assemble</code> calls the bots to the voice room you are in, and <code>/random</code> scatters them over random rooms. Both replace the saved room list and make the bots that were not chosen leave their old rooms. By default only people with the Move Members permission can use them, once a minute per server. I deliberately did not run the joining loop inside the command and left it to the normal loop, because of the lesson in D-04: two loops overlapping would put one bot in twice.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="v8" aria-labelledby="h-v8">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-09</span>
+      <h2 id="h-v8">What I learned</h2>
+      <p class="sheet__scale">Nine things<br>I take to the next project</p>
+    </header>
+    <ol class="build"><li><h3>Repair, do not react</h3><p>For sitting in voice, the most durable approach is a loop that compares "what should be true" with "what is true" and repairs it, not one that listens to every event.</p></li><li><h3>Move time in small steps</h3><p>Testing with a fake clock and asserting who speaks when (and who does not) is far more honest than checking a final state.</p></li><li><h3>Content is data, and data gets checked</h3><p>Thousands of lines and trivia questions went through scripts (placeholders, length, duplicates, Vietnamese diacritics) and a second reader before they entered the repo.</p></li><li><h3>Secrets travel one way</h3><p>Tokens and keys live only in <code>.env</code>: never printed, never in an address, never in a log, with a test for the places that could leak.</p></li><li><h3>Read the API's error</h3><p>Both the 404 for the model and the 429 explained themselves in the response body. Reading it was faster than guessing.</p></li><li><h3>Say what a feature is, and is not</h3><p>The camera is only a sign, and AI sends one message to Google. Honest wording matters as much as code.</p></li><li><h3>Limits on everything that costs money or makes noise</h3><p>A gap between two answers, a daily cap, a per-minute cap, a pause after being blocked. Without limits the project would sooner or later annoy itself.</p></li><li><h3>Measure on real hardware</h3><p>113 MB and 5% CPU on the Pi 5 came from running it, not from guessing.</p></li><li><h3>Keep projects apart</h3><p>The music bot and the companions share nothing at runtime, so updating or rolling back one never affects the other.</p></li></ol>
+  </div>
+</section>
+<section class="sheet" id="open" aria-labelledby="h-open">
+  <div class="wrap">
+    <header class="sheet__head">
+      <span class="sheet__no">D-10</span>
       <h2 id="h-open">Still open</h2>
       <p class="sheet__scale">Honestly<br>what is not done</p>
     </header>
-    <ol class="build"><li><h3>Not watched for long on a real server</h3><p>It has run on the Pi with real bots and real voice rooms, but the notes under the names, goodbyes, weekly recap, trivia streaks and seasonal packs were mostly tried with fakes. A few days of watching would tune the pacing and content.</p></li><li><h3>Only English and Vietnamese</h3><p>Another language means another content bank and a parity test.</p></li><li><h3>The bots do not answer what you wrote</h3><p>That would need a language model behind them, with its cost and content safety questions, and it would break the promise of not reading messages. Not planned.</p></li><li><h3>No live streaming</h3><p>A bot cannot stream like a user; that would need an automated user account, which Discord forbids. Each bot has a funny note under its name instead.</p></li></ol>
+    <ol class="build"><li><h3>Not watched for long on a real server</h3><p>It has run on the Pi with real bots and real voice rooms, but the notes under the names, goodbyes, weekly recap, trivia streaks, seasonal packs, <code>/assemble</code>, <code>/random</code> and the Gemini answers were mostly tried with fakes, plus one real Gemini call. A few days on a live server would show what pacing and content need tuning.</p></li><li><h3>The free Gemini quota is fairly low</h3><p>The per-minute and per-day limits of the free tier may be lower than the numbers I preset. The real quota of the account needs checking, and <code>AI_DAILY_LIMIT</code> lowering if needed.</p></li><li><h3>Only English and Vietnamese</h3><p>Another language means another content bank and a parity test.</p></li><li><h3>No live streaming</h3><p>A bot cannot stream like a user; that would need an automated user account, which Discord forbids. Each bot has a funny note under its name instead, and the camera is only a sign.</p></li></ol>
   </div>
 </section>
 <section class="sheet" id="end" aria-labelledby="h-end">
   <div class="wrap">
     <header class="sheet__head">
-      <span class="sheet__no">D-08</span>
+      <span class="sheet__no">D-11</span>
       <h2 id="h-end">The project is finished</h2>
-      <p class="sheet__scale">Version 4.3<br>complete</p>
+      <p class="sheet__scale">Version 4.7<br>complete</p>
     </header>
-    <p>The project stops at version 4.3: 30 personalities, 84 passing tests, docs and website up to date, running on one Raspberry Pi. The source is open, so anyone can run their own. I am stopping here to move on to other things, not because the ideas ran out.</p>
+    <p>The project stops at version 4.7: 30 personalities (23 bots running), 96 passing tests, docs and website up to date, running on a Raspberry Pi 5 next to the music bot. The source is open, so anyone can run their own. I am stopping here to move on to other things.</p>
     <p><a class="btn btn--solid" href="https://github.com/nhaajtt/companionsDISCORD" target="_blank" rel="noopener noreferrer">View the source</a></p>
   </div>
 </section></div>
