@@ -47,7 +47,7 @@ flowchart LR
 
 **Small, honest data.** Plain JSON files with atomic writes (write a temp file, rename). The only user data are Discord ids in the trivia scores, voice minutes and waiting reminders, each erasable by the person (`/trivia forget`, `/voice forget`, reminders are deleted once delivered or cancelled). The status endpoint exposes totals only.
 
-**Content is checked like code.** Fun facts (about 1,250 in each language), trivia (about 300 questions per language, derived from vetted facts) and every spoken line exist in English and Vietnamese, and tests check parity and shape.
+**Content is checked like code.** Fun facts (about 1,250 in each language), trivia (about 1,250 questions per language: about 300 derived from vetted facts and about 960 written by topic and checked by a second reader) and every spoken line exist in English and Vietnamese, and tests check parity and shape.
 
 ## Tests
 

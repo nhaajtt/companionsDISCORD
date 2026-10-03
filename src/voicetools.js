@@ -25,13 +25,19 @@ export class VoiceTools {
   #greetDay = new Map(); // guildId -> { day, count }
   pomodoro;
 
-  constructor({ store, hours, tools, say, humansIn, timezone = "UTC", rng = Math.random, now = Date.now }) {
-    this.#deps = { store, hours, tools, say, humansIn, timezone, rng, now };
+  constructor({ store, hours, tools, say, humansIn, speaker = null, lineFor = null, timezone = "UTC", rng = Math.random, now = Date.now }) {
+    this.#deps = { store, hours, tools, say, humansIn, speaker, lineFor, timezone, rng, now };
     this.pomodoro = new PomodoroSessions({ now });
   }
 
   #lines(guildId) {
     return this.#deps.tools(this.#deps.store.get(guildId).language);
+  }
+
+  /** One line of a pool, in the voice of the bot that speaks it when a `lineFor` was given. */
+  #line(guildId, slot, purpose, pool) {
+    const { lineFor, rng, store } = this.#deps;
+    return lineFor ? lineFor({ language: store.get(guildId).language, slot, purpose, pool }) : pickLine(pool, rng);
   }
 
   #day() {
@@ -57,7 +63,8 @@ export class VoiceTools {
     counter.count++;
     this.#greetDay.set(guildId, counter);
     this.#greeted.set(key, t);
-    Promise.resolve(say({ guildId, text: fill(pickLine(this.#lines(guildId).greet, rng), { user: `<@${userId}>` }) })).catch(() => {});
+    const slot = this.#deps.speaker?.(guildId);
+    Promise.resolve(say({ guildId, slot, text: fill(this.#line(guildId, slot, "greet", this.#lines(guildId).greet), { user: `<@${userId}>` }) })).catch(() => {});
   }
 
   /**
@@ -85,7 +92,8 @@ export class VoiceTools {
     counter.count++;
     this.#greetDay.set(guildId, counter);
     this.#greeted.set(`bye:${key}`, t);
-    Promise.resolve(say({ guildId, text: fill(pickLine(this.#lines(guildId).farewell, rng), { user: `<@${userId}>` }) })).catch(() => {});
+    const slot = this.#deps.speaker?.(guildId);
+    Promise.resolve(say({ guildId, slot, text: fill(this.#line(guildId, slot, "bye", this.#lines(guildId).farewell), { user: `<@${userId}>` }) })).catch(() => {});
   }
 
   #flush(session) {

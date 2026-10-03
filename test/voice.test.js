@@ -450,3 +450,52 @@ test("someone who stayed in the voice room gets a goodbye; quick visits, moves a
   off.vt.userLeft({ guildId: "g", userId: "u" });
   assert.equal(off.said.length, 0);
 });
+
+test("each of the 30 personalities has its own lines for welcome, greet, bye and remind in both languages", async () => {
+  const VOICES = (await import("../src/content/voices.js")).default;
+  const need = { welcome: ["user"], greet: ["user"], bye: ["user"], remind: ["user", "text"] };
+  for (const lang of ["en", "vi"]) {
+    assert.equal(VOICES[lang].length, 30, lang);
+    const everything = new Set();
+    VOICES[lang].forEach((persona, i) => {
+      for (const [purpose, placeholders] of Object.entries(need)) {
+        const lines = persona[purpose];
+        assert.ok(lines.length >= 15, `${lang} persona ${i} ${purpose}: ${lines.length} lines`);
+        for (const line of lines) {
+          assert.ok(!everything.has(line), `${lang}: a line is used by two personalities or purposes: ${line}`);
+          everything.add(line);
+          const found = [...line.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+          assert.deepEqual(found, [...placeholders].sort(), `${lang} persona ${i} ${purpose}: ${line}`);
+          assert.ok(line.length >= 15 && line.length <= 160 && !/@|undefined/.test(line), line);
+        }
+      }
+    });
+  }
+});
+
+test("a greeting is said by one of the bots in the room, with a line in that bot's own voice", () => {
+  const said = [];
+  const asked = [];
+  const { store, hours } = (() => {
+    const t = makeTools();
+    return { store: t.store, hours: t.hours };
+  })();
+  const vt = new VoiceTools({
+    store,
+    hours,
+    tools: getTools,
+    say: (m) => said.push(m),
+    humansIn: () => 1,
+    speaker: () => 7,
+    lineFor: ({ slot, purpose, pool }) => {
+      asked.push([slot, purpose, pool.length > 5]);
+      return `line from bot ${slot} for ${purpose}: {user}`;
+    },
+    timezone: "UTC",
+    now: () => Date.parse("2026-10-02T20:00:00Z"),
+  });
+  vt.userJoined({ guildId: "g", userId: "u", channelId: "v" });
+  assert.deepEqual(asked, [[7, "greet", true]]);
+  assert.equal(said[0].slot, 7, "the same bot that picked the line says it");
+  assert.match(said[0].text, /bot 7 for greet: <@u>/);
+});

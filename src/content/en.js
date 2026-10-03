@@ -4,6 +4,7 @@
 import extraFacts from "./facts.js";
 import MORE from "./personas-more.js";
 import triviaItems from "./trivia.js";
+import moreTrivia from "./trivia-more.js";
 
 // Different lead-ins so a long run of facts does not sound like a stuck record
 const FACT_LEADS = ["Fun fact:", "Useless but true:", "Weird but real:", "For anyone who has not heard:", "Fun fact, no thanks needed:"];
@@ -240,7 +241,11 @@ export default {
   ...bank,
   // 9 hand-made personalities, then 21 more for bots 10 to 30
   personas: [...bank.personas, ...MORE.personas.en],
-  trivia: triviaItems.map((t, i) => ({ id: `tr-${i + 1}`, q: t.q.en, options: t.options.en, answer: t.answer })),
+  // more questions, written separately and checked by a second reader
+  trivia: [
+    ...triviaItems.map((t, i) => ({ id: `tr-${i + 1}`, q: t.q.en, options: t.options.en, answer: t.answer })),
+    ...moreTrivia.map((t, i) => ({ id: `tx-${i + 1}`, q: t.q.en, options: t.options.en, answer: t.answer })),
+  ],
   facts: [
     ...bank.facts,
     ...extraFacts.map(({ en }, i) => ({ id: `ef-${i + 1}`, text: `${FACT_LEADS[i % FACT_LEADS.length]} ${en}` })),

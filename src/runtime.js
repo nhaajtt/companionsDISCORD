@@ -29,6 +29,7 @@ import { VoiceTools, presenceText } from "./voicetools.js";
 import { getContent } from "./content/index.js";
 import { activeSeasons, withSeasons } from "./content/seasons.js";
 import NOTES from "./content/notes.js";
+import VOICES from "./content/voices.js";
 import { getTools } from "./content/tools.js";
 
 const TICK_MS = 15_000;
@@ -426,14 +427,28 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     }, 0);
   };
   /** Says something in the chat channel, from a companion that sits in the voice room when possible. */
-  const say = async ({ guildId, text, pingUsers }) => {
+  const say = async ({ guildId, text, pingUsers, slot: wanted }) => {
     const settings = store.get(guildId);
     if (!settings.channelId) return;
-    const slot = keeper.assigned(guildId)[0] ?? bots.available(guildId, settings.channelId)[0]?.slot;
+    const slot = wanted ?? keeper.assigned(guildId)[0] ?? bots.available(guildId, settings.channelId)[0]?.slot;
     if (slot === undefined) return;
     await bots.send({ slot, guildId, channelId: settings.channelId, text, pingUsers });
   };
-  const voiceTools = new VoiceTools({ store, hours, tools: getTools, say, humansIn, timezone, log });
+  /**
+   * A line for a purpose ("welcome", "greet", "bye", "remind") in the voice of the bot that says it: most of the time one of
+   * that personality's own lines, now and then one from the big shared pool.
+   */
+  const lineFor = ({ language, slot, purpose, pool }) => {
+    const own = slot === undefined ? null : (VOICES[language] ?? VOICES.en)[slot % VOICES.en.length]?.[purpose];
+    const list = own?.length && Math.random() < 0.8 ? own : pool;
+    return list[Math.floor(Math.random() * list.length)];
+  };
+  /** The companion that says hello or goodbye in the chat: one of those sitting in the room, so every bot gets its turn. */
+  const speaker = (guildId) => {
+    const sitting = keeper.assigned(guildId);
+    return sitting.length ? sitting[Math.floor(Math.random() * sitting.length)] : undefined;
+  };
+  const voiceTools = new VoiceTools({ store, hours, tools: getTools, say, humansIn, speaker, lineFor, timezone, log });
   const seeded = new Set();
   const seedVoiceGuild = (guildId) => {
     const settings = store.get(guildId);
@@ -538,10 +553,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         if (stage === "due" && Date.now() - item.at > 24 * 3_600_000) reminders.done(item.id);
         continue;
       }
-      const pick = (list) => list[Math.floor(Math.random() * list.length)];
       const text =
         item.kind === "remind"
-          ? fill(pick(lines.remind), { user: `<@${item.userId}>`, text: item.text })
+          ? fill(lineFor({ language: store.get(item.guildId).language, slot, purpose: "remind", pool: lines.remind }), { user: `<@${item.userId}>`, text: item.text })
           : fill({ day: lines.eventDay, hour: lines.eventHour, due: lines.eventNow }[stage], { text: item.text });
       await bots.send({ slot, guildId: item.guildId, channelId: item.channelId, text, pingUsers: item.kind === "remind" ? [item.userId] : [] });
       if (stage === "due") reminders.done(item.id);
@@ -558,9 +572,12 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         if (settings.welcome && settings.enabled && settings.channelId) {
           const lines = getTools(settings.language);
           const questions = content(settings.language, message.guildId).questions;
-          const greeting = fill(lines.welcome[Math.floor(Math.random() * lines.welcome.length)], { user: `<@${message.author.id}>` });
+          // any companion that can write there welcomes them, in its own voice
+          const welcomers = bots.available(message.guildId, settings.channelId);
+          const welcomer = welcomers.length ? welcomers[Math.floor(Math.random() * welcomers.length)].slot : undefined;
+          const greeting = fill(lineFor({ language: settings.language, slot: welcomer, purpose: "welcome", pool: lines.welcome }), { user: `<@${message.author.id}>` });
           const ask = questions[Math.floor(Math.random() * questions.length)]?.text;
-          say({ guildId: message.guildId, text: ask ? `${greeting}\n${lines.welcomeAsk} ${ask}` : greeting }).catch(() => {});
+          say({ guildId: message.guildId, slot: welcomer, text: ask ? `${greeting}\n${lines.welcomeAsk} ${ask}` : greeting }).catch(() => {});
         }
         return;
       }

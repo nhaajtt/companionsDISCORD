@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.3
+
+- Each personality speaks its own lines when it welcomes a new member, greets or says goodbye to someone in the voice room, and delivers a reminder: 20 lines per purpose per language for each of the 30 personalities. The bot that speaks is one of those sitting in the room.
+- About 960 more trivia questions per language (geography, animals, nature, space, the body, science, history, inventions, computers and games, movies, music and art, food, sports, language, math, Vietnam, mythology, everyday facts), each checked by a second reader. Trivia now has about 1,250 questions per language.
+
 ## 4.2
 
 - About 1,000 spoken lines per language for each purpose: welcome, voice greeting, voice goodbye (new: when someone who stayed 20 minutes or more leaves), reminders, and 500 each for the start, break, work and done steps of a focus session.
