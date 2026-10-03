@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5
+
+- `/companions voice camera enabled`: the companions sitting in a voice room show a "camera on" sign under their name and one of them announces it in the chat. It is only a sign, bots cannot send real video. English and Vietnamese lines, a test, and the website's voice section updated.
+
 ## 4.4
 
 - A devlog page on the website in both languages, and a longer devlog in the docs.

@@ -157,6 +157,12 @@ export const companionsCommand = new SlashCommandBuilder()
           .setName("greet")
           .setDescription("Say hi in the chat channel when someone joins the voice channel")
           .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+      )
+      .addSubcommand((s) =>
+        s
+          .setName("camera")
+          .setDescription("Show a \"camera on\" sign on the companions in voice (a sign only, no real video)")
+          .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
       ),
   )
   .addSubcommandGroup((g) =>
@@ -494,11 +500,13 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       let voice = null;
       let focus = null;
       let language = "en";
+      let camera = false;
       for (const guildId of client.guilds.cache.keys()) {
         const settings = store.get(guildId);
         if (settings.channelId && language === "en") language = settings.language;
         if (!keeper.assigned(guildId).includes(slot)) continue;
         language = settings.language;
+        camera = settings.camera;
         const channelId = voicePort.where(slot, guildId);
         const channel = channelId ? client.guilds.cache.get(guildId)?.channels.cache.get(channelId) : null;
         voice = { humans: channel?.members ? channel.members.filter((m) => !m.user.bot).size : 0 };
@@ -506,7 +514,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         break;
       }
       const notes = (NOTES[language] ?? NOTES.en)[slot % NOTES.en.length];
-      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot) });
+      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot), camera });
       if (lastPresence.get(slot) === text) continue;
       lastPresence.set(slot, text);
       client.user.setPresence({ status: "online", activities: [{ name: "custom", type: ActivityType.Custom, state: text }] });
@@ -630,7 +638,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.InteractionCreate, (interaction) => {
     const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
-    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild }).catch(async (error) => {
+    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
       const payload = { content: "Something went wrong with that command.", flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) await interaction.followUp(payload).catch(() => {});
@@ -820,7 +828,7 @@ async function handleRemind(interaction, { reminders }) {
   }
 }
 
-async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild }) {
+async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild, say, updatePresence }) {
   const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
   const guildId = interaction.guildId;
   const group = interaction.options.getSubcommandGroup(false);
@@ -870,8 +878,18 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
       store.update(guildId, { voiceGreet: enabled });
       return reply(enabled ? "👋 They will say hi in the chat channel when someone joins the voice channel." : "🔇 No more greetings for people joining the voice channel.");
     }
+    if (sub === "camera") {
+      const enabled = interaction.options.getBoolean("enabled", true);
+      store.update(guildId, { camera: enabled });
+      updatePresence();
+      if (settings.enabled && settings.channelId && keeper.assigned(guildId).length) {
+        const lines = getTools(settings.language)[enabled ? "cameraOn" : "cameraOff"];
+        say({ guildId, text: lines[Math.floor(Math.random() * lines.length)] }).catch(() => {});
+      }
+      return reply(enabled ? "📹 Camera sign on. The companions in a voice room show it under their name. It is only a sign: bots cannot send real video." : "📴 Camera sign off.");
+    }
     const status = keeper.status(guildId);
-    return reply(status.rooms.length ? `${voiceSummary(status, slots)}\nGreetings: ${settings.voiceGreet ? "on" : "off"}.` : "The companions are not sitting in any voice channel. Use `/companions voice join`.");
+    return reply(status.rooms.length ? `${voiceSummary(status, slots)}\nGreetings: ${settings.voiceGreet ? "on" : "off"}. Camera sign: ${settings.camera ? "on" : "off"}.` : "The companions are not sitting in any voice channel. Use `/companions voice join`.");
   }
 
   if (sub === "titles") {

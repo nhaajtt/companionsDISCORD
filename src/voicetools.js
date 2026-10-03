@@ -131,12 +131,13 @@ const NOTE_ROTATE_MS = 15 * MIN; // a bot changes its note about every 15 minute
 
 /**
  * The note (custom status) a companion shows under its name. A focus session or a person in its voice room comes first;
- * otherwise it shows one of its own funny notes, and moves to the next one every 15 minutes.
+ * a bot sitting in a voice room with the camera sign on shows that sign first; otherwise it shows one of its own funny notes, and moves to the next one every 15 minutes.
  * @param {object} lines  the `tools` bank of a language
- * @param {{slot: number, now: number, voice?: {humans: number}|null, focusMinutesLeft?: number|null, notes?: string[], offset?: number}} state
+ * @param {{slot: number, now: number, voice?: {humans: number}|null, focusMinutesLeft?: number|null, notes?: string[], offset?: number, camera?: boolean}} state
  *   `notes` are the persona's notes and `offset` is where in the list this bot started (random on each start)
  */
-export function presenceText(lines, { slot, now, voice = null, focusMinutesLeft = null, notes = null, offset = 0 }) {
+export function presenceText(lines, { slot, now, voice = null, focusMinutesLeft = null, notes = null, offset = 0, camera = false }) {
+  if (camera && voice && lines.presenceCamera?.length) return lines.presenceCamera[(offset + slot + Math.floor(now / NOTE_ROTATE_MS)) % lines.presenceCamera.length];
   if (focusMinutesLeft !== null && focusMinutesLeft !== undefined) return fill(lines.presenceFocus, { min: focusMinutesLeft });
   if (voice && voice.humans > 0) return fill(lines.presenceVoice, { n: voice.humans });
   const list = notes?.length ? notes : lines.presenceIdle;

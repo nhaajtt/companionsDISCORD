@@ -24,6 +24,7 @@ export const DEFAULTS = {
   voiceBots: 1,
   voiceGreet: false, // say hi in the chat channel when someone joins that room
   adaptive: true, // pick the kinds of conversation that get people talking in this server a bit more often
+  camera: false, // the companions in a voice room show a "camera on" sign (a note under their name, no real video)
   titles: false, // announce a "voice regular" when someone spends 5 hours in the voice room in a week
   recap: false, // post a short recap of the week every Monday morning
   lastRecap: "", // the Monday of the last recap that was posted

@@ -499,3 +499,14 @@ test("a greeting is said by one of the bots in the room, with a line in that bot
   assert.equal(said[0].slot, 7, "the same bot that picked the line says it");
   assert.match(said[0].text, /bot 7 for greet: <@u>/);
 });
+
+test("the camera sign shows only on a bot that sits in a voice room, and both languages have lines for it", () => {
+  const now = Date.parse("2026-10-02T20:00:00Z");
+  for (const lang of ["en", "vi"]) {
+    const lines = getTools(lang);
+    assert.ok(lines.cameraOn.length && lines.cameraOff.length && lines.presenceCamera.length);
+    assert.ok(lines.presenceCamera.includes(presenceText(lines, { slot: 1, now, voice: { humans: 0 }, camera: true })));
+    assert.ok(!lines.presenceCamera.includes(presenceText(lines, { slot: 1, now, camera: true })), "outside a voice room there is no sign");
+    assert.ok(!lines.presenceCamera.includes(presenceText(lines, { slot: 1, now, voice: { humans: 2 } })), "off means no sign");
+  }
+});
