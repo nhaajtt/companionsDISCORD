@@ -1,12 +1,13 @@
 // What the companions do around the voice room they sit in: greet people who join, count the minutes people spend there,
 // and announce Pomodoro steps. It never talks to Discord; the things it needs come in through deps.
-import { PomodoroSessions, fill } from "./pomodoro.js";
+import { PomodoroSessions, fill, pickLine } from "./pomodoro.js";
 import { isQuietHour, localParts } from "./settings.js";
 import { isVoiceRoom } from "./voice.js";
 
 const MIN = 60_000;
 const GREET_COOLDOWN_MS = 30 * MIN; // greet the same person at most this often
 const GREET_DAILY_CAP = 20;
+const FAREWELL_MIN_STAY_MS = 20 * MIN; // say goodbye only to people who stayed at least this long
 const REGULAR_MINUTES = 300; // 5 hours in the room in one week makes someone a "voice regular"
 
 /**
@@ -43,7 +44,7 @@ export class VoiceTools {
     const settings = store.get(guildId);
     if (!isVoiceRoom(settings, channelId)) return;
     const key = `${guildId}:${userId}`;
-    if (!this.#sessions.has(key)) this.#sessions.set(key, { guildId, userId, since: now() });
+    if (!this.#sessions.has(key)) this.#sessions.set(key, { guildId, userId, since: now(), joinedAt: existing ? null : now() });
     if (existing || !settings.voiceGreet || !settings.enabled || !settings.channelId) return;
 
     const t = now();
@@ -56,17 +57,35 @@ export class VoiceTools {
     counter.count++;
     this.#greetDay.set(guildId, counter);
     this.#greeted.set(key, t);
-    const lines = this.#lines(guildId).greet;
-    Promise.resolve(say({ guildId, text: fill(lines[Math.floor(rng() * lines.length)], { user: `<@${userId}>` }) })).catch(() => {});
+    Promise.resolve(say({ guildId, text: fill(pickLine(this.#lines(guildId).greet, rng), { user: `<@${userId}>` }) })).catch(() => {});
   }
 
-  /** Someone left the room (or the server). Their time is counted. */
-  userLeft({ guildId, userId }) {
+  /**
+   * Someone left the room (or the server). Their time is counted. A person who stayed a while gets a goodbye in the chat
+   * (when greetings are on), unless they only moved to another room the companions sit in.
+   */
+  userLeft({ guildId, userId, moved = false }) {
+    const { store, now, rng, say, timezone } = this.#deps;
     const key = `${guildId}:${userId}`;
     const session = this.#sessions.get(key);
     if (!session) return;
     this.#flush(session);
     this.#sessions.delete(key);
+
+    const settings = store.get(guildId);
+    if (moved || !session.joinedAt || !settings.voiceGreet || !settings.enabled || !settings.channelId) return;
+    const t = now();
+    if (t - session.joinedAt < FAREWELL_MIN_STAY_MS) return;
+    if (isQuietHour(localParts(t, timezone).hour, settings.quietStart, settings.quietEnd)) return;
+    if (t - (this.#greeted.get(`bye:${key}`) ?? -Infinity) < GREET_COOLDOWN_MS) return;
+    const day = this.#day();
+    const previous = this.#greetDay.get(guildId);
+    const counter = previous?.day === day ? previous : { day, count: 0 };
+    if (counter.count >= GREET_DAILY_CAP) return;
+    counter.count++;
+    this.#greetDay.set(guildId, counter);
+    this.#greeted.set(`bye:${key}`, t);
+    Promise.resolve(say({ guildId, text: fill(pickLine(this.#lines(guildId).farewell, rng), { user: `<@${userId}>` }) })).catch(() => {});
   }
 
   #flush(session) {
@@ -89,14 +108,14 @@ export class VoiceTools {
     for (const session of this.#sessions.values()) this.#flush(session);
     for (const { guildId, event, ...values } of this.pomodoro.tick(this.#deps.humansIn)) {
       const lines = this.#lines(guildId);
-      const text = { empty: lines.pomodoroEmpty, done: lines.pomodoroDone, break: lines.pomodoroBreak, work: lines.pomodoroWork }[event];
-      await Promise.resolve(this.#deps.say({ guildId, text: fill(text, values) })).catch(() => {});
+      const pool = { empty: lines.pomodoroEmpty, done: lines.pomodoroDone, break: lines.pomodoroBreak, work: lines.pomodoroWork }[event];
+      await Promise.resolve(this.#deps.say({ guildId, text: fill(pickLine(pool, this.#deps.rng), values) })).catch(() => {});
     }
   }
 
   /** The text announcing a freshly started session. */
   startText(guildId, session) {
-    return fill(this.#lines(guildId).pomodoroStart, { work: session.work, brk: session.brk, round: 1, rounds: session.rounds });
+    return fill(pickLine(this.#lines(guildId).pomodoroStart, this.#deps.rng), { work: session.work, brk: session.brk, round: 1, rounds: session.rounds });
   }
 }
 

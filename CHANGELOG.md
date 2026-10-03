@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.2
+
+- About 1,000 spoken lines per language for each purpose: welcome, voice greeting, voice goodbye (new: when someone who stayed 20 minutes or more leaves), reminders, and 500 each for the start, break, work and done steps of a focus session.
+- furyZ (Valorant gamer) and Chamy (his girlfriend) for bots 22 and 23, with matching couple notes.
+
 ## 4.1
 
 - Up to 30 bots instead of 10. 21 new personalities (Rex, Maple, Rocket, Zip, Clue, Mochi, Waffle, Tofu, Ziggy, Echo, Misty, Byte, furyZ, Chamy, Sizzle, Gizmo, Anchor, Jinx, Quill, Blip, Sparky), each with its own lines and 25 notes in both languages.

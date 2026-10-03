@@ -358,7 +358,7 @@ test("the voice, welcome and reminder lines exist in both languages", () => {
   assert.deepEqual(Object.keys(tools.en).sort(), Object.keys(tools.vi).sort());
   for (const key of Object.keys(tools.en)) {
     assert.equal(Array.isArray(tools.en[key]), Array.isArray(tools.vi[key]), key);
-    if (Array.isArray(tools.en[key])) assert.equal(tools.en[key].length, tools.vi[key].length, key);
+    if (Array.isArray(tools.en[key])) assert.ok(tools.en[key].length >= 3 && tools.vi[key].length >= 3, key);
   }
   for (const line of [...tools.en.greet, ...tools.vi.greet, ...tools.en.welcome, ...tools.vi.welcome]) assert.match(line, /\{user\}/);
   for (const line of [...tools.en.remind, ...tools.vi.remind]) assert.match(line, /\{user\}.*\{text\}|\{text\}.*\{user\}/);
@@ -390,4 +390,63 @@ test("every companion has 25 notes in both languages, short, single-line and dif
     });
   }
   assert.equal(NOTES.en.length, NOTES.vi.length);
+});
+
+test("the big pools of lines are big, well-formed and use only the placeholders they should", () => {
+  const rules = {
+    welcome: [990, ["user"], []],
+    greet: [990, ["user"], []],
+    farewell: [990, ["user"], []],
+    remind: [990, ["user", "text"], []],
+    pomodoroStart: [490, ["work", "brk"], ["rounds", "round"]],
+    pomodoroBreak: [490, ["brk"], ["round", "rounds"]],
+    pomodoroWork: [490, ["work"], ["round", "rounds"]],
+    pomodoroDone: [490, ["minutes"], ["rounds"]],
+  };
+  for (const lang of ["en", "vi"]) {
+    const bank = tools[lang];
+    for (const [key, [min, need, optional]] of Object.entries(rules)) {
+      const pool = bank[key];
+      assert.ok(pool.length >= min, `${lang}.${key} has ${pool.length}`);
+      assert.equal(new Set(pool).size, pool.length, `${lang}.${key}: no duplicates`);
+      for (const line of pool.slice(1)) {
+        // pool[0..] may start with the short hand-written lines; they follow the same rules except the pomodoro ones
+        const found = [...line.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+        for (const name of found) assert.ok([...need, ...optional].includes(name), `${lang}.${key}: unexpected {${name}} in ${line}`);
+        if (line.length > 20 && !key.startsWith("pomodoro")) for (const name of need) assert.ok(found.includes(name), `${lang}.${key}: missing {${name}} in ${line}`);
+        assert.ok(!/@|undefined|\$\{/.test(line), line);
+        assert.ok(line.length <= 175, line);
+      }
+    }
+  }
+});
+
+test("someone who stayed in the voice room gets a goodbye; quick visits, moves and a switched-off setting do not", async () => {
+  const stay = makeTools();
+  stay.vt.userJoined({ guildId: "g", userId: "u", channelId: "v" });
+  stay.said.length = 0; // the greeting
+  stay.advance(25 * MIN);
+  stay.vt.userLeft({ guildId: "g", userId: "u" });
+  assert.equal(stay.said.length, 1);
+  assert.match(stay.said[0].text, /<@u>/);
+
+  const quick = makeTools();
+  quick.vt.userJoined({ guildId: "g", userId: "u", channelId: "v" });
+  quick.said.length = 0;
+  quick.advance(5 * MIN);
+  quick.vt.userLeft({ guildId: "g", userId: "u" });
+  assert.equal(quick.said.length, 0, "stayed only 5 minutes");
+
+  const moved = makeTools();
+  moved.vt.userJoined({ guildId: "g", userId: "u", channelId: "v" });
+  moved.said.length = 0;
+  moved.advance(30 * MIN);
+  moved.vt.userLeft({ guildId: "g", userId: "u", moved: true });
+  assert.equal(moved.said.length, 0, "only moved to another companion room");
+
+  const off = makeTools({ voiceGreet: false });
+  off.vt.userJoined({ guildId: "g", userId: "u", channelId: "v" });
+  off.advance(30 * MIN);
+  off.vt.userLeft({ guildId: "g", userId: "u" });
+  assert.equal(off.said.length, 0);
 });

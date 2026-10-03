@@ -1,5 +1,7 @@
 // Lines the companions speak for the voice, welcome and reminder tools. Placeholders like {user} are filled in by the code.
 // Every key exists in both languages (a test checks that).
+import LINES from "./lines.js";
+
 const TOOLS = {
   en: {
     greet: [
@@ -11,6 +13,14 @@ const TOOLS = {
       "Hi {user}! Fun fact: this room is never empty. You are looking at the fun fact.",
       "{user} dropped by the voice room. The sitting committee approves.",
       "Look who it is: {user}! Pull up a virtual chair, mind the bots.",
+    ],
+    farewell: [
+      "{user} left the voice room. The chairs will remember you.",
+      "See you next time, {user}! The room will keep your spot warm, digitally.",
+      "{user} has logged off from the voice room. Thanks for the company!",
+      "Goodbye, {user}! We will keep sitting here, as professionals do.",
+      "{user} waved goodbye. We waved back, but nobody can see bots wave.",
+      "Thanks for stopping by, {user}. The room is a little emptier now.",
     ],
     welcome: [
       "Welcome, {user}! We are the resident bots. We chat, we joke, we sit in voice. You are now our favourite human of the day.",
@@ -72,6 +82,14 @@ const TOOLS = {
       "{user} ghé phòng voice. Hội đồng ngồi chơi xác nhận: đạt.",
       "Xem ai tới nè: {user}! Kéo ghế ảo ngồi đi, nhớ né mấy con bot.",
     ],
+    farewell: [
+      "{user} rời phòng voice rồi. Mấy cái ghế sẽ nhớ bạn đó.",
+      "Hẹn gặp lại, {user}! Phòng sẽ giữ chỗ cho bạn, theo kiểu kỹ thuật số.",
+      "{user} vừa thoát khỏi phòng voice. Cảm ơn đã ngồi chung nha!",
+      "Tạm biệt {user}! Tụi mình vẫn ngồi đây, chuyên nghiệp mà.",
+      "{user} vẫy tay chào. Tụi mình vẫy lại, mà bot vẫy thì ai thấy đâu.",
+      "Cảm ơn đã ghé, {user}. Phòng giờ vắng đi một chút rồi.",
+    ],
     welcome: [
       "Chào mừng {user}! Tụi mình là mấy con bot thường trú: tám chuyện, kể chuyện cười, ngồi voice. Bạn là con người yêu thích của hôm nay.",
       "Có người mới! Chào {user}, vui vì bạn ghé. Mọi thứ đều tùy chọn, trừ việc vui vẻ.",
@@ -122,6 +140,21 @@ const TOOLS = {
     voiceForgetNone: "Không có gì được lưu về bạn.",
   },
 };
+
+// The big pools (about 1,000 lines per purpose and language) are added to the few hand-written lines above. The focus session
+// messages were single strings; they become pools too, and the voicetools code picks one at random.
+for (const lang of ["en", "vi"]) {
+  const t = TOOLS[lang];
+  const l = LINES[lang];
+  t.greet = [...t.greet, ...l.voiceGreet];
+  t.welcome = [...t.welcome, ...l.welcome];
+  t.farewell = [...t.farewell, ...l.voiceFarewell];
+  t.remind = [...t.remind, ...l.remind];
+  t.pomodoroStart = [t.pomodoroStart, ...l.pomodoroStart];
+  t.pomodoroBreak = [t.pomodoroBreak, ...l.pomodoroBreak];
+  t.pomodoroWork = [t.pomodoroWork, ...l.pomodoroWork];
+  t.pomodoroDone = [t.pomodoroDone, ...l.pomodoroDone];
+}
 
 export default TOOLS;
 export const getTools = (language) => (language === "vi" ? TOOLS.vi : TOOLS.en);

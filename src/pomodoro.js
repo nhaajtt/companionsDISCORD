@@ -4,6 +4,9 @@ const EMPTY_STOP_MS = 5 * MIN; // a session ends when nobody has been in the roo
 
 export const POMODORO_LIMITS = { work: [5, 90, 25], brk: [1, 30, 5], rounds: [1, 8, 4] };
 
+/** A line out of a pool (or the line itself when there is only one). */
+export const pickLine = (value, rng = Math.random) => (Array.isArray(value) ? value[Math.floor(rng() * value.length)] : value);
+
 export const fill = (template, values) => String(template ?? "").replace(/\{(\w+)\}/g, (_, k) => values[k] ?? "");
 
 const pick = (value, [min, max, fallback]) => Math.min(max, Math.max(min, Number.isFinite(value) ? Math.round(value) : fallback));

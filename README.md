@@ -20,6 +20,7 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 - **They learn what works.** Adaptive tuning favours the kinds of conversation that get your members talking, and `/companions stats` shows the best hour.
 - **A weekly recap, trivia streaks and voice regular titles** give a reason to come back.
 - **Safe to leave alone.** Optional webhook alerts, a daily backup of the data files, no overlapping work when many servers are busy, a test with 300 servers, and data export and delete per server.
+- **Never the same line twice in a row.** About 1,000 different lines per language for each of: welcoming a new member, greeting someone in the voice room, saying goodbye to them, delivering a reminder, and 500 each for the four steps of a focus session (start, break, back to work, done). Written to sound like the community, not translated.
 - **Welcome and reminders.** A funny welcome with an icebreaker for new members, `/remind` for personal reminders and `/event` countdowns.
 
 ## The cast
@@ -79,7 +80,7 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/companions toggle what enabled` | Turn trivia rounds or polls on or off |
 | `/companions voice join channel [bots]` | Add a voice room, or change how many companions sit in a room you already added. A companion keeps its room: a new or bigger room only uses free companions (lowest numbers first) and never takes one from another room |
 | `/companions voice leave [channel]` | Remove one room (its companions become free, the other rooms keep theirs) or, with no channel, every room |
-| `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the join greeting on or off |
+| `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the greetings on or off (a hello when someone joins the room, a goodbye when someone who stayed 20 minutes or more leaves) |
 | `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
 | `/companions recap enabled` | Every Monday morning (10:00 and later, the bots' time zone) post a short recap of the week before: conversations, trivia champion, most time in voice |
 | `/companions titles enabled` | Announce a "voice regular" once when someone spends 5 hours in the voice room in a week (no roles are changed) |

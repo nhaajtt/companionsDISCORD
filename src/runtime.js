@@ -587,7 +587,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     const member = newState.member ?? oldState.member;
     if (!member || member.user.bot || oldState.channelId === newState.channelId) return;
     const settings = store.get(newState.guild.id);
-    if (oldState.channelId && isVoiceRoom(settings, oldState.channelId)) voiceTools.userLeft({ guildId: newState.guild.id, userId: member.id });
+    if (oldState.channelId && isVoiceRoom(settings, oldState.channelId)) voiceTools.userLeft({ guildId: newState.guild.id, userId: member.id, moved: Boolean(newState.channelId && isVoiceRoom(settings, newState.channelId)) });
     if (newState.channelId && isVoiceRoom(settings, newState.channelId)) voiceTools.userJoined({ guildId: newState.guild.id, userId: member.id, channelId: newState.channelId });
   });
 
