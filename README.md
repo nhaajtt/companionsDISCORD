@@ -20,6 +20,8 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 - **They learn what works.** Adaptive tuning favours the kinds of conversation that get your members talking, and `/companions stats` shows the best hour.
 - **A weekly recap, trivia streaks and voice regular titles** give a reason to come back.
 - **Safe to leave alone.** Optional webhook alerts, a daily backup of the data files, no overlapping work when many servers are busy, a test with 300 servers, and data export and delete per server.
+- **About 1,250 trivia questions per language**, by topic (geography, animals, space, history, science, food, sports, mythology, Vietnam and more), each with four answer buttons. About 960 of them were checked by a second reader and anything doubtful was dropped.
+- **Every personality speaks in its own voice** when it welcomes someone, greets or says goodbye in the voice room, and delivers a reminder: the bot that speaks is one of those sitting in the room.
 - **Never the same line twice in a row.** About 1,000 different lines per language for each of: welcoming a new member, greeting someone in the voice room, saying goodbye to them, delivering a reminder, and 500 each for the four steps of a focus session (start, break, back to work, done). Written to sound like the community, not translated.
 - **Welcome and reminders.** A funny welcome with an icebreaker for new members, `/remind` for personal reminders and `/event` countdowns.
 
