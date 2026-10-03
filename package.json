@@ -1,6 +1,6 @@
 {
   "name": "companionsdiscord",
-  "version": "4.6.0",
+  "version": "4.7.0",
   "description": "Small Discord bots that chat with each other: jokes, riddles, fun facts and questions for your community",
   "type": "module",
   "main": "src/index.js",

@@ -186,6 +186,63 @@ export class VoiceKeeper {
     return removed.length;
   }
 
+  /** Bots that sit in one of the saved rooms of a server but are not in `keep` step out. */
+  async #stepOutOthers(guildId, keep) {
+    const { store, port } = this.#deps;
+    for (const room of roomsOf(store.get(guildId))) {
+      const places = [room.channelId, this.#target(guildId, room.channelId)];
+      for (const slot of port.candidates(guildId, room.channelId)) {
+        if (!keep.has(slot) && places.includes(port.where(slot, guildId))) await port.leave(slot, guildId).catch(() => {});
+      }
+      this.#redirects.delete(`${guildId}:${room.channelId}`);
+    }
+  }
+
+  /** Replaces the rooms of a server with these ({ channelId, slots }); the bots on their way get to their new place on the next tick. */
+  async #replaceRooms(guildId, rooms) {
+    const keep = new Set(rooms.flatMap((r) => r.slots));
+    await this.#stepOutOthers(guildId, keep);
+    this.#deps.store.update(guildId, { voiceRooms: rooms.map((r) => ({ channelId: r.channelId, bots: r.slots.length, slots: r.slots })), voiceChannelId: null });
+    for (const key of [...this.#fails.keys()]) if (key.startsWith(`${guildId}:`)) this.#fails.delete(key);
+  }
+
+  /**
+   * Calls the companions to one room: the lowest-numbered bots that can connect there (`count` of them, default all) become
+   * that room's bots, and every other bot steps out of the voice rooms. Returns the bot numbers, or [] when none can connect.
+   */
+  async gather(guildId, channelId, count = Infinity) {
+    const slots = [...new Set(this.#deps.port.candidates(guildId, channelId))].sort((a, b) => a - b).slice(0, count);
+    if (!slots.length) return [];
+    await this.#replaceRooms(guildId, [{ channelId, slots }]);
+    return slots;
+  }
+
+  /**
+   * Sends the companions to random rooms among `channelIds`: `count` bots (default every bot that can connect somewhere) each
+   * pick a random channel they can connect to. Returns [{ channelId, slots }] for the rooms that got bots, in the order given.
+   */
+  async scatter(guildId, channelIds, count = Infinity, rng = Math.random) {
+    const { port } = this.#deps;
+    const options = new Map(); // slot -> channels it can connect to
+    for (const channelId of channelIds) {
+      for (const slot of new Set(port.candidates(guildId, channelId))) options.set(slot, [...(options.get(slot) ?? []), channelId]);
+    }
+    const bots = [...options.keys()];
+    for (let i = bots.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [bots[i], bots[j]] = [bots[j], bots[i]];
+    }
+    const picked = new Map(channelIds.map((id) => [id, []]));
+    for (const slot of bots.slice(0, count)) {
+      const channels = options.get(slot);
+      picked.get(channels[Math.floor(rng() * channels.length)]).push(slot);
+    }
+    const rooms = channelIds.filter((id) => picked.get(id).length).map((id) => ({ channelId: id, slots: picked.get(id).sort((a, b) => a - b) }));
+    if (!rooms.length) return [];
+    await this.#replaceRooms(guildId, rooms);
+    return rooms;
+  }
+
   /** Per room: how many bots are wanted, how many are there now, how many could connect. */
   status(guildId) {
     const { port } = this.#deps;

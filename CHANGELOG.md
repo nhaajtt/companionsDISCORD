@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.7
+
+- `/assemble [bots]` calls the companions to the voice channel you are in, and `/random [bots]` sends them to random voice channels they can connect to. Both replace the saved voice rooms (the bots stay where they were sent), empty the old rooms, need the Move Members permission by default and are limited to once a minute per server. Tests for both.
+
 ## 4.6
 
 - Optional Gemini features, off by default and only when `GEMINI_API_KEY` is set: `/companions ai replies` (a companion answers, in its own personality and still as a bot, when someone mentions it or replies to it in the companions channel) and `/companions ai daily` (a riddle with a hidden answer, a question or a would-you-rather written once a day). A cooldown per member, a daily cap and a per-minute cap keep it polite, the model output is cleaned (no mentions, no links), and nothing about the member is sent except the message text. README, docs, privacy page and website say plainly that this mode sends that one message to Google.

@@ -510,3 +510,41 @@ test("the camera sign shows only on a bot that sits in a voice room, and both la
     assert.ok(!lines.presenceCamera.includes(presenceText(lines, { slot: 1, now, voice: { humans: 2 } })), "off means no sign");
   }
 });
+
+test("assemble: the bots go to one room, the others step out of the old rooms", async () => {
+  const store = createSettingsStore(path.join(tmp(), "s.json"));
+  store.update("g", { voiceRooms: [{ channelId: "a", bots: 2 }, { channelId: "b", bots: 1 }] });
+  const port = fakePort([0, 1, 2, 3]);
+  const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
+  await keeper.tick();
+  assert.deepEqual([...port.at].sort(), [[0, "a"], [1, "a"], [2, "b"]]);
+  assert.deepEqual(await keeper.gather("g", "c", 2), [0, 1]);
+  assert.deepEqual(store.get("g").voiceRooms, [{ channelId: "c", bots: 2, slots: [0, 1] }]);
+  assert.ok(port.leaves.includes(2), "a bot that is not called leaves its old room");
+  await keeper.tick();
+  assert.equal(port.at.get(0), "c");
+  assert.equal(port.at.get(1), "c");
+  assert.equal(port.at.has(2), false);
+  assert.deepEqual(await keeper.gather("g", "c"), [0, 1, 2, 3], "with no number every bot that can connect comes");
+  const none = new VoiceKeeper({ store, port: fakePort([]), settleMs: 0 });
+  assert.deepEqual(await none.gather("g", "x"), [], "nobody can connect: nothing changes");
+  assert.equal(store.get("g").voiceRooms[0].channelId, "c");
+});
+
+test("random: each bot picks a random room it can connect to, and the rooms are kept", async () => {
+  const store = createSettingsStore(path.join(tmp(), "s.json"));
+  const can = { a: [0, 1, 2, 3], b: [0, 1, 2, 3], c: [2] }; // only bot 2 can enter room c
+  const port = { ...fakePort(), candidates: (g, ch) => can[ch] ?? [] };
+  const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
+  let n = 0;
+  const rng = () => [0.1, 0.9, 0.5, 0.3, 0.7, 0.2, 0.8, 0.4][n++ % 8];
+  const rooms = await keeper.scatter("g", ["a", "b", "c"], Infinity, rng);
+  const all = rooms.flatMap((r) => r.slots).sort();
+  assert.deepEqual(all, [0, 1, 2, 3], "every bot goes somewhere, none twice");
+  for (const r of rooms) assert.ok(r.slots.every((s) => can[r.channelId].includes(s)), "only to rooms they can connect to");
+  await keeper.tick();
+  for (const r of rooms) for (const s of r.slots) assert.equal(port.at.get(s), r.channelId);
+  const few = await keeper.scatter("g", ["a", "b"], 2, Math.random);
+  assert.equal(few.flatMap((r) => r.slots).length, 2, "a number limits how many go");
+  assert.equal(await keeper.scatter("g", ["zzz"]).then((r) => r.length), 0, "no room they can connect to: nothing changes");
+});

@@ -253,6 +253,21 @@ export const pomodoroCommand = new SlashCommandBuilder()
   .addSubcommand((s) => s.setName("stop").setDescription("Stop the focus session"))
   .addSubcommand((s) => s.setName("status").setDescription("Where the focus session is"));
 
+// Moving the whole crowd is for people who may move members; a server can change that in Integrations
+export const randomCommand = new SlashCommandBuilder()
+  .setName("random")
+  .setDescription("Send the companions to random voice channels")
+  .setDMPermission(false)
+  .setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
+  .addIntegerOption((o) => o.setName("bots").setDescription("How many companions go (default: all of them)").setMinValue(1).setMaxValue(30));
+
+export const assembleCommand = new SlashCommandBuilder()
+  .setName("assemble")
+  .setDescription("Call the companions to the voice channel you are in")
+  .setDMPermission(false)
+  .setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
+  .addIntegerOption((o) => o.setName("bots").setDescription("How many companions come (default: all of them)").setMinValue(1).setMaxValue(30));
+
 export const remindCommand = new SlashCommandBuilder()
   .setName("remind")
   .setDescription("A companion reminds you of something, in this channel")
@@ -703,7 +718,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   const registerFor = async (guild) => {
     for (let attempt = 1; attempt <= REGISTER_ATTEMPTS; attempt++) {
       try {
-        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand].map((c) => c.toJSON()));
+        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand].map((c) => c.toJSON()));
         return;
       } catch (error) {
         console.error(`Could not register the commands in ${guild.name} (attempt ${attempt} of ${REGISTER_ATTEMPTS}):`, error.message);
@@ -717,7 +732,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.GuildCreate, registerFor);
 
   host.on(Events.InteractionCreate, (interaction) => {
-    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
+    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
     handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
@@ -908,6 +923,46 @@ async function handleRemind(interaction, { reminders }) {
     if (error instanceof ReminderError) return reply(`⚠️ ${error.message}`);
     throw error;
   }
+}
+
+const MOVE_COOLDOWN_MS = 60_000; // the crowd is moved at most once a minute per server: 20+ voice joins at once are rude to Discord
+const lastMove = new Map();
+
+/** Shared start of /random and /assemble: a deferred private reply, or a reason to stop. */
+async function startMove(interaction) {
+  const wait = MOVE_COOLDOWN_MS - (Date.now() - (lastMove.get(interaction.guildId) ?? 0));
+  if (wait > 0) {
+    await interaction.reply({ content: `⏳ The companions just moved. Try again in ${Math.ceil(wait / 1000)} seconds.`, flags: MessageFlags.Ephemeral });
+    return false;
+  }
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  return true;
+}
+
+/** /assemble: every companion (or `bots` of them) comes to the voice channel the member is in, and stays there. */
+async function handleAssemble(interaction, { keeper, seedVoiceGuild }) {
+  const channel = interaction.member?.voice?.channel;
+  if (!channel) return interaction.reply({ content: "🎧 Join a voice channel first, then run /assemble: the companions come to the channel you are in.", flags: MessageFlags.Ephemeral });
+  if (!(await startMove(interaction))) return;
+  const slots = await keeper.gather(interaction.guildId, channel.id, interaction.options.getInteger("bots") ?? Infinity);
+  if (!slots.length) return interaction.editReply(`⚠️ No companion can see and connect to ${channel}. Give them View Channel and Connect there. Nothing was changed.`);
+  lastMove.set(interaction.guildId, Date.now());
+  seedVoiceGuild(interaction.guildId);
+  return interaction.editReply(`📣 Calling ${slots.length} companion${slots.length === 1 ? "" : "s"} to ${channel}. They arrive one after another within a minute or so, and the other voice rooms are emptied. They stay until you use /random, /assemble or /companions voice again.`);
+}
+
+/** /random: every companion (or `bots` of them) goes to a random voice channel it can connect to, and stays there. */
+async function handleRandom(interaction, { keeper, seedVoiceGuild }) {
+  if (!(await startMove(interaction))) return;
+  const guild = interaction.guild;
+  const channelIds = [...guild.channels.cache.filter((c) => c.type === ChannelType.GuildVoice && c.id !== guild.afkChannelId).keys()];
+  const rooms = await keeper.scatter(interaction.guildId, channelIds, interaction.options.getInteger("bots") ?? Infinity);
+  if (!rooms.length) return interaction.editReply("⚠️ No companion can see and connect to any voice channel here. Nothing was changed.");
+  lastMove.set(interaction.guildId, Date.now());
+  seedVoiceGuild(interaction.guildId);
+  const total = rooms.reduce((n, r) => n + r.slots.length, 0);
+  const lines = rooms.map((r) => `<#${r.channelId}>: ${r.slots.length}`).join("\n");
+  return interaction.editReply(`🎲 ${total} companion${total === 1 ? "" : "s"} sent to ${rooms.length} random room${rooms.length === 1 ? "" : "s"}. They arrive within a minute or so and stay until you use /random, /assemble or /companions voice again.\n${lines}`);
 }
 
 async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild, say, updatePresence, ai }) {
