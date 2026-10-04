@@ -6,7 +6,7 @@ import "dotenv/config";
 import { execFile } from "node:child_process";
 
 const PERMISSIONS = 562949954538496; // View Channel, Send Messages, Read Message History, Send Polls, Connect
-const NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow", "Rex", "Maple", "Rocket", "Zip", "Clue", "Mochi", "Waffle", "Tofu", "Ziggy", "Echo", "Misty", "Byte", "furyZ", "Chamy", "Sizzle", "Gizmo", "Anchor", "Jinx", "Quill", "Blip", "Sparky"];
+const NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow", "Rex", "Maple", "Rocket", "Zip", "Clue", "Mochi", "Waffle", "Tofu", "Ziggy", "Echo", "Misty", "Byte", "furyZ", "Chamy", "Lai Bâng", "Six", "Trường Giang", "Nhã Phương", "Quill", "Blip", "Sparky"];
 
 const tokens = (process.env.COMPANION_TOKENS ?? "")
   .split(",")
