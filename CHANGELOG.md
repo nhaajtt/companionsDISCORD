@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.15
+
+- The bots are called by their Discord names, read live while the program runs (Developer Portal, application name), so renaming a bot needs no change in the code. The personalities keep their working names (Pip, Chamy...) only inside the files. A line that names a bot, whether the bot names itself ("Maple gives up") or another bot ("Chamy teased me"), shows the current Discord name; the gossip scenes, the mood board, the notes under the names and the Gemini answers do the same. Only the names that really appear inside lines are swapped, as whole words, so ordinary words like dog or cow are never touched.
+
 ## 4.14
 
 - Every bot has a mood for the whole day (happy, grumpy, sleepy, excited, dreamy, lazy), worked out from the date and the bot's number, so it is the same all day and after a restart; Grumble leans grumpy, Pip and Rocket lean cheerful. One status note in six shows the mood (184 new notes), and `/tamtrang` shows everyone's mood.

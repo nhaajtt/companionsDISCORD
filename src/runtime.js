@@ -28,6 +28,7 @@ import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { buildPraise } from "./praise.js";
 import { buildDebate } from "./debate.js";
 import { buildBirthday, createBirthdayStore } from "./birthdays.js";
+import { displayName, localizeNames, setNameResolver } from "./names.js";
 import { buildGreeting, greetingDue, localMinuteOfDay } from "./greetings.js";
 import { pickGossip, rememberScene } from "./gossip.js";
 import { MOOD_EMOJI, MOOD_NAME, moodBoard, moodNotesFor, moodOf } from "./mood.js";
@@ -600,6 +601,17 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   }
   if (slots.length < 2) throw new Error("At least two companion bots must be able to log in.");
   const bySlot = new Map(slots.map((s) => [s.slot, s.client]));
+  // The bots are known by their Discord names, read live, so renaming a bot in the Developer Portal needs no change here
+  setNameResolver((slot) => {
+    const user = bySlot.get(slot)?.user;
+    return user?.globalName || user?.username || null;
+  });
+  /** The personality of a bot with its current Discord name in place of the working name. */
+  const livePersona = (slot, language) => {
+    const personas = getContent(language).personas;
+    const persona = personas[slot % personas.length];
+    return { ...persona, name: displayName(slot, language), blurb: localizeNames(persona.blurb) };
+  };
 
   const channelOf = (slot, guildId, channelId) => bySlot.get(slot)?.guilds.cache.get(guildId)?.channels.cache.get(channelId);
 
@@ -615,6 +627,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     available: (guildId, channelId) => slots.filter(({ client }) => canWrite(client, guildId, channelId)).map(({ slot }) => ({ slot })),
 
     async send({ slot, guildId, channelId, text, replyTo, poll, trivia, predict, pingUsers }) {
+      text = localizeNames(text); // a line that names a bot shows its current Discord name
       const channel = channelOf(slot, guildId, channelId);
       if (!channel?.isTextBased()) return null;
       const reply = replyTo ? { messageReference: replyTo, failIfNotExists: false } : undefined;
@@ -1040,7 +1053,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       const notes = (NOTES[language] ?? NOTES.en)[slot % NOTES.en.length];
       const timeNotes = timeNotesFor({ language, now, timeZone: timezone });
       const moodNotes = moodNotesFor(language, moodOf({ slot, day: localParts(now, timezone).day }));
-      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot), camera, timeNotes, moodNotes });
+      const text = localizeNames(presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot), camera, timeNotes, moodNotes }));
       if (lastPresence.get(slot) === text) continue;
       lastPresence.set(slot, text);
       client.user.setPresence({ status: "online", activities: [{ name: "custom", type: ActivityType.Custom, state: text }] });
@@ -1071,8 +1084,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       const earlier = await message.fetchReference().catch(() => null);
       if (earlier?.author?.id === message.client.user.id) context = earlier.content;
     }
-    const personas = getContent(settings.language).personas;
-    const answer = await ai.reply({ guildId, userId: message.author.id, persona: personas[slot % personas.length], language: settings.language, text, context, owner: ownerIds.size ? ownerIds.has(message.author.id) : null });
+    const answer = await ai.reply({ guildId, userId: message.author.id, persona: livePersona(slot, settings.language), language: settings.language, text, context, owner: ownerIds.size ? ownerIds.has(message.author.id) : null });
     await send(answer ?? lines.aiFallback[Math.floor(Math.random() * lines.aiFallback.length)]);
   };
 
@@ -1091,8 +1103,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         const available = bots.available(guildId, settings.channelId);
         if (!available.length) continue;
         const slot = available[Math.floor(Math.random() * available.length)].slot;
-        const personas = getContent(settings.language).personas;
-        const post = await ai.daily({ guildId, persona: personas[slot % personas.length], language: settings.language });
+        const post = await ai.daily({ guildId, persona: livePersona(slot, settings.language), language: settings.language });
         if (!post) {
           aiRetryAt.set(guildId, Date.now() + 30 * 60_000);
           continue;

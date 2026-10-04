@@ -3,6 +3,7 @@
 // The mood shows in the notes under the bot's name and in the tone of its good morning and good night.
 import MOOD_NOTES from "./content/moodnotes.js";
 import { getContent } from "./content/index.js";
+import { displayName } from "./names.js";
 
 export const MOODS = ["happy", "grumpy", "sleepy", "excited", "dreamy", "lazy"];
 export const MOOD_EMOJI = { happy: "😊", grumpy: "😤", sleepy: "😴", excited: "🤩", dreamy: "☁️", lazy: "🛋️" };
@@ -45,6 +46,6 @@ export function moodNotesFor(language, mood) {
 export function moodBoard({ language = "vi", day, slots }) {
   return MOODS.map((mood) => ({
     mood,
-    names: slots.filter((slot) => moodOf({ slot, day }) === mood).map((slot) => getContent(language).personas[slot]?.name ?? NAMES[slot]),
+    names: slots.filter((slot) => moodOf({ slot, day }) === mood).map((slot) => displayName(slot, language)),
   })).filter((group) => group.names.length);
 }

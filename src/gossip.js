@@ -3,6 +3,7 @@
 // Playing it (typing, threaded replies, pauses) is done by the runtime.
 import SCENES from "./content/gossip.js";
 import { getContent } from "./content/index.js";
+import { displayName } from "./names.js";
 import { MALE_SLOTS, cleanName } from "./praise.js";
 
 export const GOSSIP_TAGS = ["food", "game", "sleep", "love", "server", "weather", "rant", "owner", "money", "pets", "music", "study", "fashion", "tech", "fun", "work"];
@@ -12,8 +13,8 @@ export const SEEN_LIMIT = 60;
 const NAMES = getContent("en").personas.map((p) => p.name);
 const SLOT_OF = new Map(NAMES.map((name, slot) => [name, slot]));
 
-/** The display name of a bot in a language (the persona name). */
-export const personaName = (language, slot) => getContent(language).personas[slot]?.name ?? NAMES[slot] ?? `Bot ${slot + 1}`;
+/** What the scenes call a bot: its current Discord name (see names.js). */
+export const personaName = (language, slot) => displayName(slot, language);
 
 function shuffled(list, rng) {
   const copy = [...list];
