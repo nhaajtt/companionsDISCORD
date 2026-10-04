@@ -5,11 +5,11 @@ export default {
     en: [
       {
         name: "Rex",
-        blurb: "A dramatic movie-trailer announcer bot who narrates every tiny chat moment like an epic blockbuster.",
+        blurb: "A dramatic movie-trailer announcer girl bot who narrates every tiny chat moment like an epic blockbuster, and she is always the leading lady.",
         lead: ["In a world where one riddle changes everything...", "This summer, one question will shake the chat:", "Coming to a server near you, the question:"],
         giveUp: ["The hero falls, the riddle wins. Reveal the truth, someone!", "Defeated, but not forgotten. Speak the answer, brave soul!", "Roll the credits, I yield. Who will unveil the answer?"],
-        react: ["And the crowd goes wild, in a very small chat.", "A twist worthy of the final act, bravo!", "Cue the dramatic music, that punchline had impact."],
-        ack: ["A reply arrives, and the saga continues. Thank you, hero.", "Your words echo through the server. Thank you, legend.", "From the shadows came an answer. Gratitude, brave one.", "The prophecy was true: someone replied. Thank you!"],
+        react: ["And the crowd goes wild, in a very small chat.", "A twist worthy of the final act, bravo!", "Cue the dramatic music, this leading lady says that punchline had impact."],
+        ack: ["A reply arrives, and the saga continues. Thank you, hero, from your leading lady.", "Your words echo through the server. Thank you, legend.", "From the shadows came an answer. Gratitude, brave one.", "The prophecy was true: someone replied. Thank you!"],
         factReact: ["A fact of legend! The chat will never be the same.", "Behold, knowledge descends upon the server!", "Epic revelation, and it was true all along!"],
       },
       {
@@ -196,11 +196,11 @@ export default {
     vi: [
       {
         name: "Rex",
-        blurb: "Con bot dẫn trailer phim kịch tính, kể mọi khoảnh khắc nhỏ trong chat như một bom tấn hoành tráng.",
+        blurb: "Cô nàng bot dẫn trailer phim kịch tính, kể mọi khoảnh khắc nhỏ trong chat như một bom tấn hoành tráng, và luôn là nữ chính.",
         lead: ["Trong một thế giới nơi một câu đố thay đổi tất cả...", "Mùa hè này, một câu hỏi sẽ làm rung chuyển kênh chat:", "Sắp ra rạp tại server gần bạn, câu hỏi:"],
-        giveUp: ["Người hùng gục ngã, câu đố chiến thắng. Ai đó hãy tiết lộ sự thật!", "Thất bại, nhưng không bị lãng quên. Hãy nói đáp án đi, chiến binh!", "Chạy credit đi, tui đầu hàng. Ai sẽ công bố đáp án đây?"],
-        react: ["Và đám đông phát cuồng, trong một kênh chat rất nhỏ.", "Một cú twist xứng tầm màn cuối, hoan hô!", "Bật nhạc kịch tính lên, câu chốt đó có sức nặng."],
-        ack: ["Một lời hồi đáp xuất hiện, và huyền thoại tiếp diễn. Cảm ơn, anh hùng.", "Lời bạn vang vọng khắp server. Cảm ơn, huyền thoại.", "Từ bóng tối, một câu trả lời hiện ra. Biết ơn bạn, chiến binh.", "Lời tiên tri đã đúng: có người rep. Cảm ơn nha!"],
+        giveUp: ["Người hùng gục ngã, câu đố chiến thắng. Ai đó hãy tiết lộ sự thật!", "Thất bại, nhưng không bị lãng quên. Hãy nói đáp án đi, chiến binh!", "Chạy credit đi, chị đây đầu hàng. Ai sẽ công bố đáp án đây?"],
+        react: ["Và đám đông phát cuồng, trong một kênh chat rất nhỏ.", "Một cú twist xứng tầm màn cuối, hoan hô!", "Bật nhạc kịch tính lên, nữ chính này nói câu chốt đó có sức nặng."],
+        ack: ["Một lời hồi đáp xuất hiện, và huyền thoại tiếp diễn. Nữ chính cảm ơn người hùng.", "Lời bạn vang vọng khắp server. Cảm ơn, huyền thoại.", "Từ bóng tối, một câu trả lời hiện ra. Biết ơn bạn, chiến binh.", "Lời tiên tri đã đúng: có người rep. Cảm ơn nha!"],
         factReact: ["Một sự thật huyền thoại! Kênh chat sẽ không bao giờ như trước.", "Hãy chiêm ngưỡng, tri thức giáng xuống server!", "Tiết lộ hoành tráng, và nó đúng từ đầu đến cuối!"],
       },
       {
@@ -390,8 +390,8 @@ export default {
       // Rex
       [
         "In a world with no hello... I wait.",
-        "Rated PG: Pretty Good puns",
-        "One bot. One server. One destiny.",
+        "Rated PG: Pretty Good puns, by a leading lady",
+        "One girl bot. One server. One destiny.",
         "Coming soon: a very average Tuesday",
         "The lag strikes back",
         "Based on a true chat",
@@ -400,11 +400,11 @@ export default {
         "Return of the unread messages",
         "The Last Meme Standing",
         "A trivia saga, now in surround sound",
-        "Critics call my status okay",
+        "Critics call her status okay",
         "Rise of the typing indicator",
         "From the studio that brought you buffering",
-        "Never underestimate a bot with a microphone",
-        "Plot twist: still online",
+        "Never underestimate a girl with a microphone",
+        "Plot twist: she is still online",
         "Starring the entire chat, no stunt doubles",
         "Episode 404: Status Not Found",
         "The pun is mightier than the sword",
@@ -413,7 +413,7 @@ export default {
         "Trailer for a very quiet channel",
         "Epic lore, small server",
         "Spoiler: the answer was D",
-        "Now showing: me, narrating nothing",
+        "Now showing: your leading lady, narrating nothing",
       ],
       // Maple
       [
@@ -979,9 +979,9 @@ export default {
     vi: [
       // Rex
       [
-        "Trong thế giới không ai chào... tui chờ.",
+        "Trong thế giới không ai chào... nữ chính chờ.",
         "Phân loại PG: Pun Giỏi",
-        "Một bot. Một server. Một số phận.",
+        "Một cô bot. Một server. Một số phận.",
         "Sắp chiếu: một ngày thứ Ba rất bình thường",
         "Lag phản công",
         "Dựa trên một kênh chat có thật",
@@ -990,11 +990,11 @@ export default {
         "Sự trở lại của tin nhắn chưa đọc",
         "Meme cuối cùng còn đứng vững",
         "Huyền thoại trivia, giờ có âm thanh vòm",
-        "Giới phê bình bảo status của tui cũng ổn",
+        "Giới phê bình bảo status của nữ chính cũng ổn",
         "Sự trỗi dậy của dấu hiệu đang gõ",
         "Từ hãng phim mang đến bạn buffering",
-        "Đừng coi thường con bot có micro",
-        "Plot twist: vẫn đang online",
+        "Đừng coi thường cô nàng có micro",
+        "Plot twist: cô nàng vẫn đang online",
         "Diễn viên chính là cả kênh chat, không đóng thế",
         "Tập 404: Không tìm thấy status",
         "Chơi chữ mạnh hơn gươm đao",
@@ -1003,7 +1003,7 @@ export default {
         "Trailer của một kênh rất yên tĩnh",
         "Cốt truyện sử thi, server nhỏ xíu",
         "Spoiler: đáp án là D",
-        "Đang chiếu: tui, kể chuyện về hư không",
+        "Đang chiếu: chị đây, kể chuyện về hư không",
       ],
       // Maple
       [
