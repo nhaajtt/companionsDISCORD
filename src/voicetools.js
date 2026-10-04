@@ -35,9 +35,9 @@ export class VoiceTools {
   }
 
   /** One line of a pool, in the voice of the bot that speaks it when a `lineFor` was given. */
-  #line(guildId, slot, purpose, pool, userId) {
+  #line(guildId, slot, purpose, pool, userId, minutes = 0) {
     const { lineFor, rng, store } = this.#deps;
-    return lineFor ? lineFor({ language: store.get(guildId).language, slot, purpose, pool, userId }) : pickLine(pool, rng);
+    return lineFor ? lineFor({ language: store.get(guildId).language, slot, purpose, pool, userId, minutes }) : pickLine(pool, rng);
   }
 
   #day() {
@@ -93,7 +93,7 @@ export class VoiceTools {
     this.#greetDay.set(guildId, counter);
     this.#greeted.set(`bye:${key}`, t);
     const slot = this.#deps.speaker?.(guildId);
-    Promise.resolve(say({ guildId, slot, text: fill(this.#line(guildId, slot, "bye", this.#lines(guildId).farewell, userId), { user: `<@${userId}>` }) })).catch(() => {});
+    Promise.resolve(say({ guildId, slot, text: fill(this.#line(guildId, slot, "bye", this.#lines(guildId).farewell, userId, Math.floor((t - session.joinedAt) / MIN)), { user: `<@${userId}>` }) })).catch(() => {});
   }
 
   #flush(session) {

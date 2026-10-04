@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.11
+
+- `/clutch` (every companion goes wild for a clutch play) and `/fail` (comfort, with a little teasing, after a fail): the same options as `/khen`, with their own lines in both languages.
+- `/hype start [minutes] [mood]` and `/hype stop`: the companions keep cheering on their own for 5 to 60 minutes (default 15), one bot every 20 to 45 seconds, with praise, teasing or a mix. One session per channel, at most 60 messages.
+- `/tranhluan a b`: the companions split into two camps and argue playfully about a or b, then one gives a verdict.
+- `/drama [couple]` and `/companions drama enabled`: short scenes between Lai Bâng and Six, Trường Giang and Nhã Phương, and furyZ and Chamy, on demand or once every evening (19:00 and later, outside quiet hours).
+- `/khen-top`: the most cheered and most teased names of the week. Only names are kept (never IDs), only for the current week, in `praise.json`, and they are erased with the rest of the server's data.
+- `OWNER_IDS` can carry a shyness level per owner (`id:1`, `id:2`, `id:3`). Level 2, the default, softens the goodbye after 45 minutes in the voice room; level 3 is soft from the start; level 1 never softens. The soft lines still half deny it.
+- The new commands share the 20 second wait per channel with `/khen`.
+
 ## 4.10
 
 - `/khen` and `/che` have a `nguoi` option to pick the player from the server: the bots say that member's name. Typing an @mention in `ten` also turns into the member's name; before, only the numeric ID was left.

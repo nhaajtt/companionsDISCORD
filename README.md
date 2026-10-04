@@ -114,6 +114,12 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/random [bots]` | Send the companions to random voice channels they can connect to (all of them, or `bots` of them); they stay there until the next `/random`, `/assemble` or `/companions voice join` |
 | `/khen [nguoi] [goi] [ten] [language]` | Every companion that can write in this channel cheers on the player, one different line each, in the channel where the command was typed (made for cheering a friend who is streaming). It does not matter which voice room the bots sit in. `goi` is how they call the player (anh, chị or bạn), `nguoi` picks the player from the server (the bots say their name), `ten` is a name you type instead, `language` is Tiếng Việt (default) or English. Anyone can use it (restrict it in Integrations if you prefer), once every 20 seconds per channel |
 | `/che [nguoi] [goi] [ten] [language]` | The same as `/khen`, but every companion teases the player a little instead: a friendly roast, never about looks or anything personal. Shares the 20 second wait with `/khen` in each channel |
+| `/clutch` and `/fail` `[nguoi] [goi] [ten] [language]` | The same options as `/khen`. `/clutch`: every companion goes wild for a clutch play. `/fail`: every companion comforts the player (and teases a little) after a fail. Same 20 second wait per channel |
+| `/hype start [minutes] [mood] [nguoi] [goi] [ten] [language]` | The companions keep cheering on their own, one bot every 20 to 45 seconds, for 5 to 60 minutes (default 15; `mood` is khen, chê or trộn). `/hype stop` ends it. One session per channel |
+| `/tranhluan a b [language]` | The companions split into two camps and argue playfully about a or b (for example phở or bún), then one of them gives a verdict |
+| `/drama [couple] [language]` | Two companions that fit together act out a short scene in this channel: Lai Bâng and Six, Trường Giang and Nhã Phương, or furyZ and Chamy |
+| `/companions drama enabled` | Every evening (19:00 and later, outside quiet hours) such a scene is acted out in the chat channel, once a day |
+| `/khen-top` | Who was cheered with `/khen` and teased with `/che` the most this week, as names (no IDs) |
 | `/companions voice camera enabled` | Show a "camera on" sign under the name of the companions sitting in a voice room, and have one announce it in the chat. A sign only: bots cannot send real video |
 | `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the greetings on or off (a hello when someone joins the room, a goodbye when someone who stayed 20 minutes or more leaves) |
 | `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
@@ -157,7 +163,7 @@ docker run -d --name companionsdiscord --restart unless-stopped   --env-file .en
 | `COMPANION_TIMEZONE` | Time zone for quiet hours and the daily limit (default `Asia/Ho_Chi_Minh`) |
 | `COMPANION_DATA_DIR` | Where the data files are stored (default `data`; the compose file sets it) |
 | `ALERT_WEBHOOK_URL` | Optional Discord webhook. The bots post a short message there when one is offline or a voice bot cannot rejoin for more than 10 minutes, on an unhandled error, and when they start (each kind at most every 30 minutes; anything token-like is hidden) |
-| `OWNER_IDS` | Optional, comma separated Discord user IDs of the owners of the bots. To an owner the companions act shy: they pretend not to care and secretly like them (welcome, voice greetings, goodbyes, reminders and, with Gemini on, the answers). Everyone else gets the normal, warm lines. Leave it empty for no owners |
+| `OWNER_IDS` | Optional, comma separated Discord user IDs of the owners of the bots, each with an optional shyness level (`123456789012345678:3`): 1 never softens, 2 (default) softens in the goodbye after 45 minutes in the voice room, 3 is soft from the start. To an owner the companions act shy: they pretend not to care and secretly like them (welcome, voice greetings, goodbyes, reminders and, with Gemini on, the answers). Everyone else gets the normal, warm lines. Leave it empty for no owners |
 | `STATUS_PORT` | Optional. Serve a read-only `/status.json` (totals only: uptime, bots online, servers, voice rooms, conversations of the last 7 days) on this port. `STATUS_HOST` defaults to `127.0.0.1`; put a tunnel in front of it to show it on a website |
 
 ## What is stored
@@ -170,6 +176,7 @@ All in `data/`, on your own machine:
 | `usage.json` | Daily counters only (how many conversations of each kind were started and engaged). No messages, no user ids |
 | `custom.json` | The questions, jokes, facts and polls your managers added |
 | `voice.json` | Minutes people spent in the voice room the companions sit in: user ids with minutes per week. `/voice forget` erases a person's entries |
+| `praise.json` | The names typed or picked for `/khen` and `/che` (display names, never IDs) with how many times each was cheered or teased, for the current week only. Erased with the rest of the server's data |
 | `reminders.json` | Waiting reminders and event countdowns (the text typed and the author's user id). Each is deleted once delivered or cancelled |
 | `backups/` | A copy of the json files above, taken once a day, newest 7 days kept. So erasing someone with `/trivia forget` or `/voice forget` also leaves their entries in the older backups until those days roll off |
 | `scores.json` | The Discord user ids of people who got a trivia answer right, with their points per week. `/trivia forget` erases a person's entries. **User ids are stored in this file, `voice.json` and `reminders.json`:** nothing else | the Discord user ids of people who got a trivia answer right, with their points per week. `/trivia forget` erases a person's entries |

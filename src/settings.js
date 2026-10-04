@@ -31,6 +31,8 @@ export const DEFAULTS = {
   titles: false, // announce a "voice regular" when someone spends 5 hours in the voice room in a week
   recap: false, // post a short recap of the week every Monday morning
   lastRecap: "", // the Monday of the last recap that was posted
+  drama: false, // once a day (evening) two companions that fit together act out a short scene in the chat channel
+  lastDramaDay: "", // the day of the last scene
   welcome: false, // greet new members (needs the server's join messages) with an icebreaker
 };
 

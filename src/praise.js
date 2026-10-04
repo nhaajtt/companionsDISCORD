@@ -1,6 +1,9 @@
 // /khen and /che: every companion cheers on (or teases) the person who is playing, in the channel where the command was used.
 // Girls and boys talk differently in Vietnamese, so each bot gets a line from its own pool, and no line is used twice in a round.
 import PRAISE, { TEASE } from "./content/praise.js";
+import { CLUTCH, FAIL } from "./content/events.js";
+
+const BANKS = { praise: PRAISE, tease: TEASE, clutch: CLUTCH, fail: FAIL };
 
 /** The two boys of the cast (bots 24 and 26, as 0-based slots); every other bot is a girl. */
 export const MALE_SLOTS = new Set([23, 25]);
@@ -46,10 +49,10 @@ export function render(line, { goi = "anh", ten = "", language = "vi" }) {
 
 /**
  * One round of praise: [{ slot, text }] in the order the bots should speak, one different line per bot.
- * @param {{ mood?: "praise"|"tease", language?: "vi"|"en", goi?: "anh"|"chị"|"bạn", ten?: string, slots: number[], rng?: () => number }} options
+ * @param {{ mood?: "praise"|"tease"|"clutch"|"fail", language?: "vi"|"en", goi?: "anh"|"chị"|"bạn", ten?: string, slots: number[], rng?: () => number }} options
  */
 export function buildPraise({ mood = "praise", language = "vi", goi = "anh", ten = "", slots, rng = Math.random }) {
-  const banks = mood === "tease" ? TEASE : PRAISE;
+  const banks = BANKS[mood] ?? PRAISE;
   const bank = banks[language] ?? banks.vi;
   const name = cleanName(ten);
   // Lines that call the person "anh" or "chị" and flirt are only for a girl talking to "anh" or "chị", never to "bạn"
