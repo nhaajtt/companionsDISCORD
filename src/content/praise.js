@@ -3,7 +3,9 @@
 // (anhhh), {em} how a girl calls herself (em, or tui when she talks to "bạn"), {Em} with a capital, {ten} the name the member typed.
 // girl and boy are for the two kinds of bots in Vietnamese; English lines are the same for everyone and live under girl.
 // crush lines are only used for "anh" and "chị", and only for the girls; named lines only when a name was given.
-export default {
+import EXTRA from "./praise-more/index.js";
+
+const PRAISE = {
   vi: {
     girl: {
       base: [
@@ -120,6 +122,25 @@ export default {
     boy: { base: [], named: [] },
   },
 };
+
+// More lines written in batches (src/content/praise-more): added to the banks above, skipping any line that is already there.
+for (const batch of EXTRA) {
+  for (const [language, kinds] of Object.entries(batch)) {
+    for (const [kind, groups] of Object.entries(kinds)) {
+      for (const [key, lines] of Object.entries(groups)) {
+        const target = (PRAISE[language][kind][key] ??= []);
+        const have = new Set(target.map((line) => line.toLowerCase()));
+        for (const line of lines) {
+          if (have.has(line.toLowerCase())) continue;
+          have.add(line.toLowerCase());
+          target.push(line);
+        }
+      }
+    }
+  }
+}
+
+export default PRAISE;
 
 // Lines for /che: friendly teasing of a player who just missed, never about looks, family or anything personal.
 // Same placeholders and groups as above, without crush lines.

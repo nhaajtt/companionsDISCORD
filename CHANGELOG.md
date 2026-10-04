@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.13
+
+- More than a thousand new lines for `/khen`, `/hype` and the cheering on Go Live, funny and affectionate at once: skill hype, fake news bulletins and world records, tender and proud ones ("drink some water, we are proud of you"), absurd everyday comparisons, dramatic threats and bargaining, about a hundred sweet fangirl lines for the girls, lines with the player's name, lines in the voice of the two boys (Lai Bâng doting, Trường Giang the show host) and about 250 English lines. The bots now pick from about five hundred Vietnamese lines per girl instead of thirty-eight, so a long `/hype` session does not repeat itself for a very long time. Tests check that no line appears twice, not even in the `/che`, `/clutch` and `/fail` banks.
+
 ## 4.12
 
 - `/tamchuyen [chude]` and `/companions tamchuyen enabled`: the companions chat among themselves like friends in a group chat. 56 scenes in both languages (generic topics for any girl bots, the relationship web of bots 22 to 27, the clash of the older personalities, and scenes about the owner). Each scene has 3 to 5 bots, 6 to 10 lines, real threaded replies, human pauses, and bots that name and tease each other. Boys only appear in scenes written for them. A server remembers the last 60 scenes it saw and does not repeat one until it has seen the rest. On their own, group chats start 1, 2 or 4 times a day (calm, normal, lively) between 10:00 and 22:00, outside quiet hours, at least 90 minutes apart and at a random moment.
