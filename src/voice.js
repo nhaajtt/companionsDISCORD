@@ -12,6 +12,26 @@
 // and nobody keeps rejoining the creator channel.
 const BACKOFF_MS = [5_000, 15_000, 60_000, 300_000]; // wait this long after the 1st, 2nd, 3rd... failed attempt (the last repeats)
 const SETTLE_MS = 3_000; // after a join, wait this long to see whether the bot is moved to a new room
+const JOIN_PARALLEL = 6; // bots that connect at the same time; each has its own connection, so a crowd arrives in seconds, not minutes
+
+/** Runs at most `n` async jobs at a time; call the returned function with a job. */
+function limiter(n) {
+  let active = 0;
+  const queue = [];
+  const next = () => {
+    if (active >= n || !queue.length) return;
+    active++;
+    const { job, resolve, reject } = queue.shift();
+    job().then(resolve, reject).finally(() => {
+      active--;
+      next();
+    });
+  };
+  return (job) => new Promise((resolve, reject) => {
+    queue.push({ job, resolve, reject });
+    next();
+  });
+}
 
 /** The rooms of a server as [{ channelId, bots }]. Understands the older single-room settings too. */
 export function roomsOf(settings) {
@@ -99,7 +119,16 @@ export class VoiceKeeper {
     return true;
   }
 
-  async tick() {
+  #chain = Promise.resolve();
+
+  /** Puts every bot where it should be. Rounds never overlap: a round asked for while another runs waits for it, then re-reads the plan. */
+  tick() {
+    const run = this.#chain.then(() => this.#tickOnce());
+    this.#chain = run.catch(() => {});
+    return run;
+  }
+
+  async #tickOnce() {
     const { store, port, now, log, settleMs, sleep } = this.#deps;
     for (const [guildId, settings] of store.all()) {
       this.#persist(guildId);
@@ -107,16 +136,16 @@ export class VoiceKeeper {
       if (!plan.length) continue;
       const wanted = new Map(plan.flatMap((room) => room.slots.map((slot) => [slot, room.channelId])));
 
-      for (const [slot, channelId] of wanted) {
+      const attempt = async (slot, channelId) => {
         const key = `${guildId}:${slot}`;
         const target = this.#target(guildId, channelId);
         const current = port.where(slot, guildId);
         if (current === target || current === channelId || this.#learn(guildId, channelId, current, settings)) {
           this.#fails.delete(key);
-          continue;
+          return;
         }
         const fail = this.#fails.get(key);
-        if (fail && now() < fail.nextAt) continue;
+        if (fail && now() < fail.nextAt) return;
         let ok = false;
         try {
           ok = await port.join(slot, guildId, target);
@@ -132,7 +161,20 @@ export class VoiceKeeper {
           const count = (fail?.count ?? 0) + 1;
           this.#fails.set(key, { count, firstAt: fail?.firstAt ?? now(), nextAt: now() + BACKOFF_MS[Math.min(count, BACKOFF_MS.length) - 1] });
         }
-      }
+      };
+
+      // The first bot of a room goes alone so a "join to create" channel is learned before the others come; then the rest of
+      // that room (and the other rooms) connect a few at a time
+      const run = limiter(JOIN_PARALLEL);
+      const byRoom = new Map();
+      for (const [slot, channelId] of wanted) byRoom.set(channelId, [...(byRoom.get(channelId) ?? []), slot]);
+      await Promise.all(
+        [...byRoom].map(async ([channelId, slots]) => {
+          const [first, ...rest] = slots;
+          await run(() => attempt(first, channelId));
+          await Promise.all(rest.map((slot) => run(() => attempt(slot, channelId))));
+        }),
+      );
 
       // A bot that sits in one of the rooms but has no place in the plan any more steps out
       for (const { channelId } of plan) {

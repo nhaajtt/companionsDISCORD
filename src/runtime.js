@@ -947,8 +947,9 @@ async function handleAssemble(interaction, { keeper, seedVoiceGuild }) {
   const slots = await keeper.gather(interaction.guildId, channel.id, interaction.options.getInteger("bots") ?? Infinity);
   if (!slots.length) return interaction.editReply(`⚠️ No companion can see and connect to ${channel}. Give them View Channel and Connect there. Nothing was changed.`);
   lastMove.set(interaction.guildId, Date.now());
+  await keeper.tick(); // start now instead of waiting for the next round; a few bots connect at a time
   seedVoiceGuild(interaction.guildId);
-  return interaction.editReply(`📣 Calling ${slots.length} companion${slots.length === 1 ? "" : "s"} to ${channel}. They arrive one after another within a minute or so, and the other voice rooms are emptied. They stay until you use /random, /assemble or /companions voice again.`);
+  return interaction.editReply(`📣 Calling ${slots.length} companion${slots.length === 1 ? "" : "s"} to ${channel}. They arrive within about half a minute, and the other voice rooms are emptied. They stay until you use /random, /assemble or /companions voice again.`);
 }
 
 /** /random: every companion (or `bots` of them) goes to a random voice channel it can connect to, and stays there. */
@@ -959,10 +960,11 @@ async function handleRandom(interaction, { keeper, seedVoiceGuild }) {
   const rooms = await keeper.scatter(interaction.guildId, channelIds, interaction.options.getInteger("bots") ?? Infinity);
   if (!rooms.length) return interaction.editReply("⚠️ No companion can see and connect to any voice channel here. Nothing was changed.");
   lastMove.set(interaction.guildId, Date.now());
+  await keeper.tick();
   seedVoiceGuild(interaction.guildId);
   const total = rooms.reduce((n, r) => n + r.slots.length, 0);
   const lines = rooms.map((r) => `<#${r.channelId}>: ${r.slots.length}`).join("\n");
-  return interaction.editReply(`🎲 ${total} companion${total === 1 ? "" : "s"} sent to ${rooms.length} random room${rooms.length === 1 ? "" : "s"}. They arrive within a minute or so and stay until you use /random, /assemble or /companions voice again.\n${lines}`);
+  return interaction.editReply(`🎲 ${total} companion${total === 1 ? "" : "s"} sent to ${rooms.length} random room${rooms.length === 1 ? "" : "s"}. They arrive within about half a minute and stay until you use /random, /assemble or /companions voice again.\n${lines}`);
 }
 
 async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild, say, updatePresence, ai }) {

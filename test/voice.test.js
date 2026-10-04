@@ -44,6 +44,31 @@ function fakePort(candidates = [0, 1, 2]) {
   return port;
 }
 
+test("a crowd joins a few at a time: the first bot goes alone, the rest connect in parallel, never more than six at once", async () => {
+  const store = createSettingsStore(path.join(tmp(), "s.json"));
+  store.update("g", { voiceChannelId: "v", voiceBots: 20 });
+  const port = fakePort(Array.from({ length: 20 }, (_, i) => i));
+  const realJoin = port.join;
+  let running = 0;
+  let peak = 0;
+  const peaks = [];
+  port.join = async (...args) => {
+    running++;
+    peak = Math.max(peak, running);
+    peaks.push(running);
+    await new Promise((r) => setTimeout(r, 5));
+    const ok = await realJoin(...args);
+    running--;
+    return ok;
+  };
+  const keeper = new VoiceKeeper({ store, port, settleMs: 0 });
+  await keeper.tick();
+  assert.equal(port.joins.length, 20);
+  assert.equal(peaks[0], 1, "the first bot of the room connects alone");
+  assert.ok(peak > 1 && peak <= 6, `parallel but limited (peak ${peak})`);
+  assert.equal(keeper.status("g").present, 20);
+});
+
 test("the keeper joins the wanted number of bots and brings them back when they get dropped", async () => {
   let t = 0;
   const store = createSettingsStore(path.join(tmp(), "s.json"));

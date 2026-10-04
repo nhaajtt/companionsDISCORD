@@ -6,6 +6,7 @@
 - Genders settled: every bot is a girl except Lai Bâng and Trường Giang. furyZ and Chamy are no longer a couple but close best friends, and their notes were rewritten to match.
 - Lines shared by all bots (welcomes, goodbyes, reminders, Pomodoro steps) no longer use gendered address such as sir, he or she, and say "you" or "everyone" instead of assuming who is listening.
 - README, the cast table and the website list all 30 personalities.
+- `/assemble` and `/random` are much faster with 30 bots: they start at once instead of waiting for the next 15 second round, and the bots connect six at a time instead of one after another (the first bot of a room still goes alone, so a join-to-create channel is learned first). A crowd now arrives in well under a minute, and voice rounds can no longer overlap.
 
 ## 4.7
 
