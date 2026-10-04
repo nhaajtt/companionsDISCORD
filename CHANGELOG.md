@@ -2,6 +2,8 @@
 
 ## 4.11
 
+- The note under a bot's name no longer says "Sitting in voice with N people" (every bot showed the same line whenever someone was in the room). Bots now always show their own funny notes, one new one every 15 minutes; only a running focus session (or the camera sign) replaces them.
+
 - `/clutch` (every companion goes wild for a clutch play) and `/fail` (comfort, with a little teasing, after a fail): the same options as `/khen`, with their own lines in both languages.
 - `/hype start [minutes] [mood]` and `/hype stop`: the companions keep cheering on their own for 5 to 60 minutes (default 15), one bot every 20 to 45 seconds, with praise, teasing or a mix. One session per channel, at most 60 messages.
 - `/tranhluan a b`: the companions split into two camps and argue playfully about a or b, then one gives a verdict.

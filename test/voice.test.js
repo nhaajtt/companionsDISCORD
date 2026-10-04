@@ -389,14 +389,16 @@ test("the voice, welcome and reminder lines exist in both languages", () => {
   for (const line of [...tools.en.remind, ...tools.vi.remind]) assert.match(line, /\{user\}.*\{text\}|\{text\}.*\{user\}/);
 });
 
-test("the note shows a focus session first, then people in the room, then the bot's own notes in turn", () => {
+test("the note shows a focus session, otherwise the bot's own notes in turn, never a people counter", () => {
   const lines = getTools("en");
   const now = Date.parse("2026-10-02T20:00:00Z");
   const notes = ["one", "two", "three"];
   assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 }, focusMinutesLeft: 12, notes }), /12 min/);
-  assert.match(presenceText(lines, { slot: 0, now, voice: { humans: 3 }, notes }), /with 3/);
-  const alone = presenceText(lines, { slot: 0, now, voice: { humans: 0 }, notes });
-  assert.ok(notes.includes(alone), "an empty voice room shows a note, not 'sitting alone'");
+  for (const humans of [0, 1, 3, 12]) {
+    const note = presenceText(lines, { slot: 0, now, voice: { humans }, notes });
+    assert.ok(notes.includes(note), `a bot with ${humans} people in its room still shows its own note, not a counter`);
+  }
+  for (const language of ["en", "vi"]) assert.ok(!("presenceVoice" in getTools(language)) && !("presenceVoiceAlone" in getTools(language)), "the counter lines are gone");
   const a = presenceText(lines, { slot: 0, now, notes, offset: 0 });
   assert.notEqual(presenceText(lines, { slot: 0, now, notes, offset: 1 }), a, "a different starting point gives a different note");
   assert.notEqual(presenceText(lines, { slot: 0, now: now + 16 * 60_000, notes }), presenceText(lines, { slot: 0, now, notes }), "and it moves on over time");
