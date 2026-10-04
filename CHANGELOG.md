@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.8
+
+- Four new personalities for bots 24 to 27, replacing Sizzle, Gizmo, Anchor and Jinx: Lai Bâng, Six, Trường Giang and Nhã Phương, each with its own lines and 25 notes in both languages. Lai Bâng and Six are a couple; Trường Giang adores Nhã Phương, who is comically annoyed by him.
+- Genders settled: every bot is a girl except Lai Bâng and Trường Giang. furyZ and Chamy are no longer a couple but close best friends, and their notes were rewritten to match.
+- Lines shared by all bots (welcomes, goodbyes, reminders, Pomodoro steps) no longer use gendered address such as sir, he or she, and say "you" or "everyone" instead of assuming who is listening.
+- README, the cast table and the website list all 30 personalities.
+
 ## 4.7
 
 - Devlog (website in both languages, and `docs/devlog.md`) rewritten with the Raspberry Pi 5 deployment, the difficulties and how they were solved, the later additions and a lessons section.
@@ -26,7 +33,7 @@
 ## 4.2
 
 - About 1,000 spoken lines per language for each purpose: welcome, voice greeting, voice goodbye (new: when someone who stayed 20 minutes or more leaves), reminders, and 500 each for the start, break, work and done steps of a focus session.
-- furyZ (Valorant gamer) and Chamy (his girlfriend) for bots 22 and 23, with matching couple notes.
+- furyZ (Valorant gamer) and Chamy (her close best friend) for bots 22 and 23, with matching notes about their friendship.
 
 ## 4.1
 

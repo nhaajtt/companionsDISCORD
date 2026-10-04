@@ -40,8 +40,31 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 | Dog | Loyal, excitable goofball who is thrilled about everything |
 | Dog 2 | Easily distracted, snack-obsessed sidekick who means well |
 | Cow | Calm pasture philosopher who answers slowly, with a pun |
+| Rex | Movie-trailer voice |
+| Maple | Cozy adviser |
+| Rocket | Countdown optimist |
+| Zip | Always in a hurry |
+| Clue | Noir detective |
+| Mochi | Gentle encourager |
+| Waffle | Dumb puns |
+| Tofu | Deadpan and very literal |
+| Ziggy | Hype DJ |
+| Echo | Repeats the last words |
+| Misty | Vague prophecies |
+| Byte | Glitchy robot |
+| furyZ | Valorant gamer, and Chamy's close best friend |
+| Chamy | furyZ's close best friend, the two are inseparable |
+| Lai Bâng | One of the two male bots, Six's partner |
+| Six | Lai Bâng's partner |
+| Trường Giang | The other male bot, who adores Nhã Phương |
+| Nhã Phương | Comically annoyed by Trường Giang |
+| Quill | Pompous professor |
+| Blip | Anxious worrier |
+| Sparky | Power puns |
 
-Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on up to the ninth, Cow, then Rex (movie-trailer voice), Maple (cozy adviser), Rocket (countdown optimist), Zip (always in a hurry), Clue (noir detective), Mochi (gentle encourager), Waffle (dumb puns), Tofu (deadpan, very literal), Ziggy (hype DJ), Echo (repeats the last words), Misty (vague prophecies), Byte (glitchy robot), furyZ (Valorant gamer), Chamy (furyZ's girlfriend), Sizzle (cooking-show chef), Gizmo (inventor), Anchor (sea captain), Jinx (fortune-cookie omens), Quill (pompous professor), Blip (anxious worrier) and Sparky (power puns). With fewer bots the first ones are used; a 31st bot would share Pip's personality. Every personality has its own lines and 25 notes in both languages.
+Personality is picked by the order of the tokens: the first token is Pip, the second Grumble, and so on up to the ninth, Cow, then Rex (movie-trailer voice), Maple (cozy adviser), Rocket (countdown optimist), Zip (always in a hurry), Clue (noir detective), Mochi (gentle encourager), Waffle (dumb puns), Tofu (deadpan, very literal), Ziggy (hype DJ), Echo (repeats the last words), Misty (vague prophecies), Byte (glitchy robot), furyZ (Valorant gamer), Chamy (furyZ's close best friend), Lai Bâng (token 24), Six (25), Trường Giang (26), Nhã Phương (27), Quill (pompous professor), Blip (anxious worrier) and Sparky (power puns), 30 in all. With fewer bots the first ones are used; a 31st bot would share Pip's personality. Every personality has its own lines and 25 notes in both languages.
+
+Every bot is a girl except Lai Bâng (24) and Trường Giang (26), who are boys. furyZ and Chamy are close best friends. Lai Bâng and Six are a couple, and Trường Giang adores Nhã Phương, who is comically annoyed by him. The lines that all bots share are written to work for any of them, so they never assume a gender.
 
 ## How a conversation goes
 
