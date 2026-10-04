@@ -9,7 +9,7 @@
 
   var MAX = 30;
   var NAMES = ["Pip", "Grumble", "Nova", "Sage", "Bean", "Diva", "Dog", "Dog 2", "Cow", "Rex", "Maple", "Rocket", "Zip", "Clue", "Mochi", "Waffle", "Tofu", "Ziggy", "Echo", "Misty", "Byte", "furyZ", "Chamy", "Lai Bâng", "Six", "Trường Giang", "Nhã Phương", "Quill", "Blip", "Sparky"];
-  var PERMISSIONS = 562949954538496;
+  var PERMISSIONS = 562949954538560;
   var KEY = "companions-invite-ids";
 
   function personality(n) {

@@ -33,6 +33,12 @@ export const DEFAULTS = {
   lastRecap: "", // the Monday of the last recap that was posted
   drama: false, // once a day (evening) two companions that fit together act out a short scene in the chat channel
   lastDramaDay: "", // the day of the last scene
+  gossip: false, // now and then a few companions chat among themselves in the chat channel (a group chat between friends)
+  gossipSeen: [], // the ids of the gossip scenes seen lately, so they do not repeat
+  gossipDay: "", // the day of the last gossip, and how many there were that day
+  gossipToday: 0,
+  lastGossipAt: 0, // when the last gossip started (ms), to keep a gap between two
+  autoHype: false, // the companions cheer by themselves when someone starts a Go Live stream in voice
   welcome: false, // greet new members (needs the server's join messages) with an icebreaker
 };
 

@@ -17,7 +17,7 @@ Website: https://companionsdiscord.vercel.app (English and Vietnamese). Made by 
 - **Your own content.** Managers can add questions, jokes, facts and polls with a command, no redeploy needed.
 - **They sit in a voice room 24/7.** One or more companions join a voice channel, stay when everyone leaves and rejoin by themselves if they are dropped or the program restarts. They never speak, play or listen: they are just there, so the room looks lived in.
 - **Useful around the room:** a greeting when someone joins the voice room, Pomodoro focus sessions announced in chat, and a voice-time leaderboard.
-- **They look alive.** Each companion shows a funny note under its name from the moment it starts (25 per personality in each language, a new one every 15 minutes, starting at a random one), written to sound like a person; the only thing that replaces them is "Focus session: 12 min left" while a focus session runs (or the camera sign when it is on). They never show a people counter.
+- **They look alive.** Each companion shows a funny note under its name from the moment it starts (25 per personality in each language, a new one every 15 minutes, starting at a random one), written to sound like a person, and about one note in three follows the clock (morning coffee, hungry at noon, tired at night, the weekend); the only thing that replaces them is "Focus session: 12 min left" while a focus session runs (or the camera sign when it is on). They never show a people counter.
 - **Seasons.** Halloween, Christmas, New Year, Tet and Valentine packs of questions, jokes, facts and polls are mixed in on the right days, in both languages.
 - **They learn what works.** Adaptive tuning favours the kinds of conversation that get your members talking, and `/companions stats` shows the best hour.
 - **A weekly recap, trivia streaks and voice regular titles** give a reason to come back.
@@ -78,7 +78,7 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 ## Setup
 
 1. Create 2 to 30 applications in the [Discord Developer Portal](https://discord.com/developers/applications), each with a Bot, and copy each token. No privileged intent is needed.
-2. Invite every bot to your server with this link (replace `CLIENT_ID` with that bot's Application ID): `https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot%20applications.commands&permissions=562949954538496` (View Channel, Send Messages, Read Message History, Send Polls, Connect).
+2. Invite every bot to your server with this link (replace `CLIENT_ID` with that bot's Application ID): `https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot%20applications.commands&permissions=562949954538560` (View Channel, Send Messages, Read Message History, Add Reactions, Send Polls, Connect).
 3. Install, either with the one-command installer on a Raspberry Pi / Debian:
    ```bash
    curl -fsSL https://raw.githubusercontent.com/nhaajtt/companionsDISCORD/main/scripts/install-pi.sh | sh
@@ -120,6 +120,11 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/drama [couple] [language]` | Two companions that fit together act out a short scene in this channel: Lai Bâng and Six, Trường Giang and Nhã Phương, or furyZ and Chamy |
 | `/companions drama enabled` | Every evening (19:00 and later, outside quiet hours) such a scene is acted out in the chat channel, once a day |
 | `/khen-top` | Who was cheered with `/khen` and teased with `/che` the most this week, as names (no IDs) |
+| `/tamchuyen [chude] [language]` | A group chat between a few companions, like friends texting: 3 to 5 bots, 6 to 10 lines, with real threaded replies, pauses and cross-talk (they name each other and tease each other). 56 scenes in both languages: generic topics (food, sleep, weather, tech, games, music, pets, money...), the relationship web (Lai Bâng and Six, Trường Giang and Nhã Phương, furyZ and Chamy and their friends), the clash of the older personalities, and scenes about the owner when an owner is around. A server does not see the same scene again until it saw most of the others |
+| `/companions tamchuyen enabled` | Now and then (10:00 to 22:00, outside quiet hours, 1, 2 or 4 times a day for calm, normal or lively, at least 90 minutes apart, at a random moment) a few companions start such a group chat by themselves in the chat channel |
+| `/dudoan start [minutes] [nguoi] [ten] [goi] [language]` | Opens a prediction for a player's next round: members press Thắng or Thua, some companions bet out loud, and the counts update live. Votes close after 1 to 10 minutes (default 3) |
+| `/dudoan result outcome` | The person who opened it (or a moderator) says thắng or thua: the result is posted with the names of who was right (names only, no pings), and the bets of the companions get their reactions. Everything is kept in memory only |
+| `/companions autohype enabled` | When someone starts a Go Live stream in voice, the companions cheer in the chat channel by themselves until the stream ends (at most an hour, never during quiet hours, not again within 5 minutes) |
 | `/companions voice camera enabled` | Show a "camera on" sign under the name of the companions sitting in a voice room, and have one announce it in the chat. A sign only: bots cannot send real video |
 | `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the greetings on or off (a hello when someone joins the room, a goodbye when someone who stayed 20 minutes or more leaves) |
 | `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
@@ -163,7 +168,7 @@ docker run -d --name companionsdiscord --restart unless-stopped   --env-file .en
 | `COMPANION_TIMEZONE` | Time zone for quiet hours and the daily limit (default `Asia/Ho_Chi_Minh`) |
 | `COMPANION_DATA_DIR` | Where the data files are stored (default `data`; the compose file sets it) |
 | `ALERT_WEBHOOK_URL` | Optional Discord webhook. The bots post a short message there when one is offline or a voice bot cannot rejoin for more than 10 minutes, on an unhandled error, and when they start (each kind at most every 30 minutes; anything token-like is hidden) |
-| `OWNER_IDS` | Optional, comma separated Discord user IDs of the owners of the bots, each with an optional shyness level (`123456789012345678:3`): 1 never softens, 2 (default) softens in the goodbye after 45 minutes in the voice room, 3 is soft from the start. To an owner the companions act shy: they pretend not to care and secretly like them (welcome, voice greetings, goodbyes, reminders and, with Gemini on, the answers). Everyone else gets the normal, warm lines. Leave it empty for no owners |
+| `OWNER_IDS` | Optional, comma separated Discord user IDs of the owners of the bots, each with an optional shyness level (`123456789012345678:3`): 1 never softens, 2 (default) softens in the goodbye after 45 minutes in the voice room, 3 is soft from the start. To an owner the companions act shy: they pretend not to care and secretly like them (welcome, voice greetings, goodbyes, reminders and, with Gemini on, the answers). Everyone else gets the normal, warm lines. When the bots have the Add Reactions permission, now and then one of them reacts to the owner's message in the chat channel (a glance, an eye roll) and takes it back a few seconds later. The owner's name also unlocks the gossip scenes about them. Leave it empty for no owners |
 | `STATUS_PORT` | Optional. Serve a read-only `/status.json` (totals only: uptime, bots online, servers, voice rooms, conversations of the last 7 days) on this port. `STATUS_HOST` defaults to `127.0.0.1`; put a tunnel in front of it to show it on a website |
 
 ## What is stored

@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.12
+
+- `/tamchuyen [chude]` and `/companions tamchuyen enabled`: the companions chat among themselves like friends in a group chat. 56 scenes in both languages (generic topics for any girl bots, the relationship web of bots 22 to 27, the clash of the older personalities, and scenes about the owner). Each scene has 3 to 5 bots, 6 to 10 lines, real threaded replies, human pauses, and bots that name and tease each other. Boys only appear in scenes written for them. A server remembers the last 60 scenes it saw and does not repeat one until it has seen the rest. On their own, group chats start 1, 2 or 4 times a day (calm, normal, lively) between 10:00 and 22:00, outside quiet hours, at least 90 minutes apart and at a random moment.
+- `/dudoan start` and `/dudoan result`: members bet with Thắng or Thua buttons on the player's next round, some companions bet out loud, the counts update live, and the result lists who was right (names only) while the bets get their reactions. Kept in memory only.
+- `/companions autohype enabled`: when someone starts a Go Live stream in voice, the companions cheer in the chat channel by themselves until the stream ends (at most an hour, never in quiet hours).
+- Shy reactions: when the bots have the Add Reactions permission (the invite links ask for it now), now and then one of them reacts to an owner's message in the chat channel and takes it back a few seconds later. Nothing happens without the permission.
+- About one note in three under a bot's name now follows the time of day (morning, noon, afternoon, evening, night, late night and the weekend), and the notes of the first nine bots were rewritten to sound like a real person.
+- The bots' time zone on the Raspberry Pi is now Vietnam time (`COMPANION_TIMEZONE=Asia/Ho_Chi_Minh`), so quiet hours, the evening scene and the Monday recap follow Vietnamese hours.
+
 ## 4.11
 
 - The note under a bot's name no longer says "Sitting in voice with N people" (every bot showed the same line whenever someone was in the room). Bots now always show their own funny notes, one new one every 15 minutes; only a running focus session (or the camera sign) replaces them.

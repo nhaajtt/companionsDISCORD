@@ -134,12 +134,15 @@ const NOTE_ROTATE_MS = 15 * MIN; // a bot changes its note about every 15 minute
  * a running focus session shows the minutes left; otherwise it shows one of its own funny notes, written like a real person would, and moves
  * to the next one every 15 minutes. It never announces "sitting in voice with N": that read the same on every bot.
  * @param {object} lines  the `tools` bank of a language
- * @param {{slot: number, now: number, voice?: {humans: number}|null, focusMinutesLeft?: number|null, notes?: string[], offset?: number, camera?: boolean}} state
+ * @param {{slot: number, now: number, voice?: {humans: number}|null, focusMinutesLeft?: number|null, notes?: string[], offset?: number, camera?: boolean, timeNotes?: string[]|null}} state
  *   `notes` are the persona's notes and `offset` is where in the list this bot started (random on each start)
  */
-export function presenceText(lines, { slot, now, voice = null, focusMinutesLeft = null, notes = null, offset = 0, camera = false }) {
+export function presenceText(lines, { slot, now, voice = null, focusMinutesLeft = null, notes = null, offset = 0, camera = false, timeNotes = null }) {
   if (camera && voice && lines.presenceCamera?.length) return lines.presenceCamera[(offset + slot + Math.floor(now / NOTE_ROTATE_MS)) % lines.presenceCamera.length];
   if (focusMinutesLeft !== null && focusMinutesLeft !== undefined) return fill(lines.presenceFocus, { min: focusMinutesLeft });
+  const window = Math.floor(now / NOTE_ROTATE_MS);
+  // about one note in three follows the time of day (hungry at noon, sleepy at night), the others are the bot's own
+  if (timeNotes?.length && (window + slot + offset) % 3 === 0) return timeNotes[(window * 7 + slot * 3 + offset) % timeNotes.length];
   const list = notes?.length ? notes : lines.presenceIdle;
-  return list[(offset + slot + Math.floor(now / NOTE_ROTATE_MS)) % list.length];
+  return list[(offset + slot + window) % list.length];
 }

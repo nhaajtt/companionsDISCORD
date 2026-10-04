@@ -27,6 +27,9 @@ import { LANGUAGES, PRESETS, createSettingsStore, isQuietHour, localParts, valid
 import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { buildPraise } from "./praise.js";
 import { buildDebate } from "./debate.js";
+import { pickGossip, rememberScene } from "./gossip.js";
+import { PREDICT_LIMITS, Predictions, announceText, closedText, planBets, predictLine, resultText } from "./predict.js";
+import { timeNotesFor } from "./timenotes.js";
 import { pickScene } from "./drama.js";
 import { HYPE_LIMITS, HypeSessions } from "./hype.js";
 import { createPraiseStore } from "./praisestats.js";
@@ -126,6 +129,18 @@ export const companionsCommand = new SlashCommandBuilder()
     s
       .setName("drama")
       .setDescription("Every evening two companions that fit together act out a short scene in the chat channel")
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("tamchuyen")
+      .setDescription("Now and then a few companions chat among themselves in the chat channel, like a group chat")
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("autohype")
+      .setDescription("The companions cheer by themselves when someone starts a Go Live stream in voice")
       .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
   )
   .addSubcommand((s) =>
@@ -395,6 +410,66 @@ export const dramaCommand = new SlashCommandBuilder()
   )
   .addStringOption((o) => o.setName("language").setDescription("Language (default: this server's language)").setDescriptionLocalizations({ vi: "Ngôn ngữ (mặc định: ngôn ngữ của server)" }).addChoices(...LANGUAGE_CHOICES));
 
+const GOSSIP_TOPICS = [
+  ["ngẫu nhiên", ""],
+  ["ăn uống", "food"],
+  ["game", "game"],
+  ["ngủ nghỉ", "sleep"],
+  ["tình yêu", "love"],
+  ["chuyện trong server", "server"],
+  ["thời tiết", "weather"],
+  ["than thở", "rant"],
+  ["chủ bot", "owner"],
+  ["tiền bạc", "money"],
+  ["thú cưng", "pets"],
+  ["âm nhạc", "music"],
+  ["học hành", "study"],
+  ["thời trang", "fashion"],
+  ["công nghệ", "tech"],
+  ["công việc", "work"],
+  ["vui vẻ linh tinh", "fun"],
+].filter(([, value]) => value);
+
+export const tamchuyenCommand = new SlashCommandBuilder()
+  .setName("tamchuyen")
+  .setDescription("The companions chat among themselves like friends in a group chat")
+  .setDescriptionLocalizations({ vi: "Các bot tám chuyện với nhau như một nhóm bạn" })
+  .setDMPermission(false)
+  .addStringOption((o) =>
+    o
+      .setName("chude")
+      .setDescription("The topic (default: any)")
+      .setDescriptionLocalizations({ vi: "Chủ đề (mặc định: bất kỳ)" })
+      .addChoices(...GOSSIP_TOPICS.map(([name, value]) => ({ name, value }))),
+  )
+  .addStringOption((o) => o.setName("language").setDescription("Language (default: this server's language)").setDescriptionLocalizations({ vi: "Ngôn ngữ (mặc định: ngôn ngữ của server)" }).addChoices(...LANGUAGE_CHOICES));
+
+export const dudoanCommand = new SlashCommandBuilder()
+  .setName("dudoan")
+  .setDescription("Predict whether the player wins or loses the next round")
+  .setDescriptionLocalizations({ vi: "Dự đoán người chơi sẽ thắng hay thua ván tới" })
+  .setDMPermission(false)
+  .addSubcommand((s) =>
+    s
+      .setName("start")
+      .setDescription("Open a prediction: members press a button, and some companions bet too")
+      .setDescriptionLocalizations({ vi: "Mở dự đoán: mọi người bấm nút, và một số bot cũng đặt cược" })
+      .addIntegerOption((o) => o.setName("minutes").setDescription("How long votes are taken (1 to 10, default 3)").setDescriptionLocalizations({ vi: "Nhận dự đoán trong bao lâu (1 đến 10 phút, mặc định 3)" }).setMinValue(PREDICT_LIMITS.minMinutes).setMaxValue(PREDICT_LIMITS.maxMinutes))
+      .addUserOption((o) => o.setName("nguoi").setDescription("Pick the player from the server").setDescriptionLocalizations({ vi: "Chọn người chơi trong server" }))
+      .addStringOption((o) => o.setName("ten").setDescription("Or type the player's name").setDescriptionLocalizations({ vi: "Hoặc gõ tên người chơi" }).setMaxLength(30))
+      .addStringOption((o) => o.setName("goi").setDescription("How the bots call the player (default: anh)").setDescriptionLocalizations({ vi: "Các bot gọi người chơi là gì (mặc định: anh)" }).addChoices(...GOI_CHOICES))
+      .addStringOption((o) => o.setName("language").setDescription("Language (default: Vietnamese)").setDescriptionLocalizations({ vi: "Ngôn ngữ (mặc định: Tiếng Việt)" }).addChoices(...LANGUAGE_CHOICES)),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("result")
+      .setDescription("Tell the result: the companions react and the winners are listed")
+      .setDescriptionLocalizations({ vi: "Báo kết quả: các bot phản ứng và liệt kê người đoán đúng" })
+      .addStringOption((o) =>
+        o.setName("outcome").setDescription("Did the player win or lose?").setDescriptionLocalizations({ vi: "Người chơi thắng hay thua?" }).setRequired(true).addChoices({ name: "thắng", value: "win" }, { name: "thua", value: "lose" }),
+      ),
+  );
+
 export const khenTopCommand = new SlashCommandBuilder()
   .setName("khen-top")
   .setDescription("Who was cheered and teased the most this week")
@@ -479,7 +554,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   const bots = {
     available: (guildId, channelId) => slots.filter(({ client }) => canWrite(client, guildId, channelId)).map(({ slot }) => ({ slot })),
 
-    async send({ slot, guildId, channelId, text, replyTo, poll, trivia, pingUsers }) {
+    async send({ slot, guildId, channelId, text, replyTo, poll, trivia, predict, pingUsers }) {
       const channel = channelOf(slot, guildId, channelId);
       if (!channel?.isTextBased()) return null;
       const reply = replyTo ? { messageReference: replyTo, failIfNotExists: false } : undefined;
@@ -503,6 +578,15 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
           }
         }
 
+        if (predict) {
+          const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId(`dd:${predict.token}:win`).setLabel(predict.labels.win).setStyle(ButtonStyle.Success),
+            new ButtonBuilder().setCustomId(`dd:${predict.token}:lose`).setLabel(predict.labels.lose).setStyle(ButtonStyle.Danger),
+          );
+          const message = await channel.send({ content: text, components: [row], allowedMentions: NO_PINGS });
+          return message.id;
+        }
+
         if (trivia) {
           const row = new ActionRowBuilder().addComponents(
             trivia.options.map((_, i) => new ButtonBuilder().setCustomId(`tv:${trivia.token}:${i}`).setLabel(LETTERS[i]).setStyle(ButtonStyle.Primary)),
@@ -520,16 +604,20 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     },
 
     /** Turns the answer buttons of a finished trivia round off. */
-    async edit({ slot, guildId, channelId, messageId, closeTrivia }) {
+    async edit({ slot, guildId, channelId, messageId, closeTrivia, disableButtons, content }) {
       const channel = channelOf(slot, guildId, channelId);
-      if (!channel?.isTextBased() || !closeTrivia) return;
+      if (!channel?.isTextBased() || (!closeTrivia && !disableButtons && content === undefined)) return;
       const message = await channel.messages.fetch(messageId);
-      const rows = message.components.map((row) => {
-        const copy = ActionRowBuilder.from(row);
-        copy.components.forEach((button) => button.setDisabled(true));
-        return copy;
-      });
-      await message.edit({ components: rows });
+      const payload = {};
+      if (content !== undefined) payload.content = content;
+      if (closeTrivia || disableButtons) {
+        payload.components = message.components.map((row) => {
+          const copy = ActionRowBuilder.from(row);
+          copy.components.forEach((button) => button.setDisabled(true));
+          return copy;
+        });
+      }
+      await message.edit(payload);
     },
   };
 
@@ -541,6 +629,129 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     },
     log,
   });
+
+  // /dudoan: members bet with buttons, some companions bet out loud; everything is kept in memory only
+  const predictions = new Predictions({
+    onClose: (session) => {
+      if (!session.where) return;
+      bots.edit({ ...session.where, content: closedText({ language: session.language, ten: session.ten, goi: session.goi, counts: predictions.counts(session.token) }), disableButtons: true }).catch(() => {});
+    },
+  });
+  /** Updates the counts on the message with the buttons, at most once every 3 seconds. */
+  const refreshPrediction = (session) => {
+    if (!session.where || Date.now() - (session.lastEdit ?? 0) < 3000) return;
+    session.lastEdit = Date.now();
+    const minutes = Math.max(1, Math.ceil((session.closesAt - Date.now()) / 60_000));
+    bots.edit({ ...session.where, content: announceText({ language: session.language, ten: session.ten, goi: session.goi, minutes, counts: predictions.counts(session.token) }) }).catch(() => {});
+  };
+  /** A press on a prediction button: Discord delivers it to the bot that sent the message. */
+  const handlePredictVote = (interaction) => {
+    const [, token, side] = interaction.customId.split(":");
+    const session = predictions.get(token);
+    const vi = (session?.language ?? "vi") !== "en";
+    const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral }).catch(() => {});
+    if (!session) return reply(vi ? "Dự đoán này đã kết thúc." : "This prediction is over.");
+    const name = interaction.member?.displayName ?? interaction.user.globalName ?? interaction.user.username;
+    const result = predictions.vote(token, interaction.user.id, name, side);
+    if (!result.ok) return reply(result.reason === "closed" ? (vi ? "Đã hết giờ dự đoán." : "Voting is closed.") : "…");
+    const picked = side === "win" ? (vi ? "thắng ✅" : "win ✅") : vi ? "thua ❌" : "lose ❌";
+    reply(vi ? `Đã ghi nhận: bạn đoán ${picked}${result.changed ? " (đã đổi ý)" : ""}.` : `Got it: you picked ${picked}${result.changed ? " (changed your mind)" : ""}.`);
+    refreshPrediction(session);
+  };
+
+  // The owners of the bots: when one of them was last around, so the companions can gossip about them, and the shy reactions
+  const lastOwnerSeen = new Map(); // guildId -> { at, name }
+  /** The display name of an owner who is in a voice channel or wrote lately in this server, else "". */
+  const ownerNow = (guildId) => {
+    const guild = hostClient.guilds.cache.get(guildId);
+    for (const id of ownerIds.keys()) {
+      const state = guild?.voiceStates.cache.get(id);
+      if (state?.channelId) return state.member?.displayName ?? lastOwnerSeen.get(guildId)?.name ?? "";
+    }
+    const seen = lastOwnerSeen.get(guildId);
+    return seen && Date.now() - seen.at < 3 * 3_600_000 ? seen.name : "";
+  };
+  const lastShyReaction = new Map(); // guildId -> time
+  /** One companion looks at an owner's message and reacts for a moment, then takes the reaction back, as if nothing happened. */
+  const shyReaction = async (client, guildId, channelId, messageId) => {
+    const channel = client.guilds.cache.get(guildId)?.channels.cache.get(channelId);
+    const target = await channel?.messages.fetch(messageId);
+    if (!target) return;
+    const emoji = ["👀", "🙄", "😏", "🤨"][Math.floor(Math.random() * 4)];
+    const first = await target.react(emoji);
+    await sleep(3000 + Math.random() * 5000);
+    await first.users.remove(client.user.id);
+    if (Math.random() < 0.25) {
+      const slip = await target.react("💗");
+      await sleep(2000);
+      await slip.users.remove(client.user.id);
+    }
+  };
+  const maybeReactToOwner = (message) => {
+    if (!ownerIds.has(message.author.id)) return;
+    lastOwnerSeen.set(message.guildId, { at: Date.now(), name: message.member?.displayName ?? message.author.globalName ?? message.author.username });
+    const settings = store.get(message.guildId);
+    if (!settings.enabled || message.channelId !== settings.channelId) return;
+    if (Date.now() - (lastShyReaction.get(message.guildId) ?? 0) < 5 * 60_000 || Math.random() > 0.25) return;
+    const needed = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AddReactions];
+    const able = slots.filter(({ client }) => {
+      const guild = client.guilds.cache.get(message.guildId);
+      const channel = guild?.channels.cache.get(message.channelId);
+      return Boolean(channel && guild.members.me && channel.permissionsFor(guild.members.me)?.has(needed));
+    });
+    if (!able.length) return; // the bots were invited without Add Reactions: nothing happens
+    lastShyReaction.set(message.guildId, Date.now());
+    const { client } = able[Math.floor(Math.random() * able.length)];
+    shyReaction(client, message.guildId, message.channelId, message.id).catch((error) => console.error("A shy reaction failed:", error.message));
+  };
+
+  // Someone starts a Go Live stream in voice: the companions cheer in the chat channel by themselves until the stream ends
+  const liveHypes = new Map(); // "guild:member" -> { key, at, until }
+  const handleLive = (oldState, newState, member) => {
+    const guildId = newState.guild.id;
+    const settings = store.get(guildId);
+    const id = `${guildId}:${member.id}`;
+    const wasLive = Boolean(oldState.streaming);
+    const isLive = Boolean(newState.streaming) && Boolean(newState.channelId);
+    if (!wasLive && isLive) {
+      if (!settings.autoHype || !settings.enabled || !settings.channelId) return;
+      if (isQuietHour(localParts(Date.now(), timezone).hour, settings.quietStart, settings.quietEnd)) return;
+      if (Date.now() - (liveHypes.get(id)?.at ?? 0) < 5 * 60_000) return; // someone who keeps toggling the stream does not restart it
+      const here = bots.available(guildId, settings.channelId).map(({ slot }) => slot);
+      if (!here.length) return;
+      const key = `${guildId}:${settings.channelId}`;
+      const started = hype.start({ key, minutes: HYPE_LIMITS.maxMinutes, mood: "praise", language: settings.language, goi: "bạn", ten: member.displayName, slots: here });
+      if (started.ok) liveHypes.set(id, { key, at: Date.now(), until: started.until });
+    } else if (wasLive && !isLive) {
+      const entry = liveHypes.get(id);
+      if (entry && Date.now() < entry.until) hype.stop(entry.key);
+      liveHypes.delete(id);
+    }
+  };
+
+  // Every so often a few companions start a group chat on their own (when the server turned it on)
+  const GOSSIP_PER_DAY = { calm: 1, normal: 2, lively: 4 };
+  const GOSSIP_GAP_MS = 90 * 60_000;
+  const maybeGossip = async () => {
+    const { hour, day } = localParts(Date.now(), timezone);
+    if (hour < 10 || hour >= 22) return;
+    for (const [guildId, settings] of store.all()) {
+      if (!settings.gossip || !settings.enabled || !settings.channelId) continue;
+      if (isQuietHour(hour, settings.quietStart, settings.quietEnd)) continue;
+      const today = settings.gossipDay === day ? settings.gossipToday : 0;
+      if (today >= (GOSSIP_PER_DAY[settings.preset] ?? 2)) continue;
+      // after the gap, a small chance on every round, so it starts at a random moment and not on the dot
+      if (Date.now() - settings.lastGossipAt < GOSSIP_GAP_MS || Math.random() > 0.02) continue;
+      const channelKey = `${guildId}:${settings.channelId}`;
+      if (hype.status(channelKey) || Date.now() - (lastPraise.get(channelKey) ?? 0) < PRAISE_COOLDOWN_MS) continue;
+      const available = new Set(bots.available(guildId, settings.channelId).map(({ slot }) => slot));
+      const picked = pickGossip({ language: settings.language, available, seen: settings.gossipSeen, ownerName: ownerNow(guildId) });
+      if (!picked) continue;
+      store.update(guildId, { gossipSeen: rememberScene(settings.gossipSeen, picked.id, picked.reset), gossipDay: day, gossipToday: today + 1, lastGossipAt: Date.now() });
+      lastPraise.set(channelKey, Date.now());
+      playScript(bots, guildId, settings.channelId, picked.script, { human: true }).catch((error) => console.error("The gossip stopped:", error.message));
+    }
+  };
 
   // The built-in bank, plus the packs of the season (Halloween, Christmas...), plus what the server's managers added
   const content = (language, guildId) => custom.merge(withSeasons(getContent(language), language, localParts(Date.now(), timezone).day), guildId);
@@ -710,7 +921,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         break;
       }
       const notes = (NOTES[language] ?? NOTES.en)[slot % NOTES.en.length];
-      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot), camera });
+      const timeNotes = timeNotesFor({ language, now, timeZone: timezone });
+      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot), camera, timeNotes });
       if (lastPresence.get(slot) === text) continue;
       lastPresence.set(slot, text);
       client.user.setPresence({ status: "online", activities: [{ name: "custom", type: ActivityType.Custom, state: text }] });
@@ -846,6 +1058,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         return;
       }
       if (!message.guildId || message.author.bot || message.system || message.webhookId) return;
+      if (client === hostClient) maybeReactToOwner(message);
       engine.noteHumanMessage({
         guildId: message.guildId,
         channelId: message.channelId,
@@ -859,6 +1072,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
 
     // Trivia buttons: Discord delivers a button press only to the bot that sent the message
     client.on(Events.InteractionCreate, (interaction) => {
+      if (interaction.isButton() && interaction.customId.startsWith("dd:") && interaction.guildId) return handlePredictVote(interaction);
       if (!interaction.isButton() || !interaction.customId.startsWith("tv:") || !interaction.guildId) return;
       const [, token, choice] = interaction.customId.split(":");
       const result = engine.noteTriviaAnswer({ guildId: interaction.guildId, token, userId: interaction.user.id, choice: Number(choice) });
@@ -869,7 +1083,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   // People moving in and out of the voice rooms (only the first bot listens, the others would repeat it)
   hostClient.on(Events.VoiceStateUpdate, (oldState, newState) => {
     const member = newState.member ?? oldState.member;
-    if (!member || member.user.bot || oldState.channelId === newState.channelId) return;
+    if (!member || member.user.bot) return;
+    handleLive(oldState, newState, member);
+    if (oldState.channelId === newState.channelId) return;
     const settings = store.get(newState.guild.id);
     if (oldState.channelId && isVoiceRoom(settings, oldState.channelId)) voiceTools.userLeft({ guildId: newState.guild.id, userId: member.id, moved: Boolean(newState.channelId && isVoiceRoom(settings, newState.channelId)) });
     if (newState.channelId && isVoiceRoom(settings, newState.channelId)) voiceTools.userJoined({ guildId: newState.guild.id, userId: member.id, channelId: newState.channelId });
@@ -881,7 +1097,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   const registerFor = async (guild) => {
     for (let attempt = 1; attempt <= REGISTER_ATTEMPTS; attempt++) {
       try {
-        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand, khenCommand, cheCommand, clutchCommand, failCommand, hypeCommand, tranhluanCommand, dramaCommand, khenTopCommand].map((c) => c.toJSON()));
+        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand, khenCommand, cheCommand, clutchCommand, failCommand, hypeCommand, tranhluanCommand, dramaCommand, tamchuyenCommand, dudoanCommand, khenTopCommand].map((c) => c.toJSON()));
         return;
       } catch (error) {
         console.error(`Could not register the commands in ${guild.name} (attempt ${attempt} of ${REGISTER_ATTEMPTS}):`, error.message);
@@ -895,9 +1111,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.GuildCreate, registerFor);
 
   host.on(Events.InteractionCreate, (interaction) => {
-    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, khen: handleKhen, che: handleKhen, clutch: handleKhen, fail: handleKhen, hype: handleHype, tranhluan: handleTranhLuan, drama: handleDrama, "khen-top": handleKhenTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
+    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, khen: handleKhen, che: handleKhen, clutch: handleKhen, fail: handleKhen, hype: handleHype, tranhluan: handleTranhLuan, drama: handleDrama, tamchuyen: handleTamChuyen, dudoan: handleDuDoan, "khen-top": handleKhenTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
-    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai, bots, hype, praise }).catch(async (error) => {
+    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai, bots, hype, praise, predictions, ownerNow }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
       const payload = { content: "Something went wrong with that command.", flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) await interaction.followUp(payload).catch(() => {});
@@ -928,6 +1144,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       checkHealth();
       await maybeRecap();
       await maybeDrama();
+      await maybeGossip();
       maybeAiDaily().catch((error) => console.error("AI daily post failed:", error.message));
     } catch (error) {
       console.error("Companion tools tick failed:", error);
@@ -972,6 +1189,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       clearInterval(timer);
       clearInterval(toolsTimer);
       hype.stopAll();
+      predictions.stopAll();
       slots.forEach(({ slot }) => store.all().forEach(([guildId]) => getVoiceConnection(guildId, groupOf(slot))?.destroy()));
       await Promise.all(slots.map(({ client }) => client.destroy()));
     },
@@ -1147,8 +1365,14 @@ export function playerName(interaction) {
 }
 
 /** Said one line after another in the order of the script, each bot typing for a moment, so it reads like a conversation. */
-async function playScript(bots, guildId, channelId, script) {
-  for (const { slot, text } of script) await bots.send({ slot, guildId, channelId, text });
+async function playScript(bots, guildId, channelId, script, { human = false } = {}) {
+  const ids = [];
+  for (const [i, line] of script.entries()) {
+    // a real group chat has gaps: someone reads, someone is slow to answer
+    if (human && i > 0) await sleep(500 + Math.random() * 1800);
+    const replyTo = line.re !== undefined ? (ids[line.re] ?? undefined) : undefined;
+    ids.push((await bots.send({ slot: line.slot, guildId, channelId, text: line.text, replyTo })) ?? null);
+  }
 }
 
 const CHEER_MOODS = {
@@ -1240,6 +1464,91 @@ async function handleDrama(interaction, { bots, store }) {
 }
 
 /** /khen-top: the most cheered and the most teased of this week. */
+/** /tamchuyen: a scripted group chat between a few companions. The topic is optional; a scene a server saw lately is not repeated. */
+async function handleTamChuyen(interaction, { bots, store, ownerNow }) {
+  const here = writersHere(interaction, bots);
+  if (here.reply) return interaction.reply({ content: here.reply, flags: MessageFlags.Ephemeral });
+  const guildId = interaction.guildId;
+  const settings = store.get(guildId);
+  const tag = interaction.options.getString("chude");
+  const picked = pickGossip({ language: interaction.options.getString("language") ?? settings.language, available: new Set(here.slots), seen: settings.gossipSeen, tag, ownerName: ownerNow(guildId) });
+  if (!picked) {
+    lastPraise.delete(`${guildId}:${interaction.channelId}`);
+    const why = tag === "owner" ? "The owner has not been around lately, so the companions have nothing to whisper about." : "Not enough companions that can write here for a chat about that topic.";
+    return interaction.reply({ content: `⚠️ ${why}`, flags: MessageFlags.Ephemeral });
+  }
+  store.update(guildId, { gossipSeen: rememberScene(settings.gossipSeen, picked.id, picked.reset) });
+  await interaction.reply({ content: "🗣️ The companions are gossiping!", flags: MessageFlags.Ephemeral });
+  playScript(bots, guildId, interaction.channelId, picked.script, { human: true }).catch((error) => console.error("The gossip stopped:", error.message));
+}
+
+/** /dudoan start and /dudoan result. */
+async function handleDuDoan(interaction, { bots, store, predictions }) {
+  const guildId = interaction.guildId;
+  const key = `${guildId}:${interaction.channelId}`;
+  const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
+
+  if (interaction.options.getSubcommand() === "result") {
+    const session = predictions.find(key);
+    if (!session) return reply("There is no open prediction in this channel. Start one with `/dudoan start`.");
+    const allowed = session.starterId === interaction.user.id || interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages);
+    if (!allowed) return reply("Only the person who opened the prediction (or a moderator) can give the result.");
+    const outcome = interaction.options.getString("outcome", true);
+    const done = predictions.resolve(key, outcome);
+    await reply("🏁 Result sent!");
+    const { slot } = done.session.where ?? { slot: bots.available(guildId, interaction.channelId)[0]?.slot };
+    const base = { guildId, channelId: interaction.channelId };
+    if (slot !== undefined) await bots.send({ ...base, slot, text: resultText({ language: done.session.language, ten: done.session.ten, goi: done.session.goi, outcome, right: done.right, wrong: done.wrong }) });
+    // the companions that bet react: a few of those who were right, a few of those who were wrong
+    const reactions = [...done.botRight.slice(0, 4).map((s) => [s, "right"]), ...done.botWrong.slice(0, 4).map((s) => [s, "wrong"])];
+    reactions.forEach(([botSlot, kind], i) => {
+      sleep(1500 + i * 1800 + Math.random() * 1200)
+        .then(() => bots.send({ ...base, slot: botSlot, text: predictLine({ slot: botSlot, kind, language: done.session.language, goi: done.session.goi }) }))
+        .catch(() => {});
+    });
+    return;
+  }
+
+  const slots = bots.available(guildId, interaction.channelId).map(({ slot }) => slot);
+  if (!slots.length) return reply("⚠️ No companion can see and write in this channel. Give them View Channel, Send Messages and Read Message History here.");
+  const started = predictions.start({
+    key,
+    starterId: interaction.user.id,
+    ten: playerName(interaction),
+    goi: interaction.options.getString("goi") ?? "anh",
+    language: interaction.options.getString("language") ?? "vi",
+    minutes: interaction.options.getInteger("minutes") ?? PREDICT_LIMITS.defaultMinutes,
+    slots,
+  });
+  if (!started.ok) return reply("🔮 A prediction is already open in this channel. Give its result with `/dudoan result` first.");
+  const session = started.session;
+  await reply(`🔮 Prediction opened for ${session.minutes} minute${session.minutes === 1 ? "" : "s"}. When the round ends, give the result with \`/dudoan result\`.`);
+  // The message with the buttons comes from one companion (a button press goes to the bot that sent the message)
+  const sender = slots[Math.floor(Math.random() * slots.length)];
+  const messageId = await bots.send({
+    slot: sender,
+    guildId,
+    channelId: interaction.channelId,
+    text: announceText({ language: session.language, ten: session.ten, goi: session.goi, minutes: session.minutes, counts: predictions.counts(session.token) }),
+    predict: { token: session.token, labels: session.language === "en" ? { win: "Win ✅", lose: "Lose ❌" } : { win: "Thắng ✅", lose: "Thua ❌" } },
+  });
+  if (!messageId) {
+    predictions.resolve(key, "win"); // the message could not be sent: nothing to vote on, so forget this prediction
+    return;
+  }
+  session.where = { slot: sender, guildId, channelId: interaction.channelId, messageId };
+  // a few other companions bet out loud, one after another
+  planBets({ slots: slots.filter((s) => s !== sender) }).forEach(({ slot, side }, i) => {
+    sleep(4000 + i * 3500 + Math.random() * 3000)
+      .then(async () => {
+        if (!predictions.get(session.token) || session.closed) return;
+        predictions.addBet(session.token, slot, side);
+        await bots.send({ guildId, channelId: interaction.channelId, slot, text: predictLine({ slot, kind: side, language: session.language, goi: session.goi }) });
+      })
+      .catch(() => {});
+  });
+}
+
 async function handleKhenTop(interaction, { store, praise, timezone }) {
   const vi = store.get(interaction.guildId).language === "vi";
   const day = localParts(Date.now(), timezone).day;
@@ -1358,6 +1667,18 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     return reply(enabled ? "🎭 Every evening (19:00 and later, outside quiet hours) two companions that fit together act out a short scene in the chat channel." : "🔇 No more evening scenes.");
   }
 
+  if (sub === "tamchuyen") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { gossip: enabled });
+    return reply(enabled ? "🗣️ Now and then (10:00 to 22:00, outside quiet hours, 1, 2 or 4 times a day for calm, normal or lively) a few companions start a group chat among themselves in the chat channel." : "🔇 The companions stop starting group chats on their own. `/tamchuyen` still works.");
+  }
+
+  if (sub === "autohype") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { autoHype: enabled });
+    return reply(enabled ? "📣 When someone starts a Go Live stream in voice, the companions cheer in the chat channel until the stream ends (at most an hour, never during quiet hours)." : "🔇 The companions no longer cheer by themselves when someone goes live.");
+  }
+
   if (sub === "welcome") {
     const enabled = interaction.options.getBoolean("enabled", true);
     store.update(guildId, { welcome: enabled });
@@ -1432,7 +1753,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     `**Quiet hours:** ${settings.quietStart === settings.quietEnd ? "none" : `${settings.quietStart}:00 to ${settings.quietEnd}:00`} (${timezone})`,
     `**Question of the day:** ${settings.qotdHour === null || settings.qotdHour === undefined ? "off" : `every day at ${settings.qotdHour}:00`}`,
     `**Trivia:** ${settings.trivia === false ? "off" : "on"}, **polls:** ${settings.polls === false ? "off" : "on"}`,
-    `**Weekly recap:** ${settings.recap ? "on" : "off"}, **evening scene:** ${settings.drama ? "on" : "off"}, **voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
+    `**Weekly recap:** ${settings.recap ? "on" : "off"}, **evening scene:** ${settings.drama ? "on" : "off"}, **group chats:** ${settings.gossip ? "on" : "off"}, **cheer on Go Live:** ${settings.autoHype ? "on" : "off"}, **voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
     `**Seasonal packs today:** ${activeSeasons(localParts(Date.now(), timezone).day).join(", ") || "none"}`,
     `**Your own content:** ${custom.count(guildId)} entries`,
     `**Bots that can write there:** ${status.botsAvailable} of ${slots.length}`,
