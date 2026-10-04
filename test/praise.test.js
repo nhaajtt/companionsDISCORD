@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MALE_SLOTS, buildPraise, cleanName } from "../src/praise.js";
 import PRAISE, { TEASE } from "../src/content/praise.js";
-import { cheCommand, khenCommand } from "../src/runtime.js";
+import { cheCommand, khenCommand, playerName } from "../src/runtime.js";
 
 const all = (count) => Array.from({ length: count }, (_, i) => i);
 
@@ -55,7 +55,7 @@ test("khen: a smaller crowd works and the command is valid", () => {
   assert.equal(buildPraise({ language: "vi", slots: [] }).length, 0);
   const json = khenCommand.toJSON();
   assert.equal(json.name, "khen");
-  assert.deepEqual(json.options.map((o) => o.name), ["goi", "ten", "language"]);
+  assert.deepEqual(json.options.map((o) => o.name), ["nguoi", "goi", "ten", "language"]);
   assert.equal(json.dm_permission, false);
 });
 
@@ -83,10 +83,24 @@ test("che: every bot teases with its own line, nobody is flirted with, and the c
   }
   const json = cheCommand.toJSON();
   assert.equal(json.name, "che");
-  assert.deepEqual(json.options.map((o) => o.name), ["goi", "ten", "language"]);
+  assert.deepEqual(json.options.map((o) => o.name), ["nguoi", "goi", "ten", "language"]);
   for (const language of ["vi", "en"]) {
     for (const group of Object.values(TEASE[language])) {
       for (const line of Object.values(group).flat()) assert.ok(!line.includes("\n") && !line.includes("—") && line.length < 120, line);
     }
   }
+});
+
+test("khen: the bots say the picked member's name, and an @mention typed in ten becomes a name, never an ID", () => {
+  const fake = ({ member = null, user = null, ten = null, known = {} }) => ({
+    options: { getMember: () => member, getUser: () => user, getString: () => ten },
+    guild: { members: { cache: { get: (id) => (known[id] ? { displayName: known[id] } : undefined) } } },
+    client: { users: { cache: { get: () => undefined } } },
+  });
+  assert.equal(playerName(fake({ member: { displayName: "Minh" }, user: { username: "minh99" } })), "Minh");
+  assert.equal(playerName(fake({ user: { globalName: "Minh G", username: "minh99" } })), "Minh G");
+  assert.equal(playerName(fake({ ten: "<@659253931788206089>", known: { "659253931788206089": "Nhaajt" } })), "Nhaajt");
+  assert.equal(playerName(fake({ ten: "<@!123456789012345678> ơi" })), " ơi", "an unknown member leaves no number behind");
+  assert.equal(playerName(fake({ ten: "Bạn tôi" })), "Bạn tôi");
+  assert.equal(playerName(fake({})), "");
 });

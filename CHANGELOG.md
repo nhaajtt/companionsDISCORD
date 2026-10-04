@@ -2,6 +2,8 @@
 
 ## 4.10
 
+- `/khen` and `/che` have a `nguoi` option to pick the player from the server: the bots say that member's name. Typing an @mention in `ten` also turns into the member's name; before, only the numeric ID was left.
+
 - `/che`: the same options as `/khen`, but every companion teases the player a little instead (a friendly roast about the play, never about looks or anything personal). A channel can use `/khen` or `/che` once every 20 seconds.
 - `OWNER_IDS` in `.env` (comma separated Discord user IDs): to an owner the companions act shy. They pretend not to care and secretly like them, in the welcome, voice greetings, goodbyes and reminders (about 85 percent of the time, so it never becomes a script) and, with Gemini on, in the answers. Everyone else gets the normal warm lines, and the Gemini answers are told to be delighted. Girls say em, the two boys say tui. Nothing changes while the list is empty.
 

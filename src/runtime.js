@@ -276,6 +276,9 @@ export const khenCommand = new SlashCommandBuilder()
   .setDescription("Every companion cheers on the player, in this channel")
   .setDescriptionLocalizations({ vi: "Tất cả các bot cùng khen người đang chơi, ngay trong kênh này" })
   .setDMPermission(false)
+  .addUserOption((o) =>
+    o.setName("nguoi").setDescription("Pick the player from the server, the bots say their name").setDescriptionLocalizations({ vi: "Chọn người chơi trong server, các bot sẽ gọi tên người đó" }),
+  )
   .addStringOption((o) =>
     o
       .setName("goi")
@@ -284,7 +287,7 @@ export const khenCommand = new SlashCommandBuilder()
       .addChoices({ name: "anh", value: "anh" }, { name: "chị", value: "chị" }, { name: "bạn", value: "bạn" }),
   )
   .addStringOption((o) =>
-    o.setName("ten").setDescription("The player's name, so the bots can say it").setDescriptionLocalizations({ vi: "Tên người chơi, để các bot gọi tên" }).setMaxLength(30),
+    o.setName("ten").setDescription("Or type a name for the bots to say").setDescriptionLocalizations({ vi: "Hoặc gõ một cái tên để các bot gọi" }).setMaxLength(30),
   )
   .addStringOption((o) =>
     o
@@ -300,6 +303,9 @@ export const cheCommand = new SlashCommandBuilder()
   .setDescription("Every companion teases the player a little, in this channel")
   .setDescriptionLocalizations({ vi: "Tất cả các bot cùng chê nhẹ người đang chơi, ngay trong kênh này" })
   .setDMPermission(false)
+  .addUserOption((o) =>
+    o.setName("nguoi").setDescription("Pick the player from the server, the bots say their name").setDescriptionLocalizations({ vi: "Chọn người chơi trong server, các bot sẽ gọi tên người đó" }),
+  )
   .addStringOption((o) =>
     o
       .setName("goi")
@@ -308,7 +314,7 @@ export const cheCommand = new SlashCommandBuilder()
       .addChoices({ name: "anh", value: "anh" }, { name: "chị", value: "chị" }, { name: "bạn", value: "bạn" }),
   )
   .addStringOption((o) =>
-    o.setName("ten").setDescription("The player's name, so the bots can say it").setDescriptionLocalizations({ vi: "Tên người chơi, để các bot gọi tên" }).setMaxLength(30),
+    o.setName("ten").setDescription("Or type a name for the bots to say").setDescriptionLocalizations({ vi: "Hoặc gõ một cái tên để các bot gọi" }).setMaxLength(30),
   )
   .addStringOption((o) =>
     o
@@ -1026,6 +1032,16 @@ const PRAISE_COOLDOWN_MS = 20_000; // one round of cheers takes about 15 seconds
 const PRAISE_GAP_MS = 350; // the bots start one after another, a little apart, so it sounds like a crowd and not a burst
 const lastPraise = new Map();
 
+/** The name the bots say: the member picked in `nguoi`, else the typed `ten` where any @mention becomes that member's name, never an ID. */
+export function playerName(interaction) {
+  const picked = interaction.options.getMember("nguoi");
+  const user = interaction.options.getUser("nguoi");
+  const chosen = picked?.displayName ?? user?.globalName ?? user?.username;
+  if (chosen) return chosen;
+  const typed = interaction.options.getString("ten") ?? "";
+  return typed.replace(/<@[!&]?(\d+)>/g, (_, id) => interaction.guild?.members.cache.get(id)?.displayName ?? interaction.client.users.cache.get(id)?.username ?? "");
+}
+
 /** /khen and /che: every companion that can write in this channel cheers (or teases), one different line each. It does not matter where the bots sit in voice. */
 async function handleKhen(interaction, { bots }) {
   const mood = interaction.commandName === "che" ? "tease" : "praise";
@@ -1039,7 +1055,7 @@ async function handleKhen(interaction, { bots }) {
     mood,
     language: interaction.options.getString("language") ?? "vi",
     goi: interaction.options.getString("goi") ?? "anh",
-    ten: interaction.options.getString("ten") ?? "",
+    ten: playerName(interaction),
     slots: slotsHere,
   });
   await interaction.reply({ content: `${mood === "tease" ? "😏" : "👏"} ${round.length} companion${round.length === 1 ? " is" : "s are"} ${mood === "tease" ? "teasing" : "cheering"} in this channel!`, flags: MessageFlags.Ephemeral });
