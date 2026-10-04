@@ -27,7 +27,11 @@ import { LANGUAGES, PRESETS, createSettingsStore, isQuietHour, localParts, valid
 import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { buildPraise } from "./praise.js";
 import { buildDebate } from "./debate.js";
+import { buildBirthday, createBirthdayStore } from "./birthdays.js";
+import { buildGreeting, greetingDue, localMinuteOfDay } from "./greetings.js";
 import { pickGossip, rememberScene } from "./gossip.js";
+import { MOOD_EMOJI, MOOD_NAME, moodBoard, moodNotesFor, moodOf } from "./mood.js";
+import { WAVE_EMOJI, buildWave } from "./wave.js";
 import { PREDICT_LIMITS, Predictions, announceText, closedText, planBets, predictLine, resultText } from "./predict.js";
 import { timeNotesFor } from "./timenotes.js";
 import { pickScene } from "./drama.js";
@@ -141,6 +145,24 @@ export const companionsCommand = new SlashCommandBuilder()
     s
       .setName("autohype")
       .setDescription("The companions cheer by themselves when someone starts a Go Live stream in voice")
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("chaohoi")
+      .setDescription("Two or three companions say good morning and good night in the chat channel, once a day each")
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("reactions")
+      .setDescription("Now and then a companion leaves a warm reaction on a member's message (needs Add Reactions)")
+      .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("sinhnhat")
+      .setDescription("Sing for the members who saved their birthday with /sinhnhat set")
       .addBooleanOption((o) => o.setName("enabled").setDescription("On or off").setRequired(true)),
   )
   .addSubcommand((s) =>
@@ -470,6 +492,44 @@ export const dudoanCommand = new SlashCommandBuilder()
       ),
   );
 
+export const lamsongCommand = new SlashCommandBuilder()
+  .setName("lamsong")
+  .setDescription("The companions do a stadium wave of emoji, one after another")
+  .setDescriptionLocalizations({ vi: "Các bot làm một làn sóng emoji, lần lượt từng bạn" })
+  .setDMPermission(false)
+  .addStringOption((o) =>
+    o
+      .setName("emoji")
+      .setDescription("Which emoji (default: fire)")
+      .setDescriptionLocalizations({ vi: "Emoji nào (mặc định: lửa)" })
+      .addChoices(...WAVE_EMOJI.map((emoji) => ({ name: emoji, value: emoji }))),
+  )
+  .addUserOption((o) => o.setName("nguoi").setDescription("Pick the player the chant is for").setDescriptionLocalizations({ vi: "Chọn người chơi mà tiếng hô dành cho" }))
+  .addStringOption((o) => o.setName("ten").setDescription("Or type a name for the chant").setDescriptionLocalizations({ vi: "Hoặc gõ một cái tên cho tiếng hô" }).setMaxLength(30))
+  .addStringOption((o) => o.setName("language").setDescription("Language (default: Vietnamese)").setDescriptionLocalizations({ vi: "Ngôn ngữ (mặc định: Tiếng Việt)" }).addChoices(...LANGUAGE_CHOICES));
+
+export const sinhnhatCommand = new SlashCommandBuilder()
+  .setName("sinhnhat")
+  .setDescription("Your birthday: a few companions sing for you in the chat channel (when the server turned it on)")
+  .setDescriptionLocalizations({ vi: "Sinh nhật của bạn: vài bot sẽ hát chúc mừng trong kênh chat (khi server đã bật)" })
+  .setDMPermission(false)
+  .addSubcommand((s) =>
+    s
+      .setName("set")
+      .setDescription("Save your birthday (day and month only, no year)")
+      .setDescriptionLocalizations({ vi: "Lưu sinh nhật của bạn (chỉ ngày và tháng, không có năm)" })
+      .addIntegerOption((o) => o.setName("ngay").setDescription("Day (1 to 31)").setDescriptionLocalizations({ vi: "Ngày (1 đến 31)" }).setRequired(true).setMinValue(1).setMaxValue(31))
+      .addIntegerOption((o) => o.setName("thang").setDescription("Month (1 to 12)").setDescriptionLocalizations({ vi: "Tháng (1 đến 12)" }).setRequired(true).setMinValue(1).setMaxValue(12)),
+  )
+  .addSubcommand((s) => s.setName("remove").setDescription("Erase your birthday").setDescriptionLocalizations({ vi: "Xóa sinh nhật của bạn" }))
+  .addSubcommand((s) => s.setName("list").setDescription("The next birthdays in this server (names only)").setDescriptionLocalizations({ vi: "Các sinh nhật sắp tới trong server (chỉ hiện tên)" }));
+
+export const tamtrangCommand = new SlashCommandBuilder()
+  .setName("tamtrang")
+  .setDescription("The mood of every companion today")
+  .setDescriptionLocalizations({ vi: "Hôm nay tâm trạng của từng bot ra sao" })
+  .setDMPermission(false);
+
 export const khenTopCommand = new SlashCommandBuilder()
   .setName("khen-top")
   .setDescription("Who was cheered and teased the most this week")
@@ -513,7 +573,7 @@ function triviaText({ label, question, options }) {
 }
 
 /** Starts every companion bot and the engine. `tokens` are bot tokens; the first one hosts the slash commands. */
-export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, ai = null, ownerIds = new Map(), praise = createPraiseStore(), alerter = { notify: async () => false }, log = console.log }) {
+export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, ai = null, ownerIds = new Map(), praise = createPraiseStore(), birthdays = createBirthdayStore(), alerter = { notify: async () => false }, log = console.log }) {
   const slots = [];
 
   const logIn = async (slot, token) => {
@@ -659,6 +719,68 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     refreshPrediction(session);
   };
 
+  /** The companions that may react to messages in this channel (they were given the Add Reactions permission). */
+  const reactors = (guildId, channelId) => {
+    const needed = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AddReactions];
+    return slots.filter(({ client }) => {
+      const guild = client.guilds.cache.get(guildId);
+      const channel = guild?.channels.cache.get(channelId);
+      return Boolean(channel && guild.members.me && channel.permissionsFor(guild.members.me)?.has(needed));
+    });
+  };
+  // Everyone else's messages: now and then one companion leaves a warm reaction (an owner gets the shy ones above instead)
+  const WARM_REACTIONS = ["❤️", "😂", "👏", "🔥", "🥹", "😆", "✨", "💯", "🤝", "😍"];
+  const lastWarmReaction = new Map(); // guildId -> time
+  const maybeReactToMember = (message) => {
+    if (ownerIds.has(message.author.id)) return;
+    const settings = store.get(message.guildId);
+    if (!settings.reactions || !settings.enabled || message.channelId !== settings.channelId) return;
+    if (Date.now() - (lastWarmReaction.get(message.guildId) ?? 0) < 2 * 60_000 || Math.random() > 0.12) return;
+    const able = reactors(message.guildId, message.channelId);
+    if (!able.length) return;
+    lastWarmReaction.set(message.guildId, Date.now());
+    const { client } = able[Math.floor(Math.random() * able.length)];
+    const emoji = WARM_REACTIONS[Math.floor(Math.random() * WARM_REACTIONS.length)];
+    Promise.resolve(client.guilds.cache.get(message.guildId)?.channels.cache.get(message.channelId)?.messages.fetch(message.id))
+      .then((target) => target?.react(emoji))
+      .catch((error) => console.error("A warm reaction failed:", error.message));
+  };
+
+  // Good morning and good night: a little chain of two or three bots, once a day each, at a moment that respects the quiet hours
+  const maybeGreet = async () => {
+    const { hour, day } = localParts(Date.now(), timezone);
+    const minuteOfDay = localMinuteOfDay(Date.now(), timezone);
+    for (const [guildId, settings] of store.all()) {
+      if (!settings.greetings || !settings.enabled || !settings.channelId) continue;
+      for (const kind of ["morning", "night"]) {
+        const doneKey = kind === "morning" ? "greetMorningDay" : "greetNightDay";
+        if (settings[doneKey] === day || !greetingDue({ kind, guildId, day, minuteOfDay, settings })) continue;
+        const channelKey = `${guildId}:${settings.channelId}`;
+        if (hype.status(channelKey) || Date.now() - (lastPraise.get(channelKey) ?? 0) < PRAISE_COOLDOWN_MS) continue; // wait for a quieter moment
+        const script = buildGreeting({ kind, language: settings.language, slots: bots.available(guildId, settings.channelId).map(({ slot }) => slot), day });
+        if (!script) continue;
+        store.update(guildId, { [doneKey]: day });
+        playScript(bots, guildId, settings.channelId, script, { human: true }).catch((error) => console.error("The greeting stopped:", error.message));
+      }
+    }
+  };
+
+  // Birthdays: on the day, after the quiet hours, a few bots sing for the member (two birthdays at most per round)
+  const maybeBirthdays = async () => {
+    const { hour, day } = localParts(Date.now(), timezone);
+    if (hour < 9 || hour >= 22) return;
+    for (const [guildId, settings] of store.all()) {
+      if (!settings.birthdays || !settings.enabled || !settings.channelId) continue;
+      if (isQuietHour(hour, settings.quietStart, settings.quietEnd)) continue;
+      for (const person of birthdays.due(guildId, day).slice(0, 2)) {
+        const script = buildBirthday({ language: settings.language, userId: person.userId, slots: bots.available(guildId, settings.channelId).map(({ slot }) => slot) });
+        if (!script) break;
+        birthdays.markDone(guildId, person.userId, day);
+        playScript(bots, guildId, settings.channelId, script, { human: true }).catch((error) => console.error("The birthday choir stopped:", error.message));
+      }
+    }
+  };
+
   // The owners of the bots: when one of them was last around, so the companions can gossip about them, and the shy reactions
   const lastOwnerSeen = new Map(); // guildId -> { at, name }
   /** The display name of an owner who is in a voice channel or wrote lately in this server, else "". */
@@ -693,12 +815,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
     const settings = store.get(message.guildId);
     if (!settings.enabled || message.channelId !== settings.channelId) return;
     if (Date.now() - (lastShyReaction.get(message.guildId) ?? 0) < 5 * 60_000 || Math.random() > 0.25) return;
-    const needed = [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AddReactions];
-    const able = slots.filter(({ client }) => {
-      const guild = client.guilds.cache.get(message.guildId);
-      const channel = guild?.channels.cache.get(message.channelId);
-      return Boolean(channel && guild.members.me && channel.permissionsFor(guild.members.me)?.has(needed));
-    });
+    const able = reactors(message.guildId, message.channelId);
     if (!able.length) return; // the bots were invited without Add Reactions: nothing happens
     lastShyReaction.set(message.guildId, Date.now());
     const { client } = able[Math.floor(Math.random() * able.length)];
@@ -922,7 +1039,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       }
       const notes = (NOTES[language] ?? NOTES.en)[slot % NOTES.en.length];
       const timeNotes = timeNotesFor({ language, now, timeZone: timezone });
-      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot), camera, timeNotes });
+      const moodNotes = moodNotesFor(language, moodOf({ slot, day: localParts(now, timezone).day }));
+      const text = presenceText(getTools(language), { slot, now, voice, focusMinutesLeft: focus, notes, offset: noteOffset.get(slot), camera, timeNotes, moodNotes });
       if (lastPresence.get(slot) === text) continue;
       lastPresence.set(slot, text);
       client.user.setPresence({ status: "online", activities: [{ name: "custom", type: ActivityType.Custom, state: text }] });
@@ -991,7 +1109,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
 
   /** Erases everything stored about a server, in every store. Returns whether anything was there. */
   const forgetGuild = (guildId) => {
-    const results = [store.remove(guildId), usage.forgetGuild(guildId), scores.forgetGuild(guildId), hours.forgetGuild(guildId), custom.forgetGuild(guildId), reminders.forgetGuild(guildId) > 0, praise.forgetGuild(guildId)];
+    const results = [store.remove(guildId), usage.forgetGuild(guildId), scores.forgetGuild(guildId), hours.forgetGuild(guildId), custom.forgetGuild(guildId), reminders.forgetGuild(guildId) > 0, praise.forgetGuild(guildId), birthdays.forgetGuild(guildId)];
     return results.some(Boolean);
   };
 
@@ -1058,7 +1176,10 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
         return;
       }
       if (!message.guildId || message.author.bot || message.system || message.webhookId) return;
-      if (client === hostClient) maybeReactToOwner(message);
+      if (client === hostClient) {
+        maybeReactToOwner(message);
+        maybeReactToMember(message);
+      }
       engine.noteHumanMessage({
         guildId: message.guildId,
         channelId: message.channelId,
@@ -1097,7 +1218,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   const registerFor = async (guild) => {
     for (let attempt = 1; attempt <= REGISTER_ATTEMPTS; attempt++) {
       try {
-        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand, khenCommand, cheCommand, clutchCommand, failCommand, hypeCommand, tranhluanCommand, dramaCommand, tamchuyenCommand, dudoanCommand, khenTopCommand].map((c) => c.toJSON()));
+        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand, khenCommand, cheCommand, clutchCommand, failCommand, hypeCommand, tranhluanCommand, dramaCommand, tamchuyenCommand, dudoanCommand, lamsongCommand, sinhnhatCommand, tamtrangCommand, khenTopCommand].map((c) => c.toJSON()));
         return;
       } catch (error) {
         console.error(`Could not register the commands in ${guild.name} (attempt ${attempt} of ${REGISTER_ATTEMPTS}):`, error.message);
@@ -1111,9 +1232,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.GuildCreate, registerFor);
 
   host.on(Events.InteractionCreate, (interaction) => {
-    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, khen: handleKhen, che: handleKhen, clutch: handleKhen, fail: handleKhen, hype: handleHype, tranhluan: handleTranhLuan, drama: handleDrama, tamchuyen: handleTamChuyen, dudoan: handleDuDoan, "khen-top": handleKhenTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
+    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, khen: handleKhen, che: handleKhen, clutch: handleKhen, fail: handleKhen, hype: handleHype, tranhluan: handleTranhLuan, drama: handleDrama, tamchuyen: handleTamChuyen, dudoan: handleDuDoan, lamsong: handleLamSong, sinhnhat: handleSinhNhat, tamtrang: handleTamTrang, "khen-top": handleKhenTop, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
-    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai, bots, hype, praise, predictions, ownerNow }).catch(async (error) => {
+    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai, bots, hype, praise, birthdays, predictions, ownerNow }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
       const payload = { content: "Something went wrong with that command.", flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) await interaction.followUp(payload).catch(() => {});
@@ -1145,6 +1266,8 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       await maybeRecap();
       await maybeDrama();
       await maybeGossip();
+      await maybeGreet();
+      await maybeBirthdays();
       maybeAiDaily().catch((error) => console.error("AI daily post failed:", error.message));
     } catch (error) {
       console.error("Companion tools tick failed:", error);
@@ -1371,7 +1494,7 @@ async function playScript(bots, guildId, channelId, script, { human = false } = 
     // a real group chat has gaps: someone reads, someone is slow to answer
     if (human && i > 0) await sleep(500 + Math.random() * 1800);
     const replyTo = line.re !== undefined ? (ids[line.re] ?? undefined) : undefined;
-    ids.push((await bots.send({ slot: line.slot, guildId, channelId, text: line.text, replyTo })) ?? null);
+    ids.push((await bots.send({ slot: line.slot, guildId, channelId, text: line.text, replyTo, pingUsers: line.pingUsers })) ?? null);
   }
 }
 
@@ -1549,6 +1672,58 @@ async function handleDuDoan(interaction, { bots, store, predictions }) {
   });
 }
 
+/** /lamsong: a stadium wave of emoji across the bots, with a chant from the one in the middle. */
+async function handleLamSong(interaction, { bots }) {
+  const here = writersHere(interaction, bots);
+  if (here.reply) return interaction.reply({ content: here.reply, flags: MessageFlags.Ephemeral });
+  const script = buildWave({ language: interaction.options.getString("language") ?? "vi", emoji: interaction.options.getString("emoji") ?? "🔥", ten: playerName(interaction), slots: here.slots });
+  if (!script) {
+    lastPraise.delete(`${interaction.guildId}:${interaction.channelId}`);
+    return interaction.reply({ content: "⚠️ A wave needs at least three companions that can write in this channel.", flags: MessageFlags.Ephemeral });
+  }
+  await interaction.reply({ content: "🌊 Here comes the wave!", flags: MessageFlags.Ephemeral });
+  playScript(bots, interaction.guildId, interaction.channelId, script).catch((error) => console.error("The wave stopped:", error.message));
+}
+
+/** /sinhnhat set, remove and list. */
+async function handleSinhNhat(interaction, { birthdays, store, timezone }) {
+  const guildId = interaction.guildId;
+  const settings = store.get(guildId);
+  const vi = settings.language === "vi";
+  const reply = (content, ephemeral = true) => interaction.reply({ content, ...(ephemeral ? { flags: MessageFlags.Ephemeral } : {}), allowedMentions: NO_PINGS });
+  const sub = interaction.options.getSubcommand();
+
+  if (sub === "remove") {
+    return reply(birthdays.remove(guildId, interaction.user.id) ? (vi ? "🗑️ Đã xóa sinh nhật của bạn." : "🗑️ Your birthday was erased.") : vi ? "Bạn chưa lưu sinh nhật." : "You have no birthday saved.");
+  }
+  if (sub === "list") {
+    const day = localParts(Date.now(), timezone).day;
+    const next = birthdays.upcoming(guildId, day);
+    if (!next.length) return reply(vi ? "Chưa ai lưu sinh nhật. Dùng `/sinhnhat set` nhé!" : "Nobody saved a birthday yet. Use `/sinhnhat set`!", false);
+    const lines = next.map((b) => `🎂 **${b.name}** ${b.d}/${b.m} (${b.inDays === 0 ? (vi ? "hôm nay" : "today") : vi ? `còn ${b.inDays} ngày` : `in ${b.inDays} day${b.inDays === 1 ? "" : "s"}`})`);
+    return reply(`${vi ? "Sinh nhật sắp tới" : "Next birthdays"}\n${lines.join("\n")}`, false);
+  }
+  const name = interaction.member?.displayName ?? interaction.user.globalName ?? interaction.user.username;
+  const result = birthdays.set(guildId, interaction.user.id, interaction.options.getInteger("ngay", true), interaction.options.getInteger("thang", true), name);
+  if (!result.ok) return reply(vi ? "Ngày đó không có thật. Thử lại nhé!" : "That date does not exist. Try again!");
+  const off = settings.birthdays ? "" : vi ? "\nServer chưa bật chúc sinh nhật: người quản lý dùng `/companions sinhnhat enabled:true`." : "\nThis server has not turned birthdays on: a manager can use `/companions sinhnhat enabled:true`.";
+  return reply(
+    (vi
+      ? "🎂 Đã lưu sinh nhật của bạn. Bot chỉ giữ ngày và tháng (không có năm), và bạn xóa được bất cứ lúc nào bằng `/sinhnhat remove`."
+      : "🎂 Your birthday is saved. The bots keep only the day and the month (no year), and you can erase it any time with `/sinhnhat remove`.") + off,
+  );
+}
+
+/** /tamtrang: everyone's mood today. */
+async function handleTamTrang(interaction, { store, slots, timezone }) {
+  const language = store.get(interaction.guildId).language;
+  const vi = language === "vi";
+  const day = localParts(Date.now(), timezone).day;
+  const board = moodBoard({ language, day, slots: slots.map(({ slot }) => slot) });
+  const lines = board.map(({ mood, names }) => `${MOOD_EMOJI[mood]} **${MOOD_NAME[language][mood]}**: ${names.join(", ")}`);
+  return interaction.reply({ content: `${vi ? "Tâm trạng của các bot hôm nay" : "The bots' moods today"}\n${lines.join("\n")}`, allowedMentions: NO_PINGS });
+}
+
 async function handleKhenTop(interaction, { store, praise, timezone }) {
   const vi = store.get(interaction.guildId).language === "vi";
   const day = localParts(Date.now(), timezone).day;
@@ -1679,6 +1854,24 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     return reply(enabled ? "📣 When someone starts a Go Live stream in voice, the companions cheer in the chat channel until the stream ends (at most an hour, never during quiet hours)." : "🔇 The companions no longer cheer by themselves when someone goes live.");
   }
 
+  if (sub === "chaohoi") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { greetings: enabled });
+    return reply(enabled ? "☀️🌙 Every day two or three companions say good morning (when the quiet hours end) and good night (the hour before they start) in the chat channel, the first one in the mood it has that day." : "🔇 No more good mornings and good nights.");
+  }
+
+  if (sub === "reactions") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { reactions: enabled });
+    return reply(enabled ? "💬 Now and then a companion leaves a warm reaction on a member's message in the chat channel. It needs the Add Reactions permission; without it nothing happens." : "🔇 No more reactions on members' messages.");
+  }
+
+  if (sub === "sinhnhat") {
+    const enabled = interaction.options.getBoolean("enabled", true);
+    store.update(guildId, { birthdays: enabled });
+    return reply(enabled ? "🎂 On the birthday of every member who saved it with `/sinhnhat set` (from 9:00, outside quiet hours), a few companions sing in the chat channel." : "🔇 The companions no longer sing on birthdays. The saved dates are kept until the members erase them.");
+  }
+
   if (sub === "welcome") {
     const enabled = interaction.options.getBoolean("enabled", true);
     store.update(guildId, { welcome: enabled });
@@ -1753,7 +1946,7 @@ async function handleCommand(interaction, { store, engine, slots, timezone, usag
     `**Quiet hours:** ${settings.quietStart === settings.quietEnd ? "none" : `${settings.quietStart}:00 to ${settings.quietEnd}:00`} (${timezone})`,
     `**Question of the day:** ${settings.qotdHour === null || settings.qotdHour === undefined ? "off" : `every day at ${settings.qotdHour}:00`}`,
     `**Trivia:** ${settings.trivia === false ? "off" : "on"}, **polls:** ${settings.polls === false ? "off" : "on"}`,
-    `**Weekly recap:** ${settings.recap ? "on" : "off"}, **evening scene:** ${settings.drama ? "on" : "off"}, **group chats:** ${settings.gossip ? "on" : "off"}, **cheer on Go Live:** ${settings.autoHype ? "on" : "off"}, **voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
+    `**Weekly recap:** ${settings.recap ? "on" : "off"}, **evening scene:** ${settings.drama ? "on" : "off"}, **group chats:** ${settings.gossip ? "on" : "off"}, **good morning and night:** ${settings.greetings ? "on" : "off"}, **reactions:** ${settings.reactions ? "on" : "off"}, **birthdays:** ${settings.birthdays ? "on" : "off"}, **cheer on Go Live:** ${settings.autoHype ? "on" : "off"}, **voice rooms:** ${roomsOf(settings).length ? roomsOf(settings).map((r) => `<#${r.channelId}> (${r.bots})`).join(", ") : "none"}, **welcome:** ${settings.welcome ? "on" : "off"}`,
     `**Seasonal packs today:** ${activeSeasons(localParts(Date.now(), timezone).day).join(", ") || "none"}`,
     `**Your own content:** ${custom.count(guildId)} entries`,
     `**Bots that can write there:** ${status.botsAvailable} of ${slots.length}`,

@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.14
+
+- Every bot has a mood for the whole day (happy, grumpy, sleepy, excited, dreamy, lazy), worked out from the date and the bot's number, so it is the same all day and after a restart; Grumble leans grumpy, Pip and Rocket lean cheerful. One status note in six shows the mood (184 new notes), and `/tamtrang` shows everyone's mood.
+- `/companions chaohoi enabled`: every day two or three bots say good morning (when the quiet hours end) and good night (the hour before they start) as a little chain of threaded replies, the first bot in its mood of the day. The moment is fixed per server and day, 312 new lines.
+- `/companions reactions enabled`: now and then one bot leaves a warm reaction on a member's message in the chat channel (at most one in about eight messages, once every two minutes). It needs Add Reactions; an owner still gets the shy reactions.
+- `/lamsong [emoji]`: a stadium wave of emoji across up to nine bots, with a chant from the one in the middle (and the player's name when given).
+- `/sinhnhat set`, `remove` and `list` with `/companions sinhnhat enabled`: a member saves their own birthday (day and month, never a year); on the day six to eight bots sing in the chat channel, the first one pinging the person, from 9:00 and outside quiet hours. 29 February is celebrated on the 28th in a year without a 29th. The date is erased with `/sinhnhat remove` or with the rest of the server's data. `birthdays.json` is the fourth file that holds user ids, and the privacy page says so.
+
 ## 4.13
 
 - More than a thousand new lines for `/khen`, `/hype` and the cheering on Go Live, funny and affectionate at once: skill hype, fake news bulletins and world records, tender and proud ones ("drink some water, we are proud of you"), absurd everyday comparisons, dramatic threats and bargaining, about a hundred sweet fangirl lines for the girls, lines with the player's name, lines in the voice of the two boys (Lai Bâng doting, Trường Giang the show host) and about 250 English lines. The bots now pick from about five hundred Vietnamese lines per girl instead of thirty-eight, so a long `/hype` session does not repeat itself for a very long time. Tests check that no line appears twice, not even in the `/che`, `/clutch` and `/fail` banks.

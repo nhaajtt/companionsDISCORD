@@ -39,6 +39,11 @@ export const DEFAULTS = {
   gossipToday: 0,
   lastGossipAt: 0, // when the last gossip started (ms), to keep a gap between two
   autoHype: false, // the companions cheer by themselves when someone starts a Go Live stream in voice
+  greetings: false, // two or three companions say good morning and good night in the chat channel, once a day each
+  greetMorningDay: "", // the day of the last good morning and of the last good night
+  greetNightDay: "",
+  reactions: false, // now and then a companion leaves a warm reaction on a member's message in the chat channel (needs Add Reactions)
+  birthdays: false, // sing for the members who saved their birthday with /sinhnhat
   welcome: false, // greet new members (needs the server's join messages) with an icebreaker
 };
 

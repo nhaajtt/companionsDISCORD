@@ -7,6 +7,7 @@ import { backupData } from "./backup.js";
 import { createCustomStore } from "./custom.js";
 import { startCompanions } from "./runtime.js";
 import { createReminderStore } from "./reminders.js";
+import { createBirthdayStore } from "./birthdays.js";
 import { createPraiseStore } from "./praisestats.js";
 import { createScoreStore } from "./scores.js";
 import { createSettingsStore, localParts, validTimeZone } from "./settings.js";
@@ -39,6 +40,7 @@ const scores = createScoreStore(path.join(dataDir, "scores.json"));
 const custom = createCustomStore(path.join(dataDir, "custom.json"));
 const hours = createScoreStore(path.join(dataDir, "voice.json"));
 const praise = createPraiseStore(path.join(dataDir, "praise.json"));
+const birthdays = createBirthdayStore(path.join(dataDir, "birthdays.json"));
 const reminders = createReminderStore(path.join(dataDir, "reminders.json"));
 const alerter = createAlerter({ url: process.env.ALERT_WEBHOOK_URL });
 if (alerter.enabled) console.log("Alerts are on: problems are sent to ALERT_WEBHOOK_URL.");
@@ -62,7 +64,7 @@ setInterval(backupNow, 3_600_000).unref();
 let stop;
 let snapshot;
 try {
-  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, MAX_BOTS), store, usage, scores, custom, hours, praise, reminders, timezone, alerter, ai, ownerIds: parseOwnerIds(process.env.OWNER_IDS) }));
+  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, MAX_BOTS), store, usage, scores, custom, hours, praise, birthdays, reminders, timezone, alerter, ai, ownerIds: parseOwnerIds(process.env.OWNER_IDS) }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);
