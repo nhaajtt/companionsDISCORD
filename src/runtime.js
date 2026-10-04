@@ -25,6 +25,7 @@ import { POMODORO_LIMITS, fill } from "./pomodoro.js";
 import { ReminderError, parseDuration } from "./reminders.js";
 import { LANGUAGES, PRESETS, createSettingsStore, isQuietHour, localParts, validTimeZone } from "./settings.js";
 import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
+import { buildPraise } from "./praise.js";
 import { VoiceTools, presenceText } from "./voicetools.js";
 import { getContent } from "./content/index.js";
 import { activeSeasons, withSeasons } from "./content/seasons.js";
@@ -267,6 +268,30 @@ export const assembleCommand = new SlashCommandBuilder()
   .setDMPermission(false)
   .setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
   .addIntegerOption((o) => o.setName("bots").setDescription("How many companions come (default: all of them)").setMinValue(1).setMaxValue(30));
+
+// Anyone can use it (a server can restrict it in Integrations): every companion cheers in the channel where it was typed
+export const khenCommand = new SlashCommandBuilder()
+  .setName("khen")
+  .setDescription("Every companion cheers on the player, in this channel")
+  .setDescriptionLocalizations({ vi: "Tất cả các bot cùng khen người đang chơi, ngay trong kênh này" })
+  .setDMPermission(false)
+  .addStringOption((o) =>
+    o
+      .setName("goi")
+      .setDescription("How the bots call the player (default: anh)")
+      .setDescriptionLocalizations({ vi: "Các bot gọi người chơi là gì (mặc định: anh)" })
+      .addChoices({ name: "anh", value: "anh" }, { name: "chị", value: "chị" }, { name: "bạn", value: "bạn" }),
+  )
+  .addStringOption((o) =>
+    o.setName("ten").setDescription("The player's name, so the bots can say it").setDescriptionLocalizations({ vi: "Tên người chơi, để các bot gọi tên" }).setMaxLength(30),
+  )
+  .addStringOption((o) =>
+    o
+      .setName("language")
+      .setDescription("Language of the cheers (default: Vietnamese)")
+      .setDescriptionLocalizations({ vi: "Ngôn ngữ lời khen (mặc định: Tiếng Việt)" })
+      .addChoices({ name: "Tiếng Việt", value: "vi" }, { name: "English", value: "en" }),
+  );
 
 export const remindCommand = new SlashCommandBuilder()
   .setName("remind")
@@ -718,7 +743,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   const registerFor = async (guild) => {
     for (let attempt = 1; attempt <= REGISTER_ATTEMPTS; attempt++) {
       try {
-        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand].map((c) => c.toJSON()));
+        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand, khenCommand].map((c) => c.toJSON()));
         return;
       } catch (error) {
         console.error(`Could not register the commands in ${guild.name} (attempt ${attempt} of ${REGISTER_ATTEMPTS}):`, error.message);
@@ -732,9 +757,9 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.GuildCreate, registerFor);
 
   host.on(Events.InteractionCreate, (interaction) => {
-    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
+    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, khen: handleKhen, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
-    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai }).catch(async (error) => {
+    handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai, bots }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
       const payload = { content: "Something went wrong with that command.", flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) await interaction.followUp(payload).catch(() => {});
@@ -965,6 +990,33 @@ async function handleRandom(interaction, { keeper, seedVoiceGuild }) {
   const total = rooms.reduce((n, r) => n + r.slots.length, 0);
   const lines = rooms.map((r) => `<#${r.channelId}>: ${r.slots.length}`).join("\n");
   return interaction.editReply(`🎲 ${total} companion${total === 1 ? "" : "s"} sent to ${rooms.length} random room${rooms.length === 1 ? "" : "s"}. They arrive within about half a minute and stay until you use /random, /assemble or /companions voice again.\n${lines}`);
+}
+
+const PRAISE_COOLDOWN_MS = 20_000; // one round of cheers takes about 15 seconds; a channel gets a new one at most every 20
+const PRAISE_GAP_MS = 350; // the bots start one after another, a little apart, so it sounds like a crowd and not a burst
+const lastPraise = new Map();
+
+/** /khen: every companion that can write in this channel cheers, one different line each. It does not matter where the bots sit in voice. */
+async function handleKhen(interaction, { bots }) {
+  const key = `${interaction.guildId}:${interaction.channelId}`;
+  const wait = PRAISE_COOLDOWN_MS - (Date.now() - (lastPraise.get(key) ?? 0));
+  if (wait > 0) return interaction.reply({ content: `⏳ The companions are still cheering here. Try again in ${Math.ceil(wait / 1000)} seconds.`, flags: MessageFlags.Ephemeral });
+  const slotsHere = bots.available(interaction.guildId, interaction.channelId).map(({ slot }) => slot);
+  if (!slotsHere.length) return interaction.reply({ content: "⚠️ No companion can see and write in this channel. Give them View Channel, Send Messages and Read Message History here.", flags: MessageFlags.Ephemeral });
+  lastPraise.set(key, Date.now());
+  const round = buildPraise({
+    language: interaction.options.getString("language") ?? "vi",
+    goi: interaction.options.getString("goi") ?? "anh",
+    ten: interaction.options.getString("ten") ?? "",
+    slots: slotsHere,
+  });
+  await interaction.reply({ content: `👏 ${round.length} companion${round.length === 1 ? " is" : "s are"} cheering in this channel!`, flags: MessageFlags.Ephemeral });
+  // Not awaited: the answer is already sent, and the cheers keep coming for the next few seconds
+  round.forEach(({ slot, text }, i) => {
+    sleep(i * PRAISE_GAP_MS + Math.random() * PRAISE_GAP_MS)
+      .then(() => bots.send({ slot, guildId: interaction.guildId, channelId: interaction.channelId, text }))
+      .catch((error) => console.error(`Companion ${slot + 1} could not cheer:`, error.message));
+  });
 }
 
 async function handleCommand(interaction, { store, engine, slots, timezone, usage, custom, reminders, keeper, voicePort, seedVoiceGuild, forgetGuild, say, updatePresence, ai }) {

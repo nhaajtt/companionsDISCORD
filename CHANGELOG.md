@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.9
+
+- `/khen`: every companion cheers on the player in the channel where the command is typed, one different line each, a few seconds apart ("anh hay quá", "anh giỏi quá" and more). Options: `goi` (anh, chị or bạn), `ten` (a name to say) and `language` (Tiếng Việt by default, or English). The girls call themselves em and the two boys say tui; it works in any channel the bots can write in, wherever they sit in voice. Once every 20 seconds per channel.
+
 ## 4.8
 
 - Four new personalities for bots 24 to 27, replacing Sizzle, Gizmo, Anchor and Jinx: Lai Bâng, Six, Trường Giang and Nhã Phương, each with its own lines and 25 notes in both languages. Lai Bâng and Six are a couple; Trường Giang adores Nhã Phương, who is comically annoyed by him.
