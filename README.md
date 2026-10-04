@@ -113,6 +113,7 @@ Besides those, the bots sometimes post a **poll** (a Discord poll, with a reacti
 | `/assemble [bots]` | Call the companions to the voice channel you are in (all of them, or `bots` of them); the other voice rooms are emptied and the bots stay there. Needs the Move Members permission by default, once a minute per server |
 | `/random [bots]` | Send the companions to random voice channels they can connect to (all of them, or `bots` of them); they stay there until the next `/random`, `/assemble` or `/companions voice join` |
 | `/khen [goi] [ten] [language]` | Every companion that can write in this channel cheers on the player, one different line each, in the channel where the command was typed (made for cheering a friend who is streaming). It does not matter which voice room the bots sit in. `goi` is how they call the player (anh, chị or bạn), `ten` is a name they can say, `language` is Tiếng Việt (default) or English. Anyone can use it (restrict it in Integrations if you prefer), once every 20 seconds per channel |
+| `/che [goi] [ten] [language]` | The same as `/khen`, but every companion teases the player a little instead: a friendly roast, never about looks or anything personal. Shares the 20 second wait with `/khen` in each channel |
 | `/companions voice camera enabled` | Show a "camera on" sign under the name of the companions sitting in a voice room, and have one announce it in the chat. A sign only: bots cannot send real video |
 | `/companions voice status \| greet enabled` | See which bot sits in which room, or turn the greetings on or off (a hello when someone joins the room, a goodbye when someone who stayed 20 minutes or more leaves) |
 | `/companions welcome enabled` | Greet new members with an icebreaker (needs the server's join messages) |
@@ -156,6 +157,7 @@ docker run -d --name companionsdiscord --restart unless-stopped   --env-file .en
 | `COMPANION_TIMEZONE` | Time zone for quiet hours and the daily limit (default `Asia/Ho_Chi_Minh`) |
 | `COMPANION_DATA_DIR` | Where the data files are stored (default `data`; the compose file sets it) |
 | `ALERT_WEBHOOK_URL` | Optional Discord webhook. The bots post a short message there when one is offline or a voice bot cannot rejoin for more than 10 minutes, on an unhandled error, and when they start (each kind at most every 30 minutes; anything token-like is hidden) |
+| `OWNER_IDS` | Optional, comma separated Discord user IDs of the owners of the bots. To an owner the companions act shy: they pretend not to care and secretly like them (welcome, voice greetings, goodbyes, reminders and, with Gemini on, the answers). Everyone else gets the normal, warm lines. Leave it empty for no owners |
 | `STATUS_PORT` | Optional. Serve a read-only `/status.json` (totals only: uptime, bots online, servers, voice rooms, conversations of the last 7 days) on this port. `STATUS_HOST` defaults to `127.0.0.1`; put a tunnel in front of it to show it on a website |
 
 ## What is stored

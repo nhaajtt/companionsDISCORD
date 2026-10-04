@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { MALE_SLOTS, buildPraise, cleanName } from "../src/praise.js";
-import PRAISE from "../src/content/praise.js";
-import { khenCommand } from "../src/runtime.js";
+import PRAISE, { TEASE } from "../src/content/praise.js";
+import { cheCommand, khenCommand } from "../src/runtime.js";
 
 const all = (count) => Array.from({ length: count }, (_, i) => i);
 
@@ -62,6 +62,30 @@ test("khen: a smaller crowd works and the command is valid", () => {
 test("khen: the lines are single-line, short and free of em dashes", () => {
   for (const language of ["vi", "en"]) {
     for (const group of Object.values(PRAISE[language])) {
+      for (const line of Object.values(group).flat()) assert.ok(!line.includes("\n") && !line.includes("—") && line.length < 120, line);
+    }
+  }
+});
+
+test("che: every bot teases with its own line, nobody is flirted with, and the command is valid", () => {
+  for (const language of ["vi", "en"]) {
+    for (const goi of ["anh", "chị", "bạn"]) {
+      for (const ten of ["", "Minh"]) {
+        const round = buildPraise({ mood: "tease", language, goi, ten, slots: all(30) });
+        assert.equal(new Set(round.map((r) => r.text)).size, 30, `${language} ${goi} ${ten}: no repeated line`);
+        const praise = new Set(buildPraise({ mood: "praise", language, goi, ten, slots: all(30) }).map((r) => r.text));
+        for (const { text } of round) {
+          assert.ok(!/\{|\}|undefined|@/.test(text) && !/đẻ con/.test(text), text);
+          assert.ok(!praise.has(text), "a tease is not a praise line");
+        }
+      }
+    }
+  }
+  const json = cheCommand.toJSON();
+  assert.equal(json.name, "che");
+  assert.deepEqual(json.options.map((o) => o.name), ["goi", "ten", "language"]);
+  for (const language of ["vi", "en"]) {
+    for (const group of Object.values(TEASE[language])) {
       for (const line of Object.values(group).flat()) assert.ok(!line.includes("\n") && !line.includes("—") && line.length < 120, line);
     }
   }

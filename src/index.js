@@ -9,6 +9,7 @@ import { startCompanions } from "./runtime.js";
 import { createReminderStore } from "./reminders.js";
 import { createScoreStore } from "./scores.js";
 import { createSettingsStore, localParts, validTimeZone } from "./settings.js";
+import { parseOwnerIds } from "./tsundere.js";
 import { createStatusServer } from "./status.js";
 import { createUsageStore } from "./usage.js";
 
@@ -59,7 +60,7 @@ setInterval(backupNow, 3_600_000).unref();
 let stop;
 let snapshot;
 try {
-  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, MAX_BOTS), store, usage, scores, custom, hours, reminders, timezone, alerter, ai }));
+  ({ stop, snapshot } = await startCompanions({ tokens: tokens.slice(0, MAX_BOTS), store, usage, scores, custom, hours, reminders, timezone, alerter, ai, ownerIds: parseOwnerIds(process.env.OWNER_IDS) }));
 } catch (error) {
   console.error(error.message);
   process.exit(1);

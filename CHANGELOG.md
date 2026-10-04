@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.10
+
+- `/che`: the same options as `/khen`, but every companion teases the player a little instead (a friendly roast about the play, never about looks or anything personal). A channel can use `/khen` or `/che` once every 20 seconds.
+- `OWNER_IDS` in `.env` (comma separated Discord user IDs): to an owner the companions act shy. They pretend not to care and secretly like them, in the welcome, voice greetings, goodbyes and reminders (about 85 percent of the time, so it never becomes a script) and, with Gemini on, in the answers. Everyone else gets the normal warm lines, and the Gemini answers are told to be delighted. Girls say em, the two boys say tui. Nothing changes while the list is empty.
+
 ## 4.9
 
 - `/khen`: every companion cheers on the player in the channel where the command is typed, one different line each, a few seconds apart ("anh hay quá", "anh giỏi quá" and more). Options: `goi` (anh, chị or bạn), `ten` (a name to say) and `language` (Tiếng Việt by default, or English). The girls call themselves em and the two boys say tui; it works in any channel the bots can write in, wherever they sit in voice. Once every 20 seconds per channel.

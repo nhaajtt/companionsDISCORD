@@ -26,6 +26,7 @@ import { ReminderError, parseDuration } from "./reminders.js";
 import { LANGUAGES, PRESETS, createSettingsStore, isQuietHour, localParts, validTimeZone } from "./settings.js";
 import { VoiceKeeper, isVoiceRoom, roomsOf } from "./voice.js";
 import { buildPraise } from "./praise.js";
+import { TSUNDERE_CHANCE, tsundereLine } from "./tsundere.js";
 import { VoiceTools, presenceText } from "./voicetools.js";
 import { getContent } from "./content/index.js";
 import { activeSeasons, withSeasons } from "./content/seasons.js";
@@ -293,6 +294,30 @@ export const khenCommand = new SlashCommandBuilder()
       .addChoices({ name: "Tiếng Việt", value: "vi" }, { name: "English", value: "en" }),
   );
 
+// The same options as /khen, for a friendly roast of the player instead
+export const cheCommand = new SlashCommandBuilder()
+  .setName("che")
+  .setDescription("Every companion teases the player a little, in this channel")
+  .setDescriptionLocalizations({ vi: "Tất cả các bot cùng chê nhẹ người đang chơi, ngay trong kênh này" })
+  .setDMPermission(false)
+  .addStringOption((o) =>
+    o
+      .setName("goi")
+      .setDescription("How the bots call the player (default: anh)")
+      .setDescriptionLocalizations({ vi: "Các bot gọi người chơi là gì (mặc định: anh)" })
+      .addChoices({ name: "anh", value: "anh" }, { name: "chị", value: "chị" }, { name: "bạn", value: "bạn" }),
+  )
+  .addStringOption((o) =>
+    o.setName("ten").setDescription("The player's name, so the bots can say it").setDescriptionLocalizations({ vi: "Tên người chơi, để các bot gọi tên" }).setMaxLength(30),
+  )
+  .addStringOption((o) =>
+    o
+      .setName("language")
+      .setDescription("Language of the teasing (default: Vietnamese)")
+      .setDescriptionLocalizations({ vi: "Ngôn ngữ lời chê (mặc định: Tiếng Việt)" })
+      .addChoices({ name: "Tiếng Việt", value: "vi" }, { name: "English", value: "en" }),
+  );
+
 export const remindCommand = new SlashCommandBuilder()
   .setName("remind")
   .setDescription("A companion reminds you of something, in this channel")
@@ -330,7 +355,7 @@ function triviaText({ label, question, options }) {
 }
 
 /** Starts every companion bot and the engine. `tokens` are bot tokens; the first one hosts the slash commands. */
-export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, ai = null, alerter = { notify: async () => false }, log = console.log }) {
+export async function startCompanions({ tokens, store, usage, scores, custom, hours, reminders, timezone, ai = null, ownerIds = new Set(), alerter = { notify: async () => false }, log = console.log }) {
   const slots = [];
 
   const logIn = async (slot, token) => {
@@ -502,7 +527,12 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
    * A line for a purpose ("welcome", "greet", "bye", "remind") in the voice of the bot that says it: most of the time one of
    * that personality's own lines, now and then one from the big shared pool.
    */
-  const lineFor = ({ language, slot, purpose, pool }) => {
+  const lineFor = ({ language, slot, purpose, pool, userId }) => {
+    // An owner of the bots gets the shy lines ("I do not care about you", secretly the opposite); everyone else the warm ones
+    if (userId && ownerIds.has(String(userId)) && Math.random() < TSUNDERE_CHANCE) {
+      const shy = tsundereLine({ language, slot, purpose });
+      if (shy) return shy;
+    }
     const own = slot === undefined ? null : (VOICES[language] ?? VOICES.en)[slot % VOICES.en.length]?.[purpose];
     const list = own?.length && Math.random() < 0.8 ? own : pool;
     return list[Math.floor(Math.random() * list.length)];
@@ -604,7 +634,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       if (earlier?.author?.id === message.client.user.id) context = earlier.content;
     }
     const personas = getContent(settings.language).personas;
-    const answer = await ai.reply({ guildId, userId: message.author.id, persona: personas[slot % personas.length], language: settings.language, text, context });
+    const answer = await ai.reply({ guildId, userId: message.author.id, persona: personas[slot % personas.length], language: settings.language, text, context, owner: ownerIds.size ? ownerIds.has(message.author.id) : null });
     await send(answer ?? lines.aiFallback[Math.floor(Math.random() * lines.aiFallback.length)]);
   };
 
@@ -681,7 +711,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
       }
       const text =
         item.kind === "remind"
-          ? fill(lineFor({ language: store.get(item.guildId).language, slot, purpose: "remind", pool: lines.remind }), { user: `<@${item.userId}>`, text: item.text })
+          ? fill(lineFor({ language: store.get(item.guildId).language, slot, purpose: "remind", pool: lines.remind, userId: item.userId }), { user: `<@${item.userId}>`, text: item.text })
           : fill({ day: lines.eventDay, hour: lines.eventHour, due: lines.eventNow }[stage], { text: item.text });
       await bots.send({ slot, guildId: item.guildId, channelId: item.channelId, text, pingUsers: item.kind === "remind" ? [item.userId] : [] });
       if (stage === "due") reminders.done(item.id);
@@ -701,7 +731,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
           // any companion that can write there welcomes them, in its own voice
           const welcomers = bots.available(message.guildId, settings.channelId);
           const welcomer = welcomers.length ? welcomers[Math.floor(Math.random() * welcomers.length)].slot : undefined;
-          const greeting = fill(lineFor({ language: settings.language, slot: welcomer, purpose: "welcome", pool: lines.welcome }), { user: `<@${message.author.id}>` });
+          const greeting = fill(lineFor({ language: settings.language, slot: welcomer, purpose: "welcome", pool: lines.welcome, userId: message.author.id }), { user: `<@${message.author.id}>` });
           const ask = questions[Math.floor(Math.random() * questions.length)]?.text;
           say({ guildId: message.guildId, slot: welcomer, text: ask ? `${greeting}\n${lines.welcomeAsk} ${ask}` : greeting }).catch(() => {});
         }
@@ -743,7 +773,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   const registerFor = async (guild) => {
     for (let attempt = 1; attempt <= REGISTER_ATTEMPTS; attempt++) {
       try {
-        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand, khenCommand].map((c) => c.toJSON()));
+        await guild.commands.set([companionsCommand, triviaCommand, voiceCommand, pomodoroCommand, remindCommand, eventCommand, randomCommand, assembleCommand, khenCommand, cheCommand].map((c) => c.toJSON()));
         return;
       } catch (error) {
         console.error(`Could not register the commands in ${guild.name} (attempt ${attempt} of ${REGISTER_ATTEMPTS}):`, error.message);
@@ -757,7 +787,7 @@ export async function startCompanions({ tokens, store, usage, scores, custom, ho
   host.on(Events.GuildCreate, registerFor);
 
   host.on(Events.InteractionCreate, (interaction) => {
-    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, khen: handleKhen, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
+    const handlers = { companions: handleCommand, trivia: handleTrivia, voice: handleVoiceTop, random: handleRandom, assemble: handleAssemble, khen: handleKhen, che: handleKhen, pomodoro: handlePomodoro, remind: handleRemind, event: handleRemind };
     if (!interaction.isChatInputCommand() || !handlers[interaction.commandName]) return;
     handlers[interaction.commandName](interaction, { store, engine, slots, timezone, usage, scores, custom, hours, reminders, keeper, voiceTools, voicePort, seedVoiceGuild, say, forgetGuild, updatePresence, ai, bots }).catch(async (error) => {
       console.error(`/${interaction.commandName} failed:`, error);
@@ -996,26 +1026,28 @@ const PRAISE_COOLDOWN_MS = 20_000; // one round of cheers takes about 15 seconds
 const PRAISE_GAP_MS = 350; // the bots start one after another, a little apart, so it sounds like a crowd and not a burst
 const lastPraise = new Map();
 
-/** /khen: every companion that can write in this channel cheers, one different line each. It does not matter where the bots sit in voice. */
+/** /khen and /che: every companion that can write in this channel cheers (or teases), one different line each. It does not matter where the bots sit in voice. */
 async function handleKhen(interaction, { bots }) {
+  const mood = interaction.commandName === "che" ? "tease" : "praise";
   const key = `${interaction.guildId}:${interaction.channelId}`;
   const wait = PRAISE_COOLDOWN_MS - (Date.now() - (lastPraise.get(key) ?? 0));
-  if (wait > 0) return interaction.reply({ content: `⏳ The companions are still cheering here. Try again in ${Math.ceil(wait / 1000)} seconds.`, flags: MessageFlags.Ephemeral });
+  if (wait > 0) return interaction.reply({ content: `⏳ The companions are still busy in this channel. Try again in ${Math.ceil(wait / 1000)} seconds.`, flags: MessageFlags.Ephemeral });
   const slotsHere = bots.available(interaction.guildId, interaction.channelId).map(({ slot }) => slot);
   if (!slotsHere.length) return interaction.reply({ content: "⚠️ No companion can see and write in this channel. Give them View Channel, Send Messages and Read Message History here.", flags: MessageFlags.Ephemeral });
   lastPraise.set(key, Date.now());
   const round = buildPraise({
+    mood,
     language: interaction.options.getString("language") ?? "vi",
     goi: interaction.options.getString("goi") ?? "anh",
     ten: interaction.options.getString("ten") ?? "",
     slots: slotsHere,
   });
-  await interaction.reply({ content: `👏 ${round.length} companion${round.length === 1 ? " is" : "s are"} cheering in this channel!`, flags: MessageFlags.Ephemeral });
+  await interaction.reply({ content: `${mood === "tease" ? "😏" : "👏"} ${round.length} companion${round.length === 1 ? " is" : "s are"} ${mood === "tease" ? "teasing" : "cheering"} in this channel!`, flags: MessageFlags.Ephemeral });
   // Not awaited: the answer is already sent, and the cheers keep coming for the next few seconds
   round.forEach(({ slot, text }, i) => {
     sleep(i * PRAISE_GAP_MS + Math.random() * PRAISE_GAP_MS)
       .then(() => bots.send({ slot, guildId: interaction.guildId, channelId: interaction.channelId, text }))
-      .catch((error) => console.error(`Companion ${slot + 1} could not cheer:`, error.message));
+      .catch((error) => console.error(`Companion ${slot + 1} could not ${mood === "tease" ? "tease" : "cheer"}:`, error.message));
   });
 }
 
